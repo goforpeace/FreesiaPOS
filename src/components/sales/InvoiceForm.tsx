@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { PlusCircle, X } from "lucide-react"
+import Image from "next/image"
 
 import type { Product, Sale, SaleItem } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
@@ -96,6 +97,11 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
   const handleRemoveItem = (productId: string) => {
     setItems(items.filter(item => item.productId !== productId))
   }
+  
+  const handleItemChange = (productId: string, field: keyof SaleItem, value: string | number) => {
+    setItems(items.map(item => item.productId === productId ? { ...item, [field]: value } : item));
+  };
+
 
   const handleQuantityChange = (productId: string, quantity: number) => {
     const product = allProducts.find(p => p.id === productId)
@@ -111,7 +117,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
   }
 
   const subtotal = items.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0)
-  const total = subtotal + (shippingCost || 0) - (discount || 0);
+  const total = subtotal + Number(shippingCost || 0) - Number(discount || 0);
 
   function onSubmit(data: InvoiceFormValues) {
     if(items.length === 0) {
@@ -167,7 +173,20 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
                     <SelectContent>
                       {availableProducts.map(p => (
                         <SelectItem key={p.id} value={p.id} disabled={!!items.find(item => item.productId === p.id)}>
-                          {p.name} ({formatCurrency(p.sellPrice)}) - {p.quantity} left
+                          <div className="flex items-center gap-3">
+                            <Image 
+                                src={p.imageUrl || 'https://placehold.co/64x64.png'} 
+                                alt={p.name} 
+                                width={40} 
+                                height={40} 
+                                className="rounded-md object-cover"
+                                data-ai-hint="product image"
+                            />
+                            <div>
+                                <p>{p.name}</p>
+                                <p className="text-xs text-muted-foreground">{formatCurrency(p.sellPrice)} - {p.quantity} left</p>
+                            </div>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -187,7 +206,13 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
                   <TableBody>
                     {items.length > 0 ? items.map(item => (
                       <TableRow key={item.productId}>
-                        <TableCell className="font-medium">{item.productName}</TableCell>
+                        <TableCell>
+                          <Input 
+                            value={item.productName} 
+                            onChange={(e) => handleItemChange(item.productId, 'productName', e.target.value)}
+                            className="h-8"
+                          />
+                        </TableCell>
                         <TableCell>
                           <Input type="number" value={item.quantity} onChange={(e) => handleQuantityChange(item.productId, parseInt(e.target.value))} className="h-8" min="1" />
                         </TableCell>
