@@ -8,10 +8,12 @@ import {
   ReceiptText,
   TrendingUp,
   CircleDollarSign,
+  ClipboardList,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { SalesReport } from "@/components/dashboard/SalesReport";
+import { ProfitCalculator } from "@/components/dashboard/ProfitCalculator";
 import { getProducts, getSales } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import type { Product, Sale } from "@/lib/types";
@@ -36,6 +38,7 @@ export default function DashboardPage() {
   }, []);
 
   const totalSales = sales.reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
+  const totalOrders = sales.length;
 
   const totalProfit = sales.reduce((acc, sale) => {
     const costOfGoods = sale.items.reduce((itemAcc, item) => {
@@ -51,12 +54,15 @@ export default function DashboardPage() {
   const rejectedProducts = products.filter(p => p.isRejected).length;
   const rejectedValue = products.filter(p => p.isRejected).reduce((acc, p) => acc + p.costPrice * p.quantity, 0);
 
+  const availableProducts = products.filter(p => !p.isRejected);
+
   return (
     <>
       <Header title="Dashboard" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={CircleDollarSign} />
         <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} />
+        <StatCard title="Total Orders" value={totalOrders.toString()} icon={ClipboardList} />
         <StatCard title="Total Stock" value={totalStock.toString()} icon={Package} />
         <StatCard title="Stock Value (Cost)" value={formatCurrency(totalProductValue)} icon={ReceiptText} />
         <StatCard title="Rejected Products" value={rejectedProducts.toString()} icon={PackageX} />
@@ -64,6 +70,7 @@ export default function DashboardPage() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">
         <SalesReport sales={sales} />
+        <ProfitCalculator products={availableProducts} />
       </div>
     </>
   );
