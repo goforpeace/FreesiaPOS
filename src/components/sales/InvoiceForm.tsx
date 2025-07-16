@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -11,7 +11,6 @@ import type { Product, SaleItem } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
 import { createSale } from "@/lib/actions"
-import { getProducts } from "@/lib/api"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -45,20 +44,18 @@ const invoiceFormSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>
 
-export function InvoiceForm() {
+interface InvoiceFormProps {
+  availableProducts: Product[];
+  allProducts: Product[];
+}
+
+export function InvoiceForm({ availableProducts, allProducts }: InvoiceFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition();
 
   const [items, setItems] = useState<SaleItem[]>([])
   const [selectedProduct, setSelectedProduct] = useState<string>("")
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-
-  useEffect(() => {
-    getProducts().then(setAllProducts);
-  }, []);
-
-  const availableProducts = allProducts.filter(p => p.quantity > 0 && !p.isRejected)
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
@@ -99,7 +96,7 @@ export function InvoiceForm() {
   }
 
   const subtotal = items.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0)
-  const total = subtotal + shippingCost - discount
+  const total = subtotal + (shippingCost || 0) - (discount || 0);
 
   function onSubmit(data: InvoiceFormValues) {
     if(items.length === 0) {
