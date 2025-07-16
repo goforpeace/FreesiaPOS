@@ -36,10 +36,10 @@ export function SidebarNav() {
                 isActive={pathname === "/dashboard"}
                 tooltip="Dashboard"
                 >
-                <React.Fragment>
+                <span>
                   <LayoutDashboard />
                   <span>Dashboard</span>
-                </React.Fragment>
+                </span>
                 </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -50,10 +50,10 @@ export function SidebarNav() {
                 isActive={pathname.startsWith("/products")}
                 tooltip="Products"
                 >
-                <React.Fragment>
+                <span>
                   <Package />
                   <span>Products</span>
-                </React.Fragment>
+                </span>
                 </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -64,10 +64,10 @@ export function SidebarNav() {
                 isActive={pathname.startsWith("/sales")}
                 tooltip="Sales"
                 >
-                <React.Fragment>
+                <span>
                   <ShoppingCart />
                   <span>Sales</span>
-                </React.Fragment>
+                </span>
                 </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
