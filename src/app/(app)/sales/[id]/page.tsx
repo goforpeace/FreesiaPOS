@@ -46,99 +46,101 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
     return (
         <>
             <Header title={`Invoice ${sale.id}`} />
-            <Card>
-                <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <div>
-                             <Image 
-                                src="https://i.imgur.com/k7qYBOW.png" 
-                                alt="Freesia Finds Logo" 
-                                width={80} 
-                                height={80} 
-                                className="rounded-md"
-                                data-ai-hint="logo"
-                            />
-                            <p className="text-muted-foreground italic mt-2">Because you deserver what's rare!</p>
+            <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-lg p-8">
+                <Card className="h-full flex flex-col shadow-none border-none">
+                    <CardHeader>
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <Image 
+                                    src="https://i.imgur.com/k7qYBOW.png" 
+                                    alt="Freesia Finds Logo" 
+                                    width={80} 
+                                    height={80} 
+                                    className="rounded-md"
+                                    data-ai-hint="logo"
+                                />
+                                <p className="text-muted-foreground italic mt-2">Because you deserver what's rare!</p>
+                            </div>
+                            <div className="text-right">
+                                <CardTitle className="mb-1">Invoice</CardTitle>
+                                <CardDescription>
+                                    {sale.id} <br />
+                                    Date: {format(new Date(sale.date), "dd MMMM, yyyy")}
+                                </CardDescription>
+                            </div>
                         </div>
-                        <div className="text-right">
-                             <CardTitle className="mb-1">Invoice</CardTitle>
-                             <CardDescription>
-                                {sale.id} <br />
-                                Date: {format(new Date(sale.date), "dd MMMM, yyyy")}
-                            </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6 flex-grow">
+                        <Separator />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <h3 className="font-semibold">Billed To</h3>
+                                <address className="not-italic text-muted-foreground">
+                                    {sale.customerName}<br />
+                                    {sale.customerAddress || 'No address provided'}<br />
+                                    {sale.customerPhone || 'No phone provided'}
+                                </address>
+                            </div>
                         </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <Separator />
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <h3 className="font-semibold">Billed To</h3>
-                            <address className="not-italic text-muted-foreground">
-                                {sale.customerName}<br />
-                                {sale.customerAddress || 'No address provided'}<br />
-                                {sale.customerPhone || 'No phone provided'}
-                            </address>
-                        </div>
-                    </div>
-                    
-                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Product</TableHead>
-                                <TableHead className="text-center">Quantity</TableHead>
-                                <TableHead className="text-right">Unit Price</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {sale.items.map((item) => (
-                                <TableRow key={item.productId}>
-                                    <TableCell>{item.productName}</TableCell>
-                                    <TableCell className="text-center">{item.quantity}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(item.unitPrice * item.quantity)}</TableCell>
+                        
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Product</TableHead>
+                                    <TableHead className="text-center">Quantity</TableHead>
+                                    <TableHead className="text-right">Unit Price</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    <Separator />
-                     <div className="grid grid-cols-2 gap-4">
-                        <div></div>
-                        <div className="grid gap-2">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Subtotal</span>
-                                <span>{formatCurrency(sale.subtotal)}</span>
-                            </div>
-                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Shipping</span>
-                                <span>{formatCurrency(sale.shippingCost)}</span>
-                            </div>
-                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Discount</span>
-                                <span>- {formatCurrency(sale.discount)}</span>
-                            </div>
-                            <Separator />
-                             <div className="flex justify-between font-bold">
-                                <span>Total</span>
-                                <span>{formatCurrency(sale.total)}</span>
+                            </TableHeader>
+                            <TableBody>
+                                {sale.items.map((item) => (
+                                    <TableRow key={item.productId}>
+                                        <TableCell>{item.productName}</TableCell>
+                                        <TableCell className="text-center">{item.quantity}</TableCell>
+                                        <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
+                                        <TableCell className="text-right">{formatCurrency(item.unitPrice * item.quantity)}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                        <Separator />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div></div>
+                            <div className="grid gap-2">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Subtotal</span>
+                                    <span>{formatCurrency(sale.subtotal)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Shipping</span>
+                                    <span>{formatCurrency(sale.shippingCost)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Discount</span>
+                                    <span>- {formatCurrency(sale.discount)}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between font-bold">
+                                    <span>Total</span>
+                                    <span>{formatCurrency(sale.total)}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-6 items-center text-center text-sm text-muted-foreground">
-                    <div>
-                        <p>Thank you for choosing us!</p>
-                        <p>If you have any question please contact us at www.facebook.com/freesia.finds</p>
-                    </div>
-                    <div className="text-xs text-left border-t pt-4">
-                        <h4 className="font-semibold mb-1 text-center">Terms and conditions</h4>
-                        <p>
-                            All our products are dispatched with Quality Control (QC) checks. If you encounter any issues, please record a clear video during unpacking and inform us within 1 day to ensure relevant action is taken
-                        </p>
-                    </div>
-                </CardFooter>
-            </Card>
+                    </CardContent>
+                    <CardFooter className="flex flex-col gap-6 items-center text-sm text-muted-foreground">
+                        <div>
+                            <p>Thank you for choosing us!</p>
+                            <p>If you have any question please contact us at www.facebook.com/freesia.finds</p>
+                        </div>
+                        <div className="text-xs text-left w-full border-t pt-4">
+                            <h4 className="font-semibold mb-1">Terms and conditions</h4>
+                            <p>
+                                All our products are dispatched with Quality Control (QC) checks. If you encounter any issues, please record a clear video during unpacking and inform us within 1 day to ensure relevant action is taken
+                            </p>
+                        </div>
+                    </CardFooter>
+                </Card>
+            </div>
         </>
     )
 }
