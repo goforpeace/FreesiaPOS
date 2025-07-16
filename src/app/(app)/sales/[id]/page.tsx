@@ -48,13 +48,32 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
             <Header title={`Invoice ${sale.id}`} />
             <Card>
                 <CardHeader>
-                    <CardTitle>Sale Details</CardTitle>
-                    <CardDescription>
-                        Invoice Number: {sale.id} <br />
-                        Date: {format(new Date(sale.date), "dd MMMM, yyyy")}
-                    </CardDescription>
+                    <div className="flex justify-between items-start">
+                        <div className="flex items-start gap-4">
+                             <Image 
+                                src="https://i.imgur.com/k7qYBOW.png" 
+                                alt="Freesia Finds Logo" 
+                                width={80} 
+                                height={80} 
+                                className="rounded-md"
+                                data-ai-hint="logo"
+                            />
+                            <div>
+                                <h2 className="text-2xl font-bold font-headline text-primary">Freesia Finds</h2>
+                                <p className="text-muted-foreground italic">Because you deserver what's rare!</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                             <CardTitle className="mb-1">Invoice</CardTitle>
+                             <CardDescription>
+                                Invoice Number: {sale.id} <br />
+                                Date: {format(new Date(sale.date), "dd MMMM, yyyy")}
+                            </CardDescription>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    <Separator />
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <h3 className="font-semibold">Billed To</h3>
@@ -64,24 +83,8 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                                 {sale.customerPhone || 'No phone provided'}
                             </address>
                         </div>
-                         <div className="space-y-1 text-right flex flex-col items-end">
-                            <Image 
-                                src="https://i.imgur.com/k7qYBOW.png" 
-                                alt="Freesia Finds Logo" 
-                                width={80} 
-                                height={80} 
-                                className="rounded-md mb-2"
-                                data-ai-hint="logo"
-                            />
-                            <h3 className="font-semibold">Billed From</h3>
-                            <address className="not-italic text-muted-foreground">
-                                Freesia Finds<br />
-                                123/A, Artisan Street<br />
-                                Dhaka, Bangladesh
-                            </address>
-                        </div>
                     </div>
-                    <Separator />
+                    
                      <Table>
                         <TableHeader>
                             <TableRow>
@@ -126,8 +129,17 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                         </div>
                     </div>
                 </CardContent>
-                <CardFooter className="text-center text-sm text-muted-foreground">
-                    Thank you for your business!
+                <CardFooter className="flex flex-col gap-6 items-center text-center text-sm text-muted-foreground">
+                    <div>
+                        <p>Thank you for choosing us!</p>
+                        <p>If you have any question please contact us at www.facebook.com/freesia.finds</p>
+                    </div>
+                    <div className="text-xs text-left border-t pt-4">
+                        <h4 className="font-semibold mb-1 text-center">Terms and conditions</h4>
+                        <p>
+                            All our products are dispatched with Quality Control (QC) checks. If you encounter any issues, please record a clear video during unpacking and inform us within 1 day to ensure relevant action is taken
+                        </p>
+                    </div>
                 </CardFooter>
             </Card>
         </>
