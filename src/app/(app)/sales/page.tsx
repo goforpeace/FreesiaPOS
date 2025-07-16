@@ -37,7 +37,7 @@ export default function SalesPage() {
 
   return (
     <>
-      <Header title="Sales">
+      <Header title="All Sales">
         <Button asChild>
           <Link href="/sales/new">
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -46,9 +46,6 @@ export default function SalesPage() {
         </Button>
       </Header>
       <Card>
-        <CardHeader>
-          <CardTitle>Sales History</CardTitle>
-        </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>

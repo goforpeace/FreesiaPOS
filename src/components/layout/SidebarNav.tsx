@@ -11,12 +11,21 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarContent,
+  useSidebar,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Package, ShoppingCart } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, PlusCircle, Settings } from "lucide-react";
 import React from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "../ui/button";
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const { state } = useSidebar();
+
+  const isProductsActive = pathname.startsWith("/products");
+  const isSalesActive = pathname.startsWith("/sales");
 
   return (
     <Sidebar>
@@ -51,38 +60,93 @@ export function SidebarNav() {
                 </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/products" passHref>
-                <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/products")}
-                tooltip="Products"
-                >
-                <span>
-                  <Package />
-                  <span>Products</span>
-                </span>
+
+          <Collapsible asChild defaultOpen={isProductsActive}>
+            <SidebarMenuItem>
+              <CollapsibleTrigger asChild>
+                  <SidebarMenuButton
+                  isActive={isProductsActive}
+                  tooltip="Products"
+                  className="justify-between"
+                  >
+                  <span>
+                    <Package />
+                    <span>Products</span>
+                  </span>
+                  <Button variant="ghost" size="icon" className="size-5 data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                  </Button>
                 </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/sales" passHref>
+              </CollapsibleTrigger>
+              <CollapsibleContent asChild>
+                <SidebarMenuSub>
+                    <SidebarMenuItem>
+                       <Link href="/products" passHref>
+                         <SidebarMenuSubButton isActive={pathname === '/products'}>All Products</SidebarMenuSubButton>
+                       </Link>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                       <Link href="/products/new" passHref>
+                         <SidebarMenuSubButton isActive={pathname === '/products/new'}>Add Product</SidebarMenuSubButton>
+                       </Link>
+                    </SidebarMenuItem>
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </SidebarMenuItem>
+          </Collapsible>
+          
+          <Collapsible asChild defaultOpen={isSalesActive}>
+            <SidebarMenuItem>
+              <CollapsibleTrigger asChild>
+                  <SidebarMenuButton
+                  isActive={isSalesActive}
+                  tooltip="Sales"
+                  className="justify-between"
+                  >
+                  <span>
+                    <ShoppingCart />
+                    <span>Sales</span>
+                  </span>
+                   <Button variant="ghost" size="icon" className="size-5 data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                  </Button>
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent asChild>
+                <SidebarMenuSub>
+                    <SidebarMenuItem>
+                       <Link href="/sales" passHref>
+                         <SidebarMenuSubButton isActive={pathname === '/sales'}>All Sales</SidebarMenuSubButton>
+                       </Link>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                       <Link href="/sales/new" passHref>
+                         <SidebarMenuSubButton isActive={pathname === '/sales/new'}>New Sale</SidebarMenuSubButton>
+                       </Link>
+                    </SidebarMenuItem>
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </SidebarMenuItem>
+          </Collapsible>
+
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+           <SidebarMenuItem>
+            <Link href="#" passHref>
                 <SidebarMenuButton
                 asChild
-                isActive={pathname.startsWith("/sales")}
-                tooltip="Sales"
+                tooltip="Settings"
                 >
                 <span>
-                  <ShoppingCart />
-                  <span>Sales</span>
+                  <Settings />
+                  <span>Settings</span>
                 </span>
                 </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter>
-         {/* Footer can be added here */}
       </SidebarFooter>
     </Sidebar>
   );

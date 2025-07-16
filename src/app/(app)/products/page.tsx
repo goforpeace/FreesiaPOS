@@ -39,7 +39,7 @@ export default function ProductsPage() {
 
   return (
     <>
-      <Header title="Products">
+      <Header title="All Products">
         <Button asChild>
           <Link href="/products/new">
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -48,9 +48,6 @@ export default function ProductsPage() {
         </Button>
       </Header>
       <Card>
-        <CardHeader>
-          <CardTitle>Product List</CardTitle>
-        </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
