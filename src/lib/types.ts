@@ -21,6 +21,7 @@ export interface SaleItem {
   productName: string; // Can be edited
   quantity: number;
   unitPrice: number; // sellPrice at time of sale
+  imageUrl?: string;
 }
 
 export interface Sale {

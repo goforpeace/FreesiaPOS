@@ -124,7 +124,19 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                             <TableBody>
                                 {sale.items.map((item) => (
                                     <TableRow key={item.productId}>
-                                        <TableCell>{item.productName}</TableCell>
+                                        <TableCell>
+                                          <div className="flex items-center gap-3">
+                                            <Image
+                                                src={item.imageUrl || 'https://placehold.co/64x64.png'}
+                                                alt={item.productName}
+                                                width={40}
+                                                height={40}
+                                                className="rounded-md object-cover"
+                                                data-ai-hint="product image"
+                                            />
+                                            <span>{item.productName}</span>
+                                           </div>
+                                        </TableCell>
                                         <TableCell className="text-center">{item.quantity}</TableCell>
                                         <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
                                         <TableCell className="text-right">{formatCurrency(item.unitPrice * item.quantity)}</TableCell>

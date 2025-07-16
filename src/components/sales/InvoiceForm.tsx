@@ -89,6 +89,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
         productName: product.name,
         quantity: 1,
         unitPrice: product.sellPrice,
+        imageUrl: product.imageUrl,
       }])
       setSelectedProduct("")
     }
@@ -175,7 +176,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
                         <SelectItem key={p.id} value={p.id} disabled={!!items.find(item => item.productId === p.id)}>
                           <div className="flex items-center gap-3">
                             <Image 
-                                src={p.imageUrl || 'https://placehold.co/64x64.png'} 
+                                src={p.imageUrl || 'https://placehold.co/40x40.png'} 
                                 alt={p.name} 
                                 width={40} 
                                 height={40} 
@@ -207,11 +208,21 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
                     {items.length > 0 ? items.map(item => (
                       <TableRow key={item.productId}>
                         <TableCell>
-                          <Input 
-                            value={item.productName} 
-                            onChange={(e) => handleItemChange(item.productId, 'productName', e.target.value)}
-                            className="h-8"
-                          />
+                          <div className="flex items-center gap-3">
+                             <Image 
+                                src={item.imageUrl || 'https://placehold.co/64x64.png'} 
+                                alt={item.productName} 
+                                width={40} 
+                                height={40} 
+                                className="rounded-md object-cover"
+                                data-ai-hint="product image"
+                            />
+                            <Input 
+                              value={item.productName} 
+                              onChange={(e) => handleItemChange(item.productId, 'productName', e.target.value)}
+                              className="h-8"
+                            />
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Input type="number" value={item.quantity} onChange={(e) => handleQuantityChange(item.productId, parseInt(e.target.value))} className="h-8" min="1" />
