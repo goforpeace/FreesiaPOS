@@ -53,7 +53,7 @@ export function SidebarNav() {
                 isActive={pathname === "/dashboard"}
                 tooltip="Dashboard"
                 >
-                <span>
+                <span className="flex items-center gap-2">
                   <LayoutDashboard />
                   <span>Dashboard</span>
                 </span>
@@ -69,7 +69,7 @@ export function SidebarNav() {
                   tooltip="Products"
                   className="justify-between"
                   >
-                  <span>
+                  <span className="flex items-center gap-2">
                     <Package />
                     <span>Products</span>
                   </span>
@@ -103,7 +103,7 @@ export function SidebarNav() {
                   tooltip="Sales"
                   className="justify-between"
                   >
-                  <span>
+                  <span className="flex items-center gap-2">
                     <ShoppingCart />
                     <span>Sales</span>
                   </span>
@@ -139,7 +139,7 @@ export function SidebarNav() {
                 asChild
                 tooltip="Settings"
                 >
-                <span>
+                <span className="flex items-center gap-2">
                   <Settings />
                   <span>Settings</span>
                 </span>
