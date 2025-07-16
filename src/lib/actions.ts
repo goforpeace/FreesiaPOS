@@ -83,4 +83,28 @@ export async function createSale(data: SaleFormData) {
 
     revalidatePath("/sales");
     revalidatePath("/dashboard");
+    revalidatePath("/products");
+}
+
+export async function deleteSale(id: string) {
+    await delay(500);
+    const sale = sales.get(id);
+    if (!sale) {
+        throw new Error("Sale not found");
+    }
+
+    // Restore stock
+    for (const item of sale.items) {
+        const product = products.get(item.productId);
+        if (product) {
+            product.quantity += item.quantity;
+            products.set(item.productId, product);
+        }
+    }
+
+    sales.delete(id);
+
+    revalidatePath("/sales");
+    revalidatePath("/dashboard");
+    revalidatePath("/products");
 }
