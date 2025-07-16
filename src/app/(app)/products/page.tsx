@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { PlusCircle } from "lucide-react";
@@ -16,9 +19,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getProducts } from "@/lib/api";
 import { ProductActions } from "@/components/products/ProductActions";
 import { formatCurrency } from "@/lib/utils";
+import type { Product } from "@/lib/types";
 
-export default async function ProductsPage() {
-  const products = await getProducts();
+export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  const refreshProducts = () => {
+      setProducts(getProducts());
+  };
+  
+  useEffect(() => {
+    refreshProducts();
+    
+    window.addEventListener('storage', refreshProducts);
+    return () => {
+      window.removeEventListener('storage', refreshProducts);
+    };
+  }, []);
 
   return (
     <>
@@ -81,7 +98,7 @@ export default async function ProductsPage() {
                   <TableCell className="hidden md:table-cell">{formatCurrency(product.costPrice)}</TableCell>
                   <TableCell className="hidden md:table-cell">{formatCurrency(product.sellPrice)}</TableCell>
                   <TableCell>
-                    <ProductActions product={product} />
+                    <ProductActions product={product} onProductUpdate={refreshProducts} />
                   </TableCell>
                 </TableRow>
               ))}

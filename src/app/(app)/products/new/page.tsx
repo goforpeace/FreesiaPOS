@@ -1,3 +1,5 @@
+"use client";
+
 import { Header } from "@/components/layout/Header";
 import { ProductForm } from "@/components/products/ProductForm";
 

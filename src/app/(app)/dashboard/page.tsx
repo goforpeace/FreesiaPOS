@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   Package,
   PackageX,
@@ -11,14 +14,26 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { SalesReport } from "@/components/dashboard/SalesReport";
 import { getProducts, getSales } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
+import type { Product, Sale } from "@/lib/types";
 
-// This tells Next.js to always render this page dynamically,
-// ensuring the data is fresh on every visit.
-export const dynamic = 'force-dynamic';
+export default function DashboardPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
 
-export default async function DashboardPage() {
-  const products = await getProducts();
-  const sales = await getSales();
+  useEffect(() => {
+    const loadData = () => {
+      setProducts(getProducts());
+      setSales(getSales());
+    };
+    
+    loadData();
+
+    // Listen for storage changes to update the dashboard in real-time
+    window.addEventListener('storage', loadData);
+    return () => {
+      window.removeEventListener('storage', loadData);
+    };
+  }, []);
 
   const totalSales = sales.reduce((acc, sale) => acc + sale.total, 0);
 

@@ -23,38 +23,36 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { type Product } from "@/lib/types";
-import { deleteProduct, rejectProduct } from "@/lib/actions";
-import { useRouter } from "next/navigation";
+import { deleteProduct, rejectProduct } from "@/lib/api";
 
-export function ProductActions({ product }: { product: Product }) {
-  const router = useRouter();
+export function ProductActions({ product, onProductUpdate }: { product: Product, onProductUpdate: () => void }) {
   const { toast } = useToast();
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     try {
-      await deleteProduct(product.id);
+      deleteProduct(product.id);
       toast({
         title: "Product Deleted",
         description: `Product "${product.name}" has been deleted.`,
       });
-      router.refresh();
-    } catch (error) {
+      onProductUpdate();
+    } catch (error: any) {
        toast({
         title: "Error deleting product",
-        description: "An unexpected error occurred.",
+        description: error.message || "An unexpected error occurred.",
         variant: "destructive"
       });
     }
   };
 
-  const handleReject = async () => {
+  const handleReject = () => {
     try {
-      await rejectProduct(product.id);
+      rejectProduct(product.id);
       toast({
         title: "Product Rejected",
         description: `Product "${product.name}" has been marked as rejected.`,
       });
-       router.refresh();
+       onProductUpdate();
     } catch (error) {
       toast({
         title: "Error rejecting product",

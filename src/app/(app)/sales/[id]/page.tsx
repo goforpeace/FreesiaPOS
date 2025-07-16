@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import { getSale } from "@/lib/api";
@@ -6,13 +9,36 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
+import type { Sale } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function SaleDetailsPage({ params }: { params: { id: string } }) {
+    const [sale, setSale] = useState<Sale | null | undefined>(null);
+
+    useEffect(() => {
+        setSale(getSale(params.id));
+    }, [params.id]);
 
 
-export default async function SaleDetailsPage({ params }: { params: { id: string } }) {
-    const sale = await getSale(params.id);
-
-    if (!sale) {
+    if (sale === undefined) {
         notFound();
+    }
+
+    if (sale === null) {
+        return (
+            <>
+                <Header title="Invoice" />
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-1/2" />
+                        <Skeleton className="h-4 w-1/3 mt-2" />
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <Skeleton className="h-40 w-full" />
+                    </CardContent>
+                </Card>
+            </>
+        )
     }
 
     return (

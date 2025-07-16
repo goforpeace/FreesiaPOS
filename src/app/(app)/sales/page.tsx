@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,9 +18,22 @@ import { getSales } from "@/lib/api";
 import { format } from "date-fns";
 import { SalesActions } from "@/components/sales/SalesActions";
 import { formatCurrency } from "@/lib/utils";
+import type { Sale } from "@/lib/types";
 
-export default async function SalesPage() {
-  const sales = await getSales();
+export default function SalesPage() {
+  const [sales, setSales] = useState<Sale[]>([]);
+
+  const refreshSales = () => {
+    setSales(getSales());
+  };
+
+  useEffect(() => {
+    refreshSales();
+    window.addEventListener('storage', refreshSales);
+    return () => {
+        window.removeEventListener('storage', refreshSales);
+    };
+  }, []);
 
   return (
     <>
@@ -54,7 +70,7 @@ export default async function SalesPage() {
                   <TableCell className="hidden md:table-cell">{format(new Date(sale.date), "dd MMM, yyyy")}</TableCell>
                   <TableCell className="text-right">{formatCurrency(sale.total)}</TableCell>
                    <TableCell className="text-right">
-                    <SalesActions saleId={sale.id} />
+                    <SalesActions saleId={sale.id} onSaleUpdate={refreshSales} />
                   </TableCell>
                 </TableRow>
               ))}

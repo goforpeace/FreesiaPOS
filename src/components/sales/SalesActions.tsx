@@ -1,9 +1,7 @@
-
 "use client";
 
 import { MoreHorizontal, Eye, Trash2, Pencil } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,20 +22,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { deleteSale } from "@/lib/actions";
+import { deleteSale } from "@/lib/api";
 
-export function SalesActions({ saleId }: { saleId: string }) {
-  const router = useRouter();
+export function SalesActions({ saleId, onSaleUpdate }: { saleId: string, onSaleUpdate: () => void }) {
   const { toast } = useToast();
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     try {
-      await deleteSale(saleId);
+      deleteSale(saleId);
       toast({
         title: "Sale Deleted",
         description: `Invoice #${saleId} has been deleted.`,
       });
-      router.refresh();
+      onSaleUpdate();
     } catch (error) {
       toast({
         title: "Error deleting sale",

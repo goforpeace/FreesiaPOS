@@ -21,8 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { type Product } from "@/lib/types";
-import { createProduct, updateProduct } from "@/lib/actions";
-import { useTransition } from "react";
+import { createProduct, updateProduct } from "@/lib/api";
+import { useState } from "react";
 
 const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -42,7 +42,7 @@ interface ProductFormProps {
 export function ProductForm({ initialData }: ProductFormProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -59,27 +59,27 @@ export function ProductForm({ initialData }: ProductFormProps) {
   const imageUrl = form.watch("imageUrl");
 
   function onSubmit(data: ProductFormValues) {
-    startTransition(async () => {
-      try {
-        if (initialData) {
-          await updateProduct(initialData.id, data);
-        } else {
-          await createProduct(data);
-        }
-        toast({
-          title: initialData ? "Product Updated" : "Product Created",
-          description: `Product "${data.name}" has been successfully ${initialData ? 'updated' : 'created'}.`,
-        });
-        router.push("/products");
-        router.refresh();
-      } catch (error) {
-         toast({
-          title: "An error occurred",
-          description: "Something went wrong. Please try again.",
-          variant: "destructive"
-        });
+    setIsSubmitting(true);
+    try {
+      if (initialData) {
+        updateProduct(initialData.id, data);
+      } else {
+        createProduct(data);
       }
-    });
+      toast({
+        title: initialData ? "Product Updated" : "Product Created",
+        description: `Product "${data.name}" has been successfully ${initialData ? 'updated' : 'created'}.`,
+      });
+      router.push("/products");
+    } catch (error) {
+       toast({
+        title: "An error occurred",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -203,8 +203,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
           </div>
         </div>
         <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={() => router.back()} disabled={isPending}>Cancel</Button>
-            <Button type="submit" disabled={isPending}>{initialData ? 'Save Changes' : 'Create Product'}</Button>
+            <Button variant="outline" type="button" onClick={() => router.back()} disabled={isSubmitting}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>{initialData ? 'Save Changes' : 'Create Product'}</Button>
         </div>
       </form>
     </Form>

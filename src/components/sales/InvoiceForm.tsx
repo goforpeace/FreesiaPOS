@@ -1,7 +1,6 @@
-
 "use client"
 
-import { useState, useTransition, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -11,7 +10,7 @@ import { PlusCircle, X } from "lucide-react"
 import type { Product, Sale, SaleItem } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
-import { createSale, updateSale } from "@/lib/actions"
+import { createSale, updateSale } from "@/lib/api"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -54,10 +53,11 @@ interface InvoiceFormProps {
 export function InvoiceForm({ availableProducts, allProducts, initialData }: InvoiceFormProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [items, setItems] = useState<SaleItem[]>(initialData?.items || [])
   const [selectedProduct, setSelectedProduct] = useState<string>("")
+  const [originalItems, setOriginalItems] = useState<SaleItem[]>(initialData?.items || [])
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
@@ -74,6 +74,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
     if (initialData) {
       form.reset(initialData);
       setItems(initialData.items);
+      setOriginalItems(initialData.items);
     }
   }, [initialData, form]);
 
@@ -100,8 +101,12 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
     const product = allProducts.find(p => p.id === productId)
     if (!product) return
 
-    const availableQuantity = (product.quantity || 0) + (initialData?.items.find(i => i.productId === productId)?.quantity || 0);
+    const originalItem = originalItems.find(i => i.productId === productId);
+    const originalQuantity = originalItem ? originalItem.quantity : 0;
+    
+    const availableQuantity = (product.quantity || 0) + originalQuantity;
     const newQuantity = Math.max(1, Math.min(quantity, availableQuantity))
+    
     setItems(items.map(item => item.productId === productId ? { ...item, quantity: newQuantity } : item))
   }
 
@@ -118,34 +123,34 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
         return;
     }
 
-    startTransition(async () => {
-      try {
-        const payload = { ...data, items, total, subtotal };
-        if (initialData) {
-          await updateSale(initialData.id, payload, initialData.items);
-          toast({
-            title: "Invoice Updated",
-            description: `Invoice #${initialData.id} has been successfully updated.`,
-          });
-        } else {
-          await createSale(payload);
-          toast({
-            title: "Invoice Created",
-            description: "A new sales invoice has been successfully created.",
-          })
-        }
-        
-        router.push("/sales");
-        router.refresh();
-
-      } catch (error) {
-         toast({
-          title: "An error occurred",
-          description: "Something went wrong. Please try again.",
-          variant: "destructive"
+    setIsSubmitting(true);
+    try {
+      const payload = { ...data, items, total, subtotal };
+      if (initialData) {
+        updateSale(initialData.id, payload, originalItems);
+        toast({
+          title: "Invoice Updated",
+          description: `Invoice #${initialData.id} has been successfully updated.`,
         });
+      } else {
+        createSale(payload);
+        toast({
+          title: "Invoice Created",
+          description: "A new sales invoice has been successfully created.",
+        })
       }
-    });
+      
+      router.push("/sales");
+
+    } catch (error) {
+       toast({
+        title: "An error occurred",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
@@ -233,8 +238,8 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
           </div>
         </div>
         <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={() => router.back()} disabled={isPending}>Cancel</Button>
-            <Button type="submit" disabled={isPending}>{initialData ? 'Update Invoice' : 'Create Invoice'}</Button>
+            <Button variant="outline" type="button" onClick={() => router.back()} disabled={isSubmitting}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>{initialData ? 'Update Invoice' : 'Create Invoice'}</Button>
         </div>
       </form>
     </Form>
