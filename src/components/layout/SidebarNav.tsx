@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Sidebar,
   SidebarHeader,
@@ -11,7 +12,7 @@ import {
   SidebarFooter,
   SidebarContent,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Package, ShoppingCart, Frown } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart } from "lucide-react";
 import React from "react";
 
 export function SidebarNav() {
@@ -21,7 +22,14 @@ export function SidebarNav() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2">
-          <Frown className="w-8 h-8 text-accent" />
+          <Image 
+            src="https://placehold.co/128x128.png" 
+            alt="Freesia Finds Logo" 
+            width={40} 
+            height={40} 
+            className="rounded-md"
+            data-ai-hint="logo"
+          />
           <h2 className="text-xl font-headline font-bold text-white">
             Freesia Finds
           </h2>

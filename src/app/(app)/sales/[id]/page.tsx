@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import { getSale } from "@/lib/api";
@@ -62,7 +63,15 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                                 {sale.customerPhone || 'No phone provided'}
                             </address>
                         </div>
-                         <div className="space-y-1 text-right">
+                         <div className="space-y-1 text-right flex flex-col items-end">
+                            <Image 
+                                src="https://placehold.co/128x128.png" 
+                                alt="Freesia Finds Logo" 
+                                width={80} 
+                                height={80} 
+                                className="rounded-md mb-2"
+                                data-ai-hint="logo"
+                            />
                             <h3 className="font-semibold">Billed From</h3>
                             <address className="not-italic text-muted-foreground">
                                 Freesia Finds<br />
