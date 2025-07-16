@@ -9,9 +9,6 @@ import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { SalesReport } from "@/components/dashboard/SalesReport";
 import { getProducts, getSales } from "@/lib/api";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from "date-fns";
 import { CircleDollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -48,33 +45,6 @@ export default async function DashboardPage() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">
         <SalesReport sales={sales} />
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Sales</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sales.slice(0, 5).map(sale => (
-                  <TableRow key={sale.id}>
-                    <TableCell>
-                        <div className="font-medium">{sale.customerName}</div>
-                    </TableCell>
-                    <TableCell>{format(new Date(sale.date), "dd MMM yyyy")}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(sale.total)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
       </div>
     </>
   );
