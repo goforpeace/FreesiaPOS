@@ -59,14 +59,13 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                                 data-ai-hint="logo"
                             />
                             <div>
-                                <h2 className="text-2xl font-bold font-headline text-primary">Freesia Finds</h2>
                                 <p className="text-muted-foreground italic">Because you deserver what's rare!</p>
                             </div>
                         </div>
                         <div className="text-right">
                              <CardTitle className="mb-1">Invoice</CardTitle>
                              <CardDescription>
-                                Invoice Number: {sale.id} <br />
+                                {sale.id} <br />
                                 Date: {format(new Date(sale.date), "dd MMMM, yyyy")}
                             </CardDescription>
                         </div>
