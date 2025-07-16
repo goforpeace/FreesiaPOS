@@ -38,7 +38,7 @@ export async function updateProduct(id: string, data: ProductFormValues) {
     }
     const updatedProduct = { ...product, ...data };
     products.set(id, updatedProduct);
-    revalidatePath(`/products`);
+    revalidatePath("/products");
     revalidatePath(`/products/${id}/edit`);
     revalidatePath("/dashboard");
 }
