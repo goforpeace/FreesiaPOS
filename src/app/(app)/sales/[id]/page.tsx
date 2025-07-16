@@ -49,7 +49,7 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
             <Card>
                 <CardHeader>
                     <div className="flex justify-between items-start">
-                        <div className="flex items-start gap-4">
+                        <div>
                              <Image 
                                 src="https://i.imgur.com/k7qYBOW.png" 
                                 alt="Freesia Finds Logo" 
@@ -58,9 +58,7 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                                 className="rounded-md"
                                 data-ai-hint="logo"
                             />
-                            <div>
-                                <p className="text-muted-foreground italic">Because you deserver what's rare!</p>
-                            </div>
+                            <p className="text-muted-foreground italic mt-2">Because you deserver what's rare!</p>
                         </div>
                         <div className="text-right">
                              <CardTitle className="mb-1">Invoice</CardTitle>
