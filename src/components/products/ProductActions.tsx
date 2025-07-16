@@ -22,22 +22,46 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { type Product } from "@/lib/types";
+import { deleteProduct, rejectProduct } from "@/lib/actions";
+import { useRouter } from "next/navigation";
 
-export function ProductActions({ productId }: { productId: string }) {
+export function ProductActions({ product }: { product: Product }) {
+  const router = useRouter();
   const { toast } = useToast();
 
-  const handleDelete = () => {
-    toast({
-      title: "Product Deleted",
-      description: `Product with ID ${productId} has been deleted.`,
-    });
+  const handleDelete = async () => {
+    try {
+      await deleteProduct(product.id);
+      toast({
+        title: "Product Deleted",
+        description: `Product "${product.name}" has been deleted.`,
+      });
+      router.refresh();
+    } catch (error) {
+       toast({
+        title: "Error deleting product",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleReject = () => {
-    toast({
-      title: "Product Rejected",
-      description: `Product with ID ${productId} has been marked as rejected.`,
-    });
+  const handleReject = async () => {
+    try {
+      await rejectProduct(product.id);
+      toast({
+        title: "Product Rejected",
+        description: `Product "${product.name}" has been marked as rejected.`,
+      });
+       router.refresh();
+    } catch (error) {
+      toast({
+        title: "Error rejecting product",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -51,12 +75,12 @@ export function ProductActions({ productId }: { productId: string }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
-            <Link href={`/products/${productId}/edit`}>
+            <Link href={`/products/${product.id}/edit`}>
               <Pencil className="mr-2 h-4 w-4" />
               <span>Edit</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleReject}>
+          <DropdownMenuItem onSelect={handleReject} disabled={product.isRejected}>
             <XCircle className="mr-2 h-4 w-4" />
             <span>Reject Item</span>
           </DropdownMenuItem>

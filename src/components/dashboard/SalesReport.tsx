@@ -6,23 +6,23 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { sales } from "@/lib/data";
+import type { Sale } from "@/lib/types";
 
-const salesData = sales.map(sale => ({
-  name: format(new Date(sale.date), "MMM d"),
-  total: sale.total,
-}));
-
-export function SalesReport() {
+export function SalesReport({ sales }: { sales: Sale[] }) {
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: subDays(new Date(), 20),
     to: new Date(),
   });
+
+  const salesData = sales.map(sale => ({
+    name: format(new Date(sale.date), "MMM d"),
+    total: sale.total,
+  }));
 
   return (
     <Card className="col-span-1 lg:col-span-2">
@@ -82,7 +82,7 @@ export function SalesReport() {
               fontSize={12}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `$${value}`}
+              tickFormatter={(value) => formatCurrency(value as number, true)}
             />
             <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
           </BarChart>

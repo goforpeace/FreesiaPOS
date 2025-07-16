@@ -13,11 +13,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { products } from "@/lib/data";
+import { getProducts } from "@/lib/api";
 import { ProductActions } from "@/components/products/ProductActions";
+import { formatCurrency } from "@/lib/utils";
 
-export default function ProductsPage() {
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+export default async function ProductsPage() {
+  const products = await getProducts();
 
   return (
     <>
@@ -57,7 +58,7 @@ export default function ProductsPage() {
                       alt={product.name}
                       className="aspect-square rounded-md object-cover"
                       height="64"
-                      src={product.imageUrl}
+                      src={product.imageUrl || 'https://placehold.co/64x64.png'}
                       width="64"
                       data-ai-hint="product image"
                     />
@@ -80,7 +81,7 @@ export default function ProductsPage() {
                   <TableCell className="hidden md:table-cell">{formatCurrency(product.costPrice)}</TableCell>
                   <TableCell className="hidden md:table-cell">{formatCurrency(product.sellPrice)}</TableCell>
                   <TableCell>
-                    <ProductActions productId={product.id} />
+                    <ProductActions product={product} />
                   </TableCell>
                 </TableRow>
               ))}

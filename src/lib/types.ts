@@ -12,8 +12,8 @@ export interface Product {
 export interface Customer {
   id: string;
   name: string;
-  phone: string;
-  address: string;
+  phone?: string;
+  address?: string;
 }
 
 export interface SaleItem {
@@ -25,11 +25,14 @@ export interface SaleItem {
 
 export interface Sale {
   id: string; // Invoice Number
-  customerId: string;
+  customerId?: string;
   customerName: string;
+  customerPhone?: string;
+  customerAddress?: string;
   items: SaleItem[];
   shippingCost: number;
   discount: number;
+  subtotal: number;
   total: number;
   date: string; // ISO 8601 format
 }

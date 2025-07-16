@@ -1,15 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { PlusCircle, Trash2, X } from "lucide-react"
+import { PlusCircle, X } from "lucide-react"
 
-import { products as allProducts } from "@/lib/data"
 import type { Product, SaleItem } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
+import { formatCurrency } from "@/lib/utils"
+import { createSale } from "@/lib/actions"
+import { getProducts } from "@/lib/api"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -43,13 +45,18 @@ const invoiceFormSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>
 
-const formatCurrency = (amount: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
-
 export function InvoiceForm() {
   const router = useRouter()
   const { toast } = useToast()
+  const [isPending, startTransition] = useTransition();
+
   const [items, setItems] = useState<SaleItem[]>([])
   const [selectedProduct, setSelectedProduct] = useState<string>("")
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    getProducts().then(setAllProducts);
+  }, []);
 
   const availableProducts = allProducts.filter(p => p.quantity > 0 && !p.isRejected)
 
@@ -103,11 +110,24 @@ export function InvoiceForm() {
         })
         return;
     }
-    toast({
-      title: "Invoice Created",
-      description: "A new sales invoice has been successfully created.",
-    })
-    router.push("/sales")
+
+    startTransition(async () => {
+      try {
+        await createSale({ ...data, items, total, subtotal });
+        toast({
+          title: "Invoice Created",
+          description: "A new sales invoice has been successfully created.",
+        })
+        router.push("/sales");
+        router.refresh();
+      } catch (error) {
+         toast({
+          title: "An error occurred",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
   }
 
   return (
@@ -195,8 +215,8 @@ export function InvoiceForm() {
           </div>
         </div>
         <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={() => router.back()}>Cancel</Button>
-            <Button type="submit">Create Invoice</Button>
+            <Button variant="outline" type="button" onClick={() => router.back()} disabled={isPending}>Cancel</Button>
+            <Button type="submit" disabled={isPending}>Create Invoice</Button>
         </div>
       </form>
     </Form>

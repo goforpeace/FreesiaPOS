@@ -21,6 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { type Product } from "@/lib/types";
+import { createProduct, updateProduct } from "@/lib/actions";
+import { useTransition } from "react";
 
 const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -31,7 +33,7 @@ const productFormSchema = z.object({
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
 });
 
-type ProductFormValues = z.infer<typeof productFormSchema>;
+export type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductFormProps {
   initialData?: Product;
@@ -40,6 +42,7 @@ interface ProductFormProps {
 export function ProductForm({ initialData }: ProductFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -56,11 +59,27 @@ export function ProductForm({ initialData }: ProductFormProps) {
   const imageUrl = form.watch("imageUrl");
 
   function onSubmit(data: ProductFormValues) {
-    toast({
-      title: initialData ? "Product Updated" : "Product Created",
-      description: `Product "${data.name}" has been successfully ${initialData ? 'updated' : 'created'}.`,
+    startTransition(async () => {
+      try {
+        if (initialData) {
+          await updateProduct(initialData.id, data);
+        } else {
+          await createProduct(data);
+        }
+        toast({
+          title: initialData ? "Product Updated" : "Product Created",
+          description: `Product "${data.name}" has been successfully ${initialData ? 'updated' : 'created'}.`,
+        });
+        router.push("/products");
+        router.refresh();
+      } catch (error) {
+         toast({
+          title: "An error occurred",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive"
+        });
+      }
     });
-    router.push("/products");
   }
 
   return (
@@ -115,9 +134,9 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="costPrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cost Price ($)</FormLabel>
+                      <FormLabel>Cost Price (BDT)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="22.50" {...field} />
+                        <Input type="number" placeholder="2500" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -128,9 +147,9 @@ export function ProductForm({ initialData }: ProductFormProps) {
                   name="sellPrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sell Price ($)</FormLabel>
+                      <FormLabel>Sell Price (BDT)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="49.99" {...field} />
+                        <Input type="number" placeholder="5500" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -184,8 +203,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
           </div>
         </div>
         <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={() => router.back()}>Cancel</Button>
-            <Button type="submit">{initialData ? 'Save Changes' : 'Create Product'}</Button>
+            <Button variant="outline" type="button" onClick={() => router.back()} disabled={isPending}>Cancel</Button>
+            <Button type="submit" disabled={isPending}>{initialData ? 'Save Changes' : 'Create Product'}</Button>
         </div>
       </form>
     </Form>

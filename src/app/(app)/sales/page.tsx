@@ -11,12 +11,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { sales } from "@/lib/data";
+import { getSales } from "@/lib/api";
 import { format } from "date-fns";
 import { SalesActions } from "@/components/sales/SalesActions";
+import { formatCurrency } from "@/lib/utils";
 
-export default function SalesPage() {
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+export default async function SalesPage() {
+  const sales = await getSales();
 
   return (
     <>

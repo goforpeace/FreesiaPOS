@@ -1,10 +1,10 @@
 import { Header } from "@/components/layout/Header";
 import { ProductForm } from "@/components/products/ProductForm";
-import { products } from "@/lib/data";
+import { getProduct } from "@/lib/api";
 import { notFound } from "next/navigation";
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
-  const product = products.find((p) => p.id === params.id);
+export default async function EditProductPage({ params }: { params: { id: string } }) {
+  const product = await getProduct(params.id);
 
   if (!product) {
     notFound();

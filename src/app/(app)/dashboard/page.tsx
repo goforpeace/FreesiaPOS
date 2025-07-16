@@ -1,5 +1,4 @@
 import {
-  DollarSign,
   Package,
   PackageX,
   PiggyBank,
@@ -9,12 +8,18 @@ import {
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { SalesReport } from "@/components/dashboard/SalesReport";
-import { products, sales } from "@/lib/data";
+import { getProducts, getSales } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
+import { CircleDollarSign } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
-export default function DashboardPage() {
+
+export default async function DashboardPage() {
+  const products = await getProducts();
+  const sales = await getSales();
+
   const totalSales = sales.reduce((acc, sale) => acc + sale.total, 0);
   const totalProfit = sales.reduce((acc, sale) => {
     const costOfGoods = sale.items.reduce((itemAcc, item) => {
@@ -30,13 +35,11 @@ export default function DashboardPage() {
   const rejectedProducts = products.filter(p => p.isRejected).length;
   const rejectedValue = products.filter(p => p.isRejected).reduce((acc, p) => acc + p.costPrice * p.quantity, 0);
 
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-
   return (
     <>
       <Header title="Dashboard" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={DollarSign} />
+        <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={CircleDollarSign} />
         <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} />
         <StatCard title="Total Stock" value={totalStock.toString()} icon={Package} />
         <StatCard title="Stock Value (Cost)" value={formatCurrency(totalProductValue)} icon={ReceiptText} />
@@ -44,7 +47,7 @@ export default function DashboardPage() {
         <StatCard title="Rejected Value" value={formatCurrency(rejectedValue)} icon={TrendingUp} description="Based on cost price" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">
-        <SalesReport />
+        <SalesReport sales={sales} />
         <Card>
           <CardHeader>
             <CardTitle>Recent Sales</CardTitle>
