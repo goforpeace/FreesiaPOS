@@ -35,14 +35,15 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const totalSales = sales.reduce((acc, sale) => acc + sale.total, 0);
+  const totalSales = sales.reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
 
   const totalProfit = sales.reduce((acc, sale) => {
     const costOfGoods = sale.items.reduce((itemAcc, item) => {
       const product = products.find(p => p.id === item.productId);
       return itemAcc + (product ? product.costPrice * item.quantity : 0);
     }, 0);
-    return acc + (sale.subtotal - costOfGoods);
+    const revenueFromSale = sale.subtotal - sale.discount;
+    return acc + (revenueFromSale - costOfGoods);
   }, 0);
 
   const totalStock = products.reduce((acc, product) => acc + product.quantity, 0);
