@@ -3,6 +3,7 @@
 
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Sidebar,
   SidebarHeader,
@@ -45,15 +46,14 @@ export function SidebarNav() {
         <SidebarMenu>
           <SidebarMenuItem>
              <SidebarMenuButton
-                href="/dashboard"
                 asChild
                 isActive={pathname === "/dashboard"}
                 tooltip="Dashboard"
                 >
-                <span className="flex items-center gap-2">
+                <Link href="/dashboard" className="flex items-center gap-2">
                   <LayoutDashboard />
                   <span>Dashboard</span>
-                </span>
+                </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
