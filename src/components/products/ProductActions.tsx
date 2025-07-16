@@ -1,6 +1,7 @@
+
 "use client";
 
-import { MoreHorizontal, Pencil, Trash2, XCircle } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, XCircle, Eye } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -72,6 +73,12 @@ export function ProductActions({ product, onProductUpdate }: { product: Product,
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link href={`/products/${product.id}`}>
+              <Eye className="mr-2 h-4 w-4" />
+              <span>View</span>
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href={`/products/${product.id}/edit`}>
               <Pencil className="mr-2 h-4 w-4" />
