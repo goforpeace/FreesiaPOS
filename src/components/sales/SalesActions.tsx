@@ -1,6 +1,7 @@
+
 "use client";
 
-import { MoreHorizontal, Eye, Trash2 } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -60,6 +61,12 @@ export function SalesActions({ saleId }: { saleId: string }) {
             <Link href={`/sales/${saleId}`}>
               <Eye className="mr-2 h-4 w-4" />
               <span>View Invoice</span>
+            </Link>
+          </DropdownMenuItem>
+           <DropdownMenuItem asChild>
+            <Link href={`/sales/${saleId}/edit`}>
+              <Pencil className="mr-2 h-4 w-4" />
+              <span>Edit</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

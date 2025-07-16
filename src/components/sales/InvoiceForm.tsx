@@ -1,16 +1,17 @@
+
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { PlusCircle, X } from "lucide-react"
 
-import type { Product, SaleItem } from "@/lib/types"
+import type { Product, Sale, SaleItem } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
-import { createSale } from "@/lib/actions"
+import { createSale, updateSale } from "@/lib/actions"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -42,24 +43,25 @@ const invoiceFormSchema = z.object({
   discount: z.coerce.number().min(0).default(0),
 })
 
-type InvoiceFormValues = z.infer<typeof invoiceFormSchema>
+export type InvoiceFormValues = z.infer<typeof invoiceFormSchema>
 
 interface InvoiceFormProps {
   availableProducts: Product[];
   allProducts: Product[];
+  initialData?: Sale;
 }
 
-export function InvoiceForm({ availableProducts, allProducts }: InvoiceFormProps) {
+export function InvoiceForm({ availableProducts, allProducts, initialData }: InvoiceFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition();
 
-  const [items, setItems] = useState<SaleItem[]>([])
+  const [items, setItems] = useState<SaleItem[]>(initialData?.items || [])
   const [selectedProduct, setSelectedProduct] = useState<string>("")
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       customerName: "",
       customerPhone: "",
       customerAddress: "",
@@ -67,6 +69,13 @@ export function InvoiceForm({ availableProducts, allProducts }: InvoiceFormProps
       discount: 0,
     },
   })
+  
+  useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+      setItems(initialData.items);
+    }
+  }, [initialData, form]);
 
   const { shippingCost, discount } = form.watch()
 
@@ -91,7 +100,8 @@ export function InvoiceForm({ availableProducts, allProducts }: InvoiceFormProps
     const product = allProducts.find(p => p.id === productId)
     if (!product) return
 
-    const newQuantity = Math.max(1, Math.min(quantity, product.quantity))
+    const availableQuantity = (product.quantity || 0) + (initialData?.items.find(i => i.productId === productId)?.quantity || 0);
+    const newQuantity = Math.max(1, Math.min(quantity, availableQuantity))
     setItems(items.map(item => item.productId === productId ? { ...item, quantity: newQuantity } : item))
   }
 
@@ -110,13 +120,24 @@ export function InvoiceForm({ availableProducts, allProducts }: InvoiceFormProps
 
     startTransition(async () => {
       try {
-        await createSale({ ...data, items, total, subtotal });
-        toast({
-          title: "Invoice Created",
-          description: "A new sales invoice has been successfully created.",
-        })
+        const payload = { ...data, items, total, subtotal };
+        if (initialData) {
+          await updateSale(initialData.id, payload, initialData.items);
+          toast({
+            title: "Invoice Updated",
+            description: `Invoice #${initialData.id} has been successfully updated.`,
+          });
+        } else {
+          await createSale(payload);
+          toast({
+            title: "Invoice Created",
+            description: "A new sales invoice has been successfully created.",
+          })
+        }
+        
         router.push("/sales");
         router.refresh();
+
       } catch (error) {
          toast({
           title: "An error occurred",
@@ -163,7 +184,7 @@ export function InvoiceForm({ availableProducts, allProducts }: InvoiceFormProps
                       <TableRow key={item.productId}>
                         <TableCell className="font-medium">{item.productName}</TableCell>
                         <TableCell>
-                          <Input type="number" value={item.quantity} onChange={(e) => handleQuantityChange(item.productId, parseInt(e.target.value))} className="h-8" />
+                          <Input type="number" value={item.quantity} onChange={(e) => handleQuantityChange(item.productId, parseInt(e.target.value))} className="h-8" min="1" />
                         </TableCell>
                         <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(item.unitPrice * item.quantity)}</TableCell>
@@ -213,7 +234,7 @@ export function InvoiceForm({ availableProducts, allProducts }: InvoiceFormProps
         </div>
         <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" onClick={() => router.back()} disabled={isPending}>Cancel</Button>
-            <Button type="submit" disabled={isPending}>Create Invoice</Button>
+            <Button type="submit" disabled={isPending}>{initialData ? 'Update Invoice' : 'Create Invoice'}</Button>
         </div>
       </form>
     </Form>

@@ -1,11 +1,17 @@
+
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { products, sales } from "./data";
-import type { Product, Sale } from "./types";
+import type { Product, Sale, SaleItem } from "./types";
 import { ProductFormValues } from "@/components/products/ProductForm";
+import { InvoiceFormValues } from "@/components/sales/InvoiceForm";
 
-type SaleFormData = Omit<Sale, "id" | "date">;
+type SaleFormData = InvoiceFormValues & {
+    items: SaleItem[];
+    subtotal: number;
+    total: number;
+}
 
 // Simulate a database delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -43,8 +49,8 @@ export async function deleteProduct(id: string) {
         throw new Error("Product not found");
     }
     products.delete(id);
-    revalidatePath("/products");
-    revalidatePath("/dashboard");
+    revalidatePath("/products", "layout");
+    revalidatePath("/dashboard", "layout");
 }
 
 export async function rejectProduct(id: string) {
@@ -81,9 +87,45 @@ export async function createSale(data: SaleFormData) {
 
     sales.set(newId, newSale);
 
-    revalidatePath("/sales");
-    revalidatePath("/dashboard");
-    revalidatePath("/products");
+    revalidatePath("/sales", "layout");
+    revalidatePath("/dashboard", "layout");
+}
+
+export async function updateSale(id: string, data: SaleFormData, originalItems: SaleItem[]) {
+    await delay(500);
+    const sale = sales.get(id);
+    if (!sale) {
+        throw new Error("Sale not found");
+    }
+
+    // Restore stock from original items
+    for (const item of originalItems) {
+        const product = products.get(item.productId);
+        if (product) {
+            product.quantity += item.quantity;
+            products.set(item.productId, product);
+        }
+    }
+
+    // Deduct stock for new items
+     for (const item of data.items) {
+        const product = products.get(item.productId);
+        if (product) {
+            product.quantity -= item.quantity;
+            products.set(item.productId, product);
+        }
+    }
+
+    const updatedSale: Sale = {
+        ...sale,
+        ...data,
+    };
+    sales.set(id, updatedSale);
+
+    revalidatePath("/sales", "layout");
+    revalidatePath(`/sales/${id}`, "page");
+    revalidatePath(`/sales/${id}/edit`, "page");
+    revalidatePath("/dashboard", "layout");
 }
 
 export async function deleteSale(id: string) {
@@ -104,7 +146,6 @@ export async function deleteSale(id: string) {
 
     sales.delete(id);
 
-    revalidatePath("/sales");
-    revalidatePath("/dashboard");
-    revalidatePath("/products");
+    revalidatePath("/sales", "layout");
+    revalidatePath("/dashboard", "layout");
 }
