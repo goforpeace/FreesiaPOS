@@ -66,7 +66,7 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                         </div>
                          <div className="space-y-1 text-right flex flex-col items-end">
                             <Image 
-                                src="https://i.imgur.com/RJGtP1t.jpeg" 
+                                src="https://i.imgur.com/k7qYBOW.png" 
                                 alt="Freesia Finds Logo" 
                                 width={80} 
                                 height={80} 

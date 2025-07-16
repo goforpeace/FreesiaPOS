@@ -30,7 +30,7 @@ export function SidebarNav() {
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2">
           <Image 
-            src="https://i.imgur.com/RJGtP1t.jpeg" 
+            src="https://i.imgur.com/k7qYBOW.png" 
             alt="Freesia Finds Logo" 
             width={40} 
             height={40} 
