@@ -2,7 +2,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import {
   Sidebar,
@@ -12,18 +11,16 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarContent,
-  useSidebar,
   SidebarMenuSub,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Package, ShoppingCart, XCircle, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings } from "lucide-react";
 import React from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "../ui/button";
 
 export function SidebarNav() {
   const pathname = usePathname();
-  const { state } = useSidebar();
 
   const isProductsActive = pathname.startsWith("/products");
   const isSalesActive = pathname.startsWith("/sales");
@@ -48,8 +45,8 @@ export function SidebarNav() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-             <Link href="/dashboard" passHref>
-                <SidebarMenuButton
+             <SidebarMenuButton
+                href="/dashboard"
                 asChild
                 isActive={pathname === "/dashboard"}
                 tooltip="Dashboard"
@@ -58,8 +55,7 @@ export function SidebarNav() {
                   <LayoutDashboard />
                   <span>Dashboard</span>
                 </span>
-                </SidebarMenuButton>
-            </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
 
           <Collapsible asChild defaultOpen={isProductsActive}>
@@ -82,19 +78,13 @@ export function SidebarNav() {
               <CollapsibleContent asChild>
                 <SidebarMenuSub>
                     <SidebarMenuItem>
-                       <Link href="/products" passHref>
-                         <SidebarMenuSubButton isActive={pathname === '/products'}>All Products</SidebarMenuSubButton>
-                       </Link>
+                       <SidebarMenuSubButton href="/products" isActive={pathname === '/products'}>All Products</SidebarMenuSubButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                       <Link href="/products/new" passHref>
-                         <SidebarMenuSubButton isActive={pathname === '/products/new'}>Add Product</SidebarMenuSubButton>
-                       </Link>
-                    </SidebarMenuItem>
+                       <SidebarMenuSubButton href="/products/new" isActive={pathname === '/products/new'}>Add Product</SidebarMenuSubButton>
+                     </SidebarMenuItem>
                     <SidebarMenuItem>
-                       <Link href="/products/rejected" passHref>
-                         <SidebarMenuSubButton isActive={pathname === '/products/rejected'}>Rejected Products</SidebarMenuSubButton>
-                       </Link>
+                       <SidebarMenuSubButton href="/products/rejected" isActive={pathname === '/products/rejected'}>Rejected Products</SidebarMenuSubButton>
                     </SidebarMenuItem>
                 </SidebarMenuSub>
               </CollapsibleContent>
@@ -121,15 +111,11 @@ export function SidebarNav() {
               <CollapsibleContent asChild>
                 <SidebarMenuSub>
                     <SidebarMenuItem>
-                       <Link href="/sales" passHref>
-                         <SidebarMenuSubButton isActive={pathname === '/sales'}>All Sales</SidebarMenuSubButton>
-                       </Link>
+                       <SidebarMenuSubButton href="/sales" isActive={pathname === '/sales'}>All Sales</SidebarMenuSubButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                       <Link href="/sales/new" passHref>
-                         <SidebarMenuSubButton isActive={pathname === '/sales/new'}>New Sale</SidebarMenuSubButton>
-                       </Link>
-                    </SidebarMenuItem>
+                       <SidebarMenuSubButton href="/sales/new" isActive={pathname === '/sales/new'}>New Sale</SidebarMenuSubButton>
+                     </SidebarMenuItem>
                 </SidebarMenuSub>
               </CollapsibleContent>
             </SidebarMenuItem>
@@ -140,8 +126,8 @@ export function SidebarNav() {
       <SidebarFooter>
         <SidebarMenu>
            <SidebarMenuItem>
-            <Link href="#" passHref>
                 <SidebarMenuButton
+                href="#"
                 asChild
                 tooltip="Settings"
                 >
@@ -150,7 +136,6 @@ export function SidebarNav() {
                   <span>Settings</span>
                 </span>
                 </SidebarMenuButton>
-            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
