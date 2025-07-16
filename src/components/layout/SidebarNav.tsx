@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   Sidebar,
   SidebarHeader,
@@ -10,7 +11,8 @@ import {
   SidebarFooter,
   SidebarContent,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Package, ShoppingCart, FileText, Frown } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Frown } from "lucide-react";
+import React from "react";
 
 export function SidebarNav() {
   const pathname = usePathname();
@@ -28,34 +30,46 @@ export function SidebarNav() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              href="/dashboard"
-              isActive={pathname === "/dashboard"}
-              tooltip="Dashboard"
-            >
-              <LayoutDashboard />
-              <span>Dashboard</span>
-            </SidebarMenuButton>
+             <Link href="/dashboard" passHref>
+                <SidebarMenuButton
+                asChild
+                isActive={pathname === "/dashboard"}
+                tooltip="Dashboard"
+                >
+                <React.Fragment>
+                  <LayoutDashboard />
+                  <span>Dashboard</span>
+                </React.Fragment>
+                </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              href="/products"
-              isActive={pathname.startsWith("/products")}
-              tooltip="Products"
-            >
-              <Package />
-              <span>Products</span>
-            </SidebarMenuButton>
+            <Link href="/products" passHref>
+                <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/products")}
+                tooltip="Products"
+                >
+                <React.Fragment>
+                  <Package />
+                  <span>Products</span>
+                </React.Fragment>
+                </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              href="/sales"
-              isActive={pathname.startsWith("/sales")}
-              tooltip="Sales"
-            >
-              <ShoppingCart />
-              <span>Sales</span>
-            </SidebarMenuButton>
+            <Link href="/sales" passHref>
+                <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/sales")}
+                tooltip="Sales"
+                >
+                <React.Fragment>
+                  <ShoppingCart />
+                  <span>Sales</span>
+                </React.Fragment>
+                </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
