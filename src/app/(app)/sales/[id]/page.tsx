@@ -13,6 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from "@/lib/utils";
 import type { Sale } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
 
 export default function SaleDetailsPage({ params }: { params: { id: string } }) {
     const [sale, setSale] = useState<Sale | null | undefined>(null);
@@ -42,11 +44,20 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
             </>
         )
     }
+    
+    const handlePrint = () => {
+        window.print();
+    };
 
     return (
         <>
-            <Header title={`Invoice ${sale.id}`} />
-            <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-lg p-8">
+            <Header title={`Invoice`}>
+                <Button onClick={handlePrint} className="print:hidden">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print / Save as PDF
+                </Button>
+            </Header>
+            <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-lg p-8 print:shadow-none print:p-0 print:m-0" id="invoice-printable">
                 <Card className="h-full flex flex-col shadow-none border-none">
                     <CardHeader>
                         <div className="flex justify-between items-start">
@@ -62,9 +73,8 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                                 <p className="text-muted-foreground italic mt-2">Because you deserver what's rare!</p>
                             </div>
                             <div className="text-right">
-                                <CardTitle className="mb-1">Invoice</CardTitle>
+                                <CardTitle className="mb-1">{sale.id}</CardTitle>
                                 <CardDescription>
-                                    {sale.id} <br />
                                     Date: {format(new Date(sale.date), "dd MMMM, yyyy")}
                                 </CardDescription>
                             </div>
