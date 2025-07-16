@@ -4,29 +4,32 @@ import {
   PiggyBank,
   ReceiptText,
   TrendingUp,
+  CircleDollarSign,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { SalesReport } from "@/components/dashboard/SalesReport";
 import { getProducts, getSales } from "@/lib/api";
-import { CircleDollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
+// This tells Next.js to always render this page dynamically,
+// ensuring the data is fresh on every visit.
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const products = await getProducts();
   const sales = await getSales();
 
   const totalSales = sales.reduce((acc, sale) => acc + sale.total, 0);
+
   const totalProfit = sales.reduce((acc, sale) => {
     const costOfGoods = sale.items.reduce((itemAcc, item) => {
       const product = products.find(p => p.id === item.productId);
       return itemAcc + (product ? product.costPrice * item.quantity : 0);
     }, 0);
-    const saleRevenue = sale.items.reduce((itemAcc, item) => itemAcc + (item.unitPrice * item.quantity), 0);
-    return acc + (saleRevenue - costOfGoods);
+    return acc + (sale.subtotal - costOfGoods);
   }, 0);
-  
+
   const totalStock = products.reduce((acc, product) => acc + product.quantity, 0);
   const totalProductValue = products.reduce((acc, product) => acc + (product.costPrice * product.quantity), 0);
   const rejectedProducts = products.filter(p => p.isRejected).length;

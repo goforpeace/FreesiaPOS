@@ -27,7 +27,6 @@ export async function createProduct(data: ProductFormValues) {
     };
     products.set(newId, newProduct);
     revalidatePath("/products");
-    revalidatePath("/dashboard");
 }
 
 export async function updateProduct(id: string, data: ProductFormValues) {
@@ -40,7 +39,6 @@ export async function updateProduct(id: string, data: ProductFormValues) {
     products.set(id, updatedProduct);
     revalidatePath("/products");
     revalidatePath(`/products/${id}/edit`);
-    revalidatePath("/dashboard");
 }
 
 export async function deleteProduct(id: string) {
@@ -48,9 +46,13 @@ export async function deleteProduct(id: string) {
     if (!products.has(id)) {
         throw new Error("Product not found");
     }
+    // Check if the product is part of any sale
+    const isProductInSale = Array.from(sales.values()).some(sale => sale.items.some(item => item.productId === id));
+    if (isProductInSale) {
+        throw new Error("Cannot delete product that is part of a sale.");
+    }
     products.delete(id);
     revalidatePath("/products");
-    revalidatePath("/dashboard");
 }
 
 export async function rejectProduct(id: string) {
@@ -62,7 +64,6 @@ export async function rejectProduct(id: string) {
     product.isRejected = true;
     products.set(id, product);
     revalidatePath("/products");
-    revalidatePath("/dashboard");
 }
 
 // SALES
@@ -89,7 +90,6 @@ export async function createSale(data: SaleFormData) {
 
     revalidatePath("/sales");
     revalidatePath("/products");
-    revalidatePath("/dashboard");
 }
 
 export async function updateSale(id: string, data: SaleFormData, originalItems: SaleItem[]) {
@@ -127,7 +127,6 @@ export async function updateSale(id: string, data: SaleFormData, originalItems: 
     revalidatePath(`/sales/${id}`);
     revalidatePath(`/sales/${id}/edit`);
     revalidatePath("/products");
-    revalidatePath("/dashboard");
 }
 
 export async function deleteSale(id: string) {
@@ -150,5 +149,4 @@ export async function deleteSale(id: string) {
 
     revalidatePath("/sales");
     revalidatePath("/products");
-    revalidatePath("/dashboard");
 }
