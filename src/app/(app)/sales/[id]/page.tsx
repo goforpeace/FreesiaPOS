@@ -65,7 +65,7 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                         </div>
                          <div className="space-y-1 text-right flex flex-col items-end">
                             <Image 
-                                src="https://placehold.co/128x128.png" 
+                                src="https://scontent.fdac14-1.fna.fbcdn.net/v/t39.30808-6/490325534_2541931096011517_1432393417683285443_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=0_nGvNOe5isQ7kNvwE1HGKg&_nc_oc=Adk-6syRKAqaasGIh1vJVmRn1_tliN_fY9CB5CG9k7UKmWyApWlnUf50I0pXbdrg0xY&_nc_zt=23&_nc_ht=scontent.fdac14-1.fna&_nc_gid=ZmY2V-mlIO_T5h3vG4lZ9A&oh=00_AfRXDYMEy3P0lEv8bXl0EueYfXoFt9P6aOptTJyfPxKaZg&oe=687DFE6D" 
                                 alt="Freesia Finds Logo" 
                                 width={80} 
                                 height={80} 
