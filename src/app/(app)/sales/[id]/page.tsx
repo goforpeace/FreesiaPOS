@@ -1,10 +1,11 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
+import html2canvas from "html2canvas";
 import { getSale } from "@/lib/api";
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,10 +15,11 @@ import { formatCurrency } from "@/lib/utils";
 import type { Sale } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { Printer, ImageDown } from "lucide-react";
 
 export default function SaleDetailsPage({ params }: { params: { id: string } }) {
     const [sale, setSale] = useState<Sale | null | undefined>(null);
+    const invoiceRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setSale(getSale(params.id));
@@ -48,16 +50,41 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
     const handlePrint = () => {
         window.print();
     };
+    
+    const handleSaveAsImage = async () => {
+        const element = invoiceRef.current;
+        if (!element) return;
+
+        const canvas = await html2canvas(element, {
+             // Use a proxy for CORS images if needed, but not required for imgur
+             useCORS: true,
+             // Improve image quality
+             scale: 2, 
+        });
+        const data = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+
+        link.href = data;
+        link.download = `invoice-${sale.id}.png`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <>
             <Header title={`Invoice`}>
+                <Button onClick={handleSaveAsImage} variant="outline" className="print:hidden">
+                    <ImageDown className="mr-2 h-4 w-4" />
+                    Save as Image
+                </Button>
                 <Button onClick={handlePrint} className="print:hidden">
                     <Printer className="mr-2 h-4 w-4" />
                     Print / Save as PDF
                 </Button>
             </Header>
-            <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-lg p-8 print:shadow-none print:p-0 print:m-0" id="invoice-printable">
+            <div className="w-[210mm] h-[297mm] mx-auto bg-white shadow-lg p-8 print:shadow-none print:p-0 print:m-0" id="invoice-printable" ref={invoiceRef}>
                 <Card className="h-full flex flex-col shadow-none border-none">
                     <CardHeader>
                         <div className="flex justify-between items-start">
