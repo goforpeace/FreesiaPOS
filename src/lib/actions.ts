@@ -26,7 +26,8 @@ export async function createProduct(data: ProductFormValues) {
         ...data
     };
     products.set(newId, newProduct);
-    revalidatePath("/products", "layout");
+    revalidatePath("/products");
+    revalidatePath("/dashboard");
 }
 
 export async function updateProduct(id: string, data: ProductFormValues) {
@@ -37,7 +38,9 @@ export async function updateProduct(id: string, data: ProductFormValues) {
     }
     const updatedProduct = { ...product, ...data };
     products.set(id, updatedProduct);
-    revalidatePath("/products", "layout");
+    revalidatePath(`/products`);
+    revalidatePath(`/products/${id}/edit`);
+    revalidatePath("/dashboard");
 }
 
 export async function deleteProduct(id: string) {
@@ -46,7 +49,8 @@ export async function deleteProduct(id: string) {
         throw new Error("Product not found");
     }
     products.delete(id);
-    revalidatePath("/products", "layout");
+    revalidatePath("/products");
+    revalidatePath("/dashboard");
 }
 
 export async function rejectProduct(id: string) {
@@ -57,7 +61,8 @@ export async function rejectProduct(id: string) {
     }
     product.isRejected = true;
     products.set(id, product);
-    revalidatePath("/products", "layout");
+    revalidatePath("/products");
+    revalidatePath("/dashboard");
 }
 
 // SALES
@@ -82,8 +87,9 @@ export async function createSale(data: SaleFormData) {
 
     sales.set(newId, newSale);
 
-    revalidatePath("/sales", "layout");
-    revalidatePath("/products", "layout");
+    revalidatePath("/sales");
+    revalidatePath("/products");
+    revalidatePath("/dashboard");
 }
 
 export async function updateSale(id: string, data: SaleFormData, originalItems: SaleItem[]) {
@@ -117,8 +123,11 @@ export async function updateSale(id: string, data: SaleFormData, originalItems: 
     };
     sales.set(id, updatedSale);
 
-    revalidatePath("/sales", "layout");
-    revalidatePath("/products", "layout");
+    revalidatePath("/sales");
+    revalidatePath(`/sales/${id}`);
+    revalidatePath(`/sales/${id}/edit`);
+    revalidatePath("/products");
+    revalidatePath("/dashboard");
 }
 
 export async function deleteSale(id: string) {
@@ -139,6 +148,7 @@ export async function deleteSale(id: string) {
 
     sales.delete(id);
 
-    revalidatePath("/sales", "layout");
-    revalidatePath("/products", "layout");
+    revalidatePath("/sales");
+    revalidatePath("/products");
+    revalidatePath("/dashboard");
 }
