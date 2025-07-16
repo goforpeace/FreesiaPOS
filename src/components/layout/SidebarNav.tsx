@@ -17,7 +17,6 @@ import {
 import { LayoutDashboard, Package, ShoppingCart, Settings } from "lucide-react";
 import React from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Button } from "../ui/button";
 
 export function SidebarNav() {
   const pathname = usePathname();
@@ -70,9 +69,7 @@ export function SidebarNav() {
                     <Package />
                     <span>Products</span>
                   </span>
-                  <Button variant="ghost" size="icon" className="size-5 data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
-                  </Button>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down size-5 transition-transform data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden"><path d="m6 9 6 6 6-6"/></svg>
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent asChild>
@@ -103,9 +100,7 @@ export function SidebarNav() {
                     <ShoppingCart />
                     <span>Sales</span>
                   </span>
-                   <Button variant="ghost" size="icon" className="size-5 data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
-                  </Button>
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down size-5 transition-transform data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden"><path d="m6 9 6 6 6-6"/></svg>
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent asChild>
