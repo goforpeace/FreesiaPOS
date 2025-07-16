@@ -26,8 +26,7 @@ export async function createProduct(data: ProductFormValues) {
         ...data
     };
     products.set(newId, newProduct);
-    revalidatePath("/products");
-    revalidatePath("/dashboard");
+    revalidatePath("/products", "layout");
 }
 
 export async function updateProduct(id: string, data: ProductFormValues) {
@@ -38,9 +37,7 @@ export async function updateProduct(id: string, data: ProductFormValues) {
     }
     const updatedProduct = { ...product, ...data };
     products.set(id, updatedProduct);
-    revalidatePath(`/products`);
-    revalidatePath(`/products/${id}/edit`);
-    revalidatePath("/dashboard");
+    revalidatePath("/products", "layout");
 }
 
 export async function deleteProduct(id: string) {
@@ -50,7 +47,6 @@ export async function deleteProduct(id: string) {
     }
     products.delete(id);
     revalidatePath("/products", "layout");
-    revalidatePath("/dashboard", "layout");
 }
 
 export async function rejectProduct(id: string) {
@@ -61,8 +57,7 @@ export async function rejectProduct(id: string) {
     }
     product.isRejected = true;
     products.set(id, product);
-    revalidatePath("/products");
-    revalidatePath("/dashboard");
+    revalidatePath("/products", "layout");
 }
 
 // SALES
@@ -88,7 +83,7 @@ export async function createSale(data: SaleFormData) {
     sales.set(newId, newSale);
 
     revalidatePath("/sales", "layout");
-    revalidatePath("/dashboard", "layout");
+    revalidatePath("/products", "layout");
 }
 
 export async function updateSale(id: string, data: SaleFormData, originalItems: SaleItem[]) {
@@ -123,9 +118,7 @@ export async function updateSale(id: string, data: SaleFormData, originalItems: 
     sales.set(id, updatedSale);
 
     revalidatePath("/sales", "layout");
-    revalidatePath(`/sales/${id}`, "page");
-    revalidatePath(`/sales/${id}/edit`, "page");
-    revalidatePath("/dashboard", "layout");
+    revalidatePath("/products", "layout");
 }
 
 export async function deleteSale(id: string) {
@@ -147,5 +140,5 @@ export async function deleteSale(id: string) {
     sales.delete(id);
 
     revalidatePath("/sales", "layout");
-    revalidatePath("/dashboard", "layout");
+    revalidatePath("/products", "layout");
 }
