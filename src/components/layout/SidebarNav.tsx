@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -15,7 +16,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Package, ShoppingCart, PlusCircle, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, XCircle, Settings } from "lucide-react";
 import React from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "../ui/button";
@@ -88,6 +89,11 @@ export function SidebarNav() {
                      <SidebarMenuItem>
                        <Link href="/products/new" passHref>
                          <SidebarMenuSubButton isActive={pathname === '/products/new'}>Add Product</SidebarMenuSubButton>
+                       </Link>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                       <Link href="/products/rejected" passHref>
+                         <SidebarMenuSubButton isActive={pathname === '/products/rejected'}>Rejected Products</SidebarMenuSubButton>
                        </Link>
                     </SidebarMenuItem>
                 </SidebarMenuSub>
