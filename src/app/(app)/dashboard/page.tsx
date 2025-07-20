@@ -54,7 +54,7 @@ export default function DashboardPage() {
   const today = new Date().toISOString().split('T')[0];
   const dailySales = sales
     .filter(sale => sale.date.startsWith(today))
-    .reduce((acc, sale) => acc + sale.total, 0);
+    .reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
 
   const totalStock = products.reduce((acc, product) => acc + product.quantity, 0);
   const totalProductValue = products.reduce((acc, product) => acc + (product.costPrice * product.quantity), 0);
