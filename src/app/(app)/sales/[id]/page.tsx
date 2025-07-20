@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import html2canvas from "html2canvas";
 import { getSale } from "@/lib/api";
@@ -15,11 +15,12 @@ import { formatCurrency } from "@/lib/utils";
 import type { Sale } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ImageDown } from "lucide-react";
+import { ImageDown, ArrowLeft } from "lucide-react";
 
 export default function SaleDetailsPage({ params }: { params: { id: string } }) {
     const [sale, setSale] = useState<Sale | null | undefined>(null);
     const invoiceRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     useEffect(() => {
         setSale(getSale(params.id));
@@ -52,9 +53,7 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
         if (!element) return;
 
         const canvas = await html2canvas(element, {
-             // Use a proxy for CORS images if needed, but not required for imgur
              useCORS: true,
-             // Improve image quality
              scale: 2, 
         });
         const data = canvas.toDataURL('image/png');
@@ -71,6 +70,10 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
     return (
         <>
             <Header title={`Invoice`}>
+                 <Button variant="outline" onClick={() => router.back()}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Sales
+                </Button>
                 <Button onClick={handleSaveAsImage} variant="outline" className="print:hidden">
                     <ImageDown className="mr-2 h-4 w-4" />
                     Save as Image
@@ -89,10 +92,13 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                                     className="rounded-md"
                                     data-ai-hint="logo"
                                 />
-                                <p className="text-muted-foreground italic mt-2">Because you deserver what's rare!</p>
+                                <p className="text-muted-foreground italic mt-2">Because you deserve what's rare!</p>
                             </div>
                             <div className="text-right">
-                                <CardTitle className="mb-1">{sale.id}</CardTitle>
+                                <CardTitle className="mb-1 text-4xl font-bold font-headline text-primary">INVOICE</CardTitle>
+                                <CardDescription>
+                                    # {sale.id}
+                                </CardDescription>
                                 <CardDescription>
                                     Date: {format(new Date(sale.date), "dd MMMM, yyyy")}
                                 </CardDescription>
