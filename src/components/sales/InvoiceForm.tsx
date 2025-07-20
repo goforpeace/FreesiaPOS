@@ -199,7 +199,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Product</TableHead>
+                      <TableHead className="w-[50%]">Product</TableHead>
                       <TableHead className="w-[100px]">Qty</TableHead>
                       <TableHead className="text-right w-[120px]">Price</TableHead>
                       <TableHead className="text-right w-[120px]">Total</TableHead>
@@ -216,17 +216,17 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
                                 alt={item.productName} 
                                 width={40} 
                                 height={40} 
-                                className="rounded-md object-cover"
+                                className="rounded-md object-cover flex-shrink-0"
                                 data-ai-hint="product image"
                             />
-                             <div>
+                             <div className="flex-grow">
                                 <Input 
                                   value={item.productName} 
                                   onChange={(e) => handleItemChange(item.productId, 'productName', e.target.value)}
                                   className="h-8 font-medium"
                                 />
                                 {item.productDescription && (
-                                    <p className="text-xs text-muted-foreground max-w-xs truncate">{item.productDescription}</p>
+                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">{item.productDescription}</p>
                                 )}
                               </div>
                           </div>
