@@ -7,6 +7,7 @@ export interface Product {
   costPrice: number;
   sellPrice: number;
   isRejected: boolean;
+  createdAt?: string;
 }
 
 export interface Customer {
@@ -19,6 +20,7 @@ export interface Customer {
 export interface SaleItem {
   productId: string;
   productName: string; // Can be edited
+  productDescription?: string;
   quantity: number;
   unitPrice: number; // sellPrice at time of sale
   imageUrl?: string;

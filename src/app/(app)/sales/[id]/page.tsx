@@ -140,7 +140,12 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                                                 className="rounded-md object-cover"
                                                 data-ai-hint="product image"
                                             />
-                                            <span>{item.productName}</span>
+                                            <div>
+                                                <div className="font-medium">{item.productName}</div>
+                                                {item.productDescription && (
+                                                    <div className="text-xs text-muted-foreground max-w-xs truncate">{item.productDescription}</div>
+                                                )}
+                                            </div>
                                            </div>
                                         </TableCell>
                                         <TableCell className="text-center">{item.quantity}</TableCell>

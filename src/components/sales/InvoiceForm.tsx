@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -87,6 +88,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
       setItems([...items, {
         productId: product.id,
         productName: product.name,
+        productDescription: product.description,
         quantity: 1,
         unitPrice: product.sellPrice,
         imageUrl: product.imageUrl,
@@ -217,11 +219,16 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
                                 className="rounded-md object-cover"
                                 data-ai-hint="product image"
                             />
-                            <Input 
-                              value={item.productName} 
-                              onChange={(e) => handleItemChange(item.productId, 'productName', e.target.value)}
-                              className="h-8"
-                            />
+                             <div>
+                                <Input 
+                                  value={item.productName} 
+                                  onChange={(e) => handleItemChange(item.productId, 'productName', e.target.value)}
+                                  className="h-8 font-medium"
+                                />
+                                {item.productDescription && (
+                                    <p className="text-xs text-muted-foreground max-w-xs truncate">{item.productDescription}</p>
+                                )}
+                              </div>
                           </div>
                         </TableCell>
                         <TableCell>
