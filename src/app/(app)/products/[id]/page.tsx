@@ -77,7 +77,7 @@ export default function ProductDetailsPage({ params }: { params: { id: string } 
                                     <Badge variant="outline">Out of Stock</Badge>
                                 )}
                             </div>
-                            <p className="text-muted-foreground">{product.description}</p>
+                            <p className="text-muted-foreground whitespace-pre-wrap">{product.description}</p>
                             <Separator />
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div className="font-medium">Quantity in Stock:</div>

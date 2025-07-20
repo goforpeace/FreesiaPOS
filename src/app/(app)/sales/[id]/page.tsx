@@ -143,7 +143,7 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                                             <div>
                                                 <div className="font-medium">{item.productName}</div>
                                                 {item.productDescription && (
-                                                    <div className="text-xs text-muted-foreground max-w-xs truncate">{item.productDescription}</div>
+                                                    <div className="text-xs text-muted-foreground whitespace-pre-wrap">{item.productDescription}</div>
                                                 )}
                                             </div>
                                            </div>
