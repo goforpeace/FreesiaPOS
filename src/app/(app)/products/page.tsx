@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { PlusCircle, Search } from "lucide-react";
@@ -15,6 +15,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,10 +33,11 @@ import type { Product } from "@/lib/types";
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortOption, setSortOption] = useState("createdAt-desc");
 
   const refreshProducts = () => {
-      // Only show non-rejected products
-      setProducts(getProducts().filter(p => !p.isRejected));
+    // Only show non-rejected products
+    setProducts(getProducts().filter(p => !p.isRejected));
   };
   
   useEffect(() => {
@@ -41,7 +49,41 @@ export default function ProductsPage() {
     };
   }, []);
 
-  const filteredProducts = products.filter(product =>
+  const sortedProducts = useMemo(() => {
+    let sorted = [...products];
+
+    const [key, order] = sortOption.split("-");
+
+    sorted.sort((a, b) => {
+      let valA: string | number | undefined;
+      let valB: string | number | undefined;
+
+      if (key === 'createdAt') {
+        valA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        valB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      } else if (key === 'name') {
+        valA = a.name.toLowerCase();
+        valB = b.name.toLowerCase();
+      } else if (key === 'quantity' || key === 'sellPrice') {
+        valA = a[key];
+        valB = b[key];
+      }
+
+      if (valA === undefined || valB === undefined) return 0;
+      
+      if (valA < valB) {
+        return order === 'asc' ? -1 : 1;
+      }
+      if (valA > valB) {
+        return order === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [products, sortOption]);
+  
+  const filteredProducts = sortedProducts.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -54,11 +96,26 @@ export default function ProductsPage() {
                 <Input
                     type="search"
                     placeholder="Search by name..."
-                    className="pl-8 sm:w-[300px]"
+                    className="pl-8 sm:w-[200px]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
+             <Select value={sortOption} onValueChange={setSortOption}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="createdAt-desc">Newest First</SelectItem>
+                <SelectItem value="createdAt-asc">Oldest First</SelectItem>
+                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                <SelectItem value="quantity-desc">Quantity (High-Low)</SelectItem>
+                <SelectItem value="quantity-asc">Quantity (Low-High)</SelectItem>
+                <SelectItem value="sellPrice-desc">Price (High-Low)</SelectItem>
+                <SelectItem value="sellPrice-asc">Price (Low-High)</SelectItem>
+              </SelectContent>
+            </Select>
             <Button asChild>
                 <Link href="/products/new">
                     <PlusCircle className="mr-2 h-4 w-4" />
