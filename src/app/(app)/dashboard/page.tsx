@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,6 +10,7 @@ import {
   TrendingUp,
   CircleDollarSign,
   ClipboardList,
+  Sun,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -48,6 +50,11 @@ export default function DashboardPage() {
     const revenueFromSale = sale.subtotal - sale.discount;
     return acc + (revenueFromSale - costOfGoods);
   }, 0);
+  
+  const today = new Date().toISOString().split('T')[0];
+  const dailySales = sales
+    .filter(sale => sale.date.startsWith(today))
+    .reduce((acc, sale) => acc + sale.total, 0);
 
   const totalStock = products.reduce((acc, product) => acc + product.quantity, 0);
   const totalProductValue = products.reduce((acc, product) => acc + (product.costPrice * product.quantity), 0);
@@ -59,8 +66,9 @@ export default function DashboardPage() {
   return (
     <>
       <Header title="Dashboard" />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={CircleDollarSign} />
+        <StatCard title="Daily Sales" value={formatCurrency(dailySales)} icon={Sun} />
         <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} />
         <StatCard title="Total Orders" value={totalOrders.toString()} icon={ClipboardList} />
         <StatCard title="Total Stock" value={totalStock.toString()} icon={Package} />
