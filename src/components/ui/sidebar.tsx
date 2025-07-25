@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -557,7 +558,7 @@ const SidebarMenuButton = React.forwardRef<
     ref
   ) => {
     const { isMobile, state } = useSidebar()
-    const Comp = asChild ? Slot : href ? "a" : "button"
+    const Comp = asChild ? Slot : href ? NextLink : "button";
     
     const element = (
       <Comp
@@ -566,18 +567,13 @@ const SidebarMenuButton = React.forwardRef<
         data-size={size}
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        href={href}
         {...props}
       />
     )
-
-    const button = href && !asChild ? (
-        <NextLink href={href} passHref legacyBehavior>
-            {element}
-        </NextLink>
-    ) : element
-
+    
     if (!tooltip) {
-      return button
+      return element
     }
 
     if (typeof tooltip === "string") {
@@ -588,7 +584,7 @@ const SidebarMenuButton = React.forwardRef<
 
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipTrigger asChild>{element}</TooltipTrigger>
         <TooltipContent
           side="right"
           align="center"
@@ -722,11 +718,12 @@ const SidebarMenuSubButton = React.forwardRef<
     isActive?: boolean
   }
 >(({ asChild = false, size = "md", isActive, className, href, ...props }, ref) => {
-  const Comp = asChild ? Slot : "a"
+  const Comp = asChild ? Slot : href ? NextLink : 'a'
 
   const element = (
      <Comp
         ref={ref}
+        href={href}
         data-sidebar="menu-sub-button"
         data-size={size}
         data-active={isActive}
@@ -741,14 +738,6 @@ const SidebarMenuSubButton = React.forwardRef<
         {...props}
       />
   )
-
-  if (href) {
-      return (
-        <NextLink href={href} passHref legacyBehavior>
-            {element}
-        </NextLink>
-      )
-  }
 
   return element
 })
