@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
 export default function EditSalePage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const [sale, setSale] = useState<Sale | null | undefined>(undefined);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +23,7 @@ export default function EditSalePage({ params }: { params: { id: string } }) {
       try {
         setLoading(true);
         const [saleData, productsData] = await Promise.all([
-          getSale(params.id),
+          getSale(id),
           getProducts(),
         ]);
         setSale(saleData);
@@ -34,15 +35,15 @@ export default function EditSalePage({ params }: { params: { id: string } }) {
       }
     };
     loadData();
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (data: any) => {
      if (!sale) return;
     try {
-      await updateSale(params.id, data, sale.items);
+      await updateSale(id, data, sale.items);
       toast({
         title: "Invoice Updated",
-        description: `Invoice #${params.id} has been successfully updated.`,
+        description: `Invoice #${id} has been successfully updated.`,
       });
       router.push("/sales");
     } catch (error: any) {

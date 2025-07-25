@@ -17,13 +17,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export default function ProductDetailsPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const [product, setProduct] = useState<Product | null | undefined>(undefined);
     const router = useRouter();
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const productData = await getProduct(params.id);
+                const productData = await getProduct(id);
                 setProduct(productData);
             } catch (error) {
                 console.error("Failed to fetch product:", error);
@@ -32,7 +33,7 @@ export default function ProductDetailsPage({ params }: { params: { id: string } 
         };
 
         fetchProduct();
-    }, [params.id]);
+    }, [id]);
 
     if (product === undefined) {
         return (

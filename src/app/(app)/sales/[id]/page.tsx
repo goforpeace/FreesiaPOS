@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { ImageDown, ArrowLeft } from "lucide-react";
 
 export default function SaleDetailsPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const [sale, setSale] = useState<Sale | null | undefined>(undefined);
     const invoiceRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
@@ -25,7 +26,7 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
     useEffect(() => {
         const fetchSale = async () => {
             try {
-                const saleData = await getSale(params.id);
+                const saleData = await getSale(id);
                 setSale(saleData);
             } catch (error) {
                 console.error("Failed to fetch sale:", error);
@@ -34,7 +35,7 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
         };
         
         fetchSale();
-    }, [params.id]);
+    }, [id]);
 
 
     if (sale === undefined) {

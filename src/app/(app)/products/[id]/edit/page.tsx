@@ -12,6 +12,7 @@ import { ProductFormValues } from "@/components/products/ProductForm";
 import { useToast } from "@/hooks/use-toast";
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const [product, setProduct] = useState<Product | null | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     const fetchProduct = async () => {
         try {
-            const foundProduct = await getProduct(params.id);
+            const foundProduct = await getProduct(id);
             setProduct(foundProduct);
         } catch (error) {
             console.error("Failed to fetch product:", error);
@@ -28,12 +29,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         }
     }
     fetchProduct();
-  }, [params.id]);
+  }, [id]);
   
   const handleSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
     try {
-      await updateProduct(params.id, data);
+      await updateProduct(id, data);
       toast({
         title: "Product Updated",
         description: `Product "${data.name}" has been successfully updated.`,
