@@ -29,6 +29,7 @@ export default function EditSalePage({ params: { id } }: { params: { id: string 
         setAllProducts(productsData);
       } catch (error) {
         console.error("Failed to load sale and product data:", error);
+        setSale(null); // Set sale to null on error to trigger notFound
       } finally {
         setLoading(false);
       }
