@@ -269,7 +269,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
           </div>
           <div className="space-y-8">
             <Card>
-              <CardHeader><CardTitle>Customer Details</CardTitle></Header>
+              <CardHeader><CardTitle>Customer Details</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <FormField control={form.control} name="customerName" render={({ field }) => (
                   <FormItem><FormLabel>Name</FormLabel><FormControl><Input placeholder="Customer Name" {...field} /></FormControl><FormMessage /></FormItem>
