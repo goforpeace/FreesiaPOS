@@ -17,8 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ImageDown, ArrowLeft } from "lucide-react";
 
-export default function SaleDetailsPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function SaleDetailsPage({ params: { id } }: { params: { id: string } }) {
     const [sale, setSale] = useState<Sale | null | undefined>(undefined);
     const invoiceRef = useRef<HTMLDivElement>(null);
     const router = useRouter();

@@ -16,8 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-export default function ProductDetailsPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function ProductDetailsPage({ params: { id } }: { params: { id: string } }) {
     const [product, setProduct] = useState<Product | null | undefined>(undefined);
     const router = useRouter();
 

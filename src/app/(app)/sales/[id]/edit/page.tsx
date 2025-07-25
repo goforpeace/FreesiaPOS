@@ -10,8 +10,7 @@ import type { Product, Sale } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
-export default function EditSalePage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function EditSalePage({ params: { id } }: { params: { id: string } }) {
   const [sale, setSale] = useState<Sale | null | undefined>(undefined);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);

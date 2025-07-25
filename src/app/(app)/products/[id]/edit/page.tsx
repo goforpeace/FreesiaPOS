@@ -11,8 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductFormValues } from "@/components/products/ProductForm";
 import { useToast } from "@/hooks/use-toast";
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function EditProductPage({ params: { id } }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
