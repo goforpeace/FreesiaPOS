@@ -24,19 +24,23 @@ import type { Product } from "@/lib/types";
 export default function RejectedProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const refreshProducts = () => {
-    // Only show rejected products
-    setProducts(getProducts().filter(p => p.isRejected));
+  const refreshProducts = async () => {
+    setLoading(true);
+    try {
+      // Only show rejected products
+      const allProducts = await getProducts();
+      setProducts(allProducts.filter(p => p.isRejected));
+    } catch (error) {
+        console.error("Failed to fetch rejected products:", error);
+    } finally {
+        setLoading(false);
+    }
   };
   
   useEffect(() => {
     refreshProducts();
-    
-    window.addEventListener('storage', refreshProducts);
-    return () => {
-      window.removeEventListener('storage', refreshProducts);
-    };
   }, []);
 
   const filteredProducts = products.filter(product =>

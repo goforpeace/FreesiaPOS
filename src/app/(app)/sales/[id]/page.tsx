@@ -18,20 +18,26 @@ import { Button } from "@/components/ui/button";
 import { ImageDown, ArrowLeft } from "lucide-react";
 
 export default function SaleDetailsPage({ params }: { params: { id: string } }) {
-    const [sale, setSale] = useState<Sale | null | undefined>(null);
+    const [sale, setSale] = useState<Sale | null | undefined>(undefined);
     const invoiceRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
 
     useEffect(() => {
-        setSale(getSale(params.id));
+        const fetchSale = async () => {
+            try {
+                const saleData = await getSale(params.id);
+                setSale(saleData);
+            } catch (error) {
+                console.error("Failed to fetch sale:", error);
+                setSale(null);
+            }
+        };
+        
+        fetchSale();
     }, [params.id]);
 
 
     if (sale === undefined) {
-        notFound();
-    }
-
-    if (sale === null) {
         return (
             <>
                 <Header title="Invoice" />
@@ -46,6 +52,10 @@ export default function SaleDetailsPage({ params }: { params: { id: string } }) 
                 </Card>
             </>
         )
+    }
+
+    if (sale === null) {
+        notFound();
     }
     
     const handleSaveAsImage = async () => {
