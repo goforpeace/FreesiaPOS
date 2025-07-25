@@ -283,7 +283,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle>Summary</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Summary</CardTitle></Header>
               <CardContent className="space-y-4">
                 <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
                 <Separator/>
