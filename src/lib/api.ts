@@ -1,66 +1,79 @@
-// This file now contains client-side functions for interacting with localStorage.
 
-import { 
-    getProductsFromStorage, 
-    saveProductsToStorage, 
-    getSalesFromStorage, 
-    saveSalesToStorage 
-} from "./data";
-import type { Product, Sale } from "./types";
-import { ProductFormValues } from "@/components/products/ProductForm";
-import { InvoiceFormValues } from "@/components/sales/InvoiceForm";
-import type { SaleItem } from "./types";
+import { db } from './firebase';
+import {
+  collection,
+  getDocs,
+  getDoc,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  writeBatch,
+  query,
+  orderBy,
+  where,
+  runTransaction,
+} from 'firebase/firestore';
+
+import type { Product, Sale, SaleItem } from './types';
+import { ProductFormValues } from '@/components/products/ProductForm';
+import { InvoiceFormValues } from '@/components/sales/InvoiceForm';
+
 
 // PRODUCTS API
 
-export const getProducts = (): Product[] => {
-    return getProductsFromStorage();
+const productsCollection = collection(db, 'products');
+
+export const getProducts = async (): Promise<Product[]> => {
+  const q = query(productsCollection, orderBy('name'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
 };
 
-export const getProduct = (id: string): Product | undefined => {
-    const products = getProductsFromStorage();
-    return products.find(p => p.id === id);
+export const getProduct = async (id: string): Promise<Product | undefined> => {
+  const docRef = doc(db, 'products', id);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() } as Product;
+  }
+  return undefined;
 };
 
-export const createProduct = (data: ProductFormValues) => {
-    const products = getProductsFromStorage();
-    const newId = `prod_${String(Date.now()).slice(-4)}`;
-    const newProduct: Product = {
-        id: newId,
-        isRejected: false,
-        ...data
-    };
-    const updatedProducts = [...products, newProduct];
-    saveProductsToStorage(updatedProducts);
+export const createProduct = async (data: ProductFormValues) => {
+  await addDoc(productsCollection, {
+    ...data,
+    isRejected: false,
+    createdAt: new Date().toISOString(),
+  });
 };
 
-export const updateProduct = (id: string, data: ProductFormValues) => {
-    const products = getProductsFromStorage();
-    const updatedProducts = products.map(p => p.id === id ? { ...p, ...data } : p);
-    saveProductsToStorage(updatedProducts);
+export const updateProduct = async (id: string, data: ProductFormValues) => {
+  const docRef = doc(db, 'products', id);
+  await updateDoc(docRef, data);
 };
 
-export const deleteProduct = (id: string) => {
-    let products = getProductsFromStorage();
-    const sales = getSalesFromStorage();
-    
-    const isProductInSale = sales.some(sale => sale.items.some(item => item.productId === id));
-    if (isProductInSale) {
-        throw new Error("Cannot delete product that is part of a sale.");
-    }
-    
-    products = products.filter(p => p.id !== id);
-    saveProductsToStorage(products);
+export const deleteProduct = async (id: string) => {
+  const salesCollection = collection(db, 'sales');
+  const q = query(salesCollection, where('items', 'array-contains', { productId: id }));
+  const salesSnapshot = await getDocs(q);
+
+  if (!salesSnapshot.empty) {
+    const saleIds = salesSnapshot.docs.map(d => d.id).join(', ');
+    throw new Error(`Cannot delete product. It is part of sale(s): ${saleIds}`);
+  }
+
+  const docRef = doc(db, 'products', id);
+  await deleteDoc(docRef);
 };
 
-export const rejectProduct = (id: string) => {
-    const products = getProductsFromStorage();
-    const updatedProducts = products.map(p => p.id === id ? { ...p, isRejected: true } : p);
-    saveProductsToStorage(updatedProducts);
+export const rejectProduct = async (id: string) => {
+  const docRef = doc(db, 'products', id);
+  await updateDoc(docRef, { isRejected: true });
 };
 
 
 // SALES API
+const salesCollection = collection(db, 'sales');
 
 type SaleFormData = InvoiceFormValues & {
     items: SaleItem[];
@@ -68,91 +81,110 @@ type SaleFormData = InvoiceFormValues & {
     total: number;
 }
 
-export const getSales = (): Sale[] => {
-    const sales = getSalesFromStorage();
-    return sales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+export const getSales = async (): Promise<Sale[]> => {
+    const q = query(salesCollection, orderBy("date", "desc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Sale));
 };
 
-export const getSale = (id: string): Sale | undefined => {
-    const sales = getSalesFromStorage();
-    return sales.find(s => s.id === id);
+export const getSale = async (id: string): Promise<Sale | undefined> => {
+    const docRef = doc(db, 'sales', id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Sale;
+    }
+    return undefined;
 };
 
-export const createSale = (data: SaleFormData) => {
-    let products = getProductsFromStorage();
-    let sales = getSalesFromStorage();
+export const createSale = async (data: SaleFormData) => {
+    const batch = writeBatch(db);
 
     // Update stock
     for (const item of data.items) {
-        const productIndex = products.findIndex(p => p.id === item.productId);
-        if (productIndex > -1) {
-            products[productIndex].quantity -= item.quantity;
+        const productRef = doc(db, 'products', item.productId);
+        const productSnap = await getDoc(productRef);
+        if (productSnap.exists()) {
+            const currentQuantity = productSnap.data().quantity;
+            batch.update(productRef, { quantity: currentQuantity - item.quantity });
         }
     }
+    
+    const newSaleRef = doc(salesCollection);
+    const newId = newSaleRef.id.slice(0, 8).toUpperCase();
 
-    const newId = `INV-${String(new Date().getFullYear())}${String(sales.length + 1).padStart(3, '0')}`;
-    const newSale: Sale = {
-        id: newId,
-        date: new Date().toISOString(),
-        ...data
-    };
-
-    saveProductsToStorage(products);
-    saveSalesToStorage([...sales, newSale]);
-};
-
-export const updateSale = (id: string, data: SaleFormData, originalItems: SaleItem[]) => {
-    let products = getProductsFromStorage();
-    let sales = getSalesFromStorage();
-
-    // Restore stock from original items
-    for (const item of originalItems) {
-        const productIndex = products.findIndex(p => p.id === item.productId);
-        if (productIndex > -1) {
-            products[productIndex].quantity += item.quantity;
-        }
-    }
-
-    // Deduct stock for new items
-     for (const item of data.items) {
-        const productIndex = products.findIndex(p => p.id === item.productId);
-        if (productIndex > -1) {
-            products[productIndex].quantity -= item.quantity;
-        }
-    }
-
-    const updatedSale: Sale = {
+    const newSale: Omit<Sale, 'id'> = {
         ...data,
-        id: id,
-        date: sales.find(s => s.id === id)?.date || new Date().toISOString()
+        date: new Date().toISOString(),
     };
-    
-    const updatedSales = sales.map(s => s.id === id ? updatedSale : s);
-    
-    saveProductsToStorage(products);
-    saveSalesToStorage(updatedSales);
+
+    batch.set(doc(db, 'sales', newId), newSale);
+
+    await batch.commit();
+    return newId;
+};
+
+export const updateSale = async (id: string, data: SaleFormData, originalItems: SaleItem[]) => {
+    await runTransaction(db, async (transaction) => {
+        // 1. Restore stock from original items
+        for (const item of originalItems) {
+            const productRef = doc(db, "products", item.productId);
+            const productDoc = await transaction.get(productRef);
+            if (productDoc.exists()) {
+                const newQuantity = (productDoc.data().quantity || 0) + item.quantity;
+                transaction.update(productRef, { quantity: newQuantity });
+            }
+        }
+
+        // 2. Deduct stock for new/updated items
+        for (const item of data.items) {
+            const productRef = doc(db, "products", item.productId);
+            const productDoc = await transaction.get(productRef);
+            if (productDoc.exists()) {
+                 const newQuantity = productDoc.data().quantity - item.quantity;
+                 if (newQuantity < 0) {
+                     throw new Error(`Not enough stock for ${productDoc.data().name}`);
+                 }
+                transaction.update(productRef, { quantity: newQuantity });
+            }
+        }
+
+        // 3. Update the sale document
+        const saleRef = doc(db, "sales", id);
+        const saleSnap = await transaction.get(saleRef);
+        const updatedSale: Omit<Sale, 'id' | 'date'> = { ...data };
+        transaction.update(saleRef, {
+            ...updatedSale,
+            date: saleSnap.data()?.date || new Date().toISOString()
+        });
+    });
 };
 
 
-export const deleteSale = (id: string) => {
-    let products = getProductsFromStorage();
-    let sales = getSalesFromStorage();
-    
-    const sale = sales.find(s => s.id === id);
+export const deleteSale = async (id: string) => {
+    const saleRef = doc(db, 'sales', id);
+    const batch = writeBatch(db);
+
+    const saleSnap = await getDoc(saleRef);
+    const sale = saleSnap.data() as Sale;
+
     if (!sale) {
         throw new Error("Sale not found");
     }
 
     // Restore stock
     for (const item of sale.items) {
-        const productIndex = products.findIndex(p => p.id === item.productId);
-        if (productIndex > -1) {
-            products[productIndex].quantity += item.quantity;
+        const productRef = doc(db, 'products', item.productId);
+        const productSnap = await getDoc(productRef);
+        if (productSnap.exists()) {
+            const currentQuantity = productSnap.data().quantity;
+            batch.update(productRef, { quantity: currentQuantity + item.quantity });
         }
     }
 
-    const updatedSales = sales.filter(s => s.id !== id);
-
-    saveProductsToStorage(products);
-    saveSalesToStorage(updatedSales);
+    batch.delete(saleRef);
+    await batch.commit();
 };
+
+// Remove the old client-side local storage functions
+// getProductsFromStorage, saveProductsToStorage, getSalesFromStorage, saveSalesToStorage
+// The entire logic is now handled by Firestore functions above.

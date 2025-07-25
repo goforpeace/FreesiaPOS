@@ -1,3 +1,4 @@
+
 "use client";
 
 import { MoreHorizontal, Eye, Trash2, Pencil } from "lucide-react";
@@ -27,9 +28,9 @@ import { deleteSale } from "@/lib/api";
 export function SalesActions({ saleId, onSaleUpdate }: { saleId: string, onSaleUpdate: () => void }) {
   const { toast } = useToast();
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     try {
-      deleteSale(saleId);
+      await deleteSale(saleId);
       toast({
         title: "Sale Deleted",
         description: `Invoice #${saleId} has been deleted.`,

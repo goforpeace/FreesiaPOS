@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,15 +20,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { type Product } from "@/lib/types";
-import { createProduct, updateProduct } from "@/lib/api";
-import { useState } from "react";
 
 const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   description: z.string().min(10, "Description must be at least 10 characters."),
-  imageUrl: z.string().url("Please enter a valid URL."),
+  imageUrl: z.string().url("Please enter a valid URL.").or(z.literal("")),
   quantity: z.coerce.number().int().min(0, "Quantity cannot be negative."),
   costPrice: z.coerce.number().min(0, "Cost price cannot be negative."),
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
@@ -37,12 +35,12 @@ export type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductFormProps {
   initialData?: Product;
+  isSubmitting: boolean;
+  onSubmit: (values: ProductFormValues) => void;
 }
 
-export function ProductForm({ initialData }: ProductFormProps) {
+export function ProductForm({ initialData, isSubmitting, onSubmit }: ProductFormProps) {
   const router = useRouter();
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -57,30 +55,6 @@ export function ProductForm({ initialData }: ProductFormProps) {
   });
   
   const imageUrl = form.watch("imageUrl");
-
-  function onSubmit(data: ProductFormValues) {
-    setIsSubmitting(true);
-    try {
-      if (initialData) {
-        updateProduct(initialData.id, data);
-      } else {
-        createProduct(data);
-      }
-      toast({
-        title: initialData ? "Product Updated" : "Product Created",
-        description: `Product "${data.name}" has been successfully ${initialData ? 'updated' : 'created'}.`,
-      });
-      router.push("/products");
-    } catch (error) {
-       toast({
-        title: "An error occurred",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
 
   return (
     <Form {...form}>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { PlusCircle, Search } from "lucide-react";
@@ -29,57 +29,56 @@ import { getProducts } from "@/lib/api";
 import { ProductActions } from "@/components/products/ProductActions";
 import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("createdAt-desc");
+  const [loading, setLoading] = useState(true);
 
-  const refreshProducts = () => {
-    // Only show non-rejected products
-    setProducts(getProducts().filter(p => !p.isRejected));
-  };
+  const refreshProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const fetchedProducts = await getProducts();
+      setProducts(fetchedProducts.filter(p => !p.isRejected));
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
   
   useEffect(() => {
     refreshProducts();
-    
-    window.addEventListener('storage', refreshProducts);
-    return () => {
-      window.removeEventListener('storage', refreshProducts);
-    };
-  }, []);
+  }, [refreshProducts]);
 
   const sortedProducts = useMemo(() => {
     let sorted = [...products];
+    if (sortOption) {
+      const [key, order] = sortOption.split("-");
+      sorted.sort((a, b) => {
+        let valA: string | number | undefined;
+        let valB: string | number | undefined;
 
-    const [key, order] = sortOption.split("-");
+        if (key === 'createdAt') {
+          valA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          valB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        } else if (key === 'name') {
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+        } else if (key === 'quantity' || key === 'sellPrice' || key === 'costPrice') {
+          valA = a[key as keyof Product] as number;
+          valB = b[key as keyof Product] as number;
+        }
 
-    sorted.sort((a, b) => {
-      let valA: string | number | undefined;
-      let valB: string | number | undefined;
-
-      if (key === 'createdAt') {
-        valA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        valB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      } else if (key === 'name') {
-        valA = a.name.toLowerCase();
-        valB = b.name.toLowerCase();
-      } else if (key === 'quantity' || key === 'sellPrice') {
-        valA = a[key];
-        valB = b[key];
-      }
-
-      if (valA === undefined || valB === undefined) return 0;
-      
-      if (valA < valB) {
-        return order === 'asc' ? -1 : 1;
-      }
-      if (valA > valB) {
-        return order === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
-
+        if (valA === undefined || valB === undefined) return 0;
+        
+        if (valA < valB) return order === 'asc' ? -1 : 1;
+        if (valA > valB) return order === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
     return sorted;
   }, [products, sortOption]);
   
@@ -143,39 +142,55 @@ export default function ProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={product.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={product.imageUrl || 'https://placehold.co/64x64.png'}
-                      width="64"
-                      data-ai-hint="product image"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {product.name}
-                    <div className="text-sm text-muted-foreground md:hidden">
-                        {formatCurrency(product.sellPrice)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {product.quantity > 0 ? (
-                      <Badge variant="secondary">In Stock</Badge>
-                    ) : (
-                      <Badge variant="outline">Out of Stock</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell text-right">{product.quantity}</TableCell>
-                  <TableCell className="hidden md:table-cell text-right">{formatCurrency(product.costPrice)}</TableCell>
-                  <TableCell className="hidden md:table-cell text-right">{formatCurrency(product.sellPrice)}</TableCell>
-                  <TableCell>
-                    <ProductActions product={product} onProductUpdate={refreshProducts} />
-                  </TableCell>
-                </TableRow>
-              ))}
+              {loading ? (
+                [...Array(5)].map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="hidden sm:table-cell">
+                      <Skeleton className="aspect-square rounded-md h-16 w-16" />
+                    </TableCell>
+                    <TableCell><Skeleton className="h-5 w-3/4" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-1/2" /></TableCell>
+                    <TableCell className="hidden md:table-cell text-right"><Skeleton className="h-5 w-10 ml-auto" /></TableCell>
+                    <TableCell className="hidden md:table-cell text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
+                    <TableCell className="hidden md:table-cell text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <Image
+                        alt={product.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={product.imageUrl || 'https://placehold.co/64x64.png'}
+                        width="64"
+                        data-ai-hint="product image"
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {product.name}
+                      <div className="text-sm text-muted-foreground md:hidden">
+                          {formatCurrency(product.sellPrice)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {product.quantity > 0 ? (
+                        <Badge variant="secondary">In Stock</Badge>
+                      ) : (
+                        <Badge variant="outline">Out of Stock</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-right">{product.quantity}</TableCell>
+                    <TableCell className="hidden md:table-cell text-right">{formatCurrency(product.costPrice)}</TableCell>
+                    <TableCell className="hidden md:table-cell text-right">{formatCurrency(product.sellPrice)}</TableCell>
+                    <TableCell>
+                      <ProductActions product={product} onProductUpdate={refreshProducts} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

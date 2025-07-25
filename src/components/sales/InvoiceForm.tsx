@@ -12,7 +12,6 @@ import Image from "next/image"
 import type { Product, Sale, SaleItem } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
-import { createSale, updateSale } from "@/lib/api"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -35,6 +34,8 @@ import {
 } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 const invoiceFormSchema = z.object({
   customerName: z.string().min(2, "Name is required."),
@@ -50,9 +51,11 @@ interface InvoiceFormProps {
   availableProducts: Product[];
   allProducts: Product[];
   initialData?: Sale;
+  onSubmit: (data: any) => void;
+  isLoading: boolean;
 }
 
-export function InvoiceForm({ availableProducts, allProducts, initialData }: InvoiceFormProps) {
+export function InvoiceForm({ availableProducts, allProducts, initialData, onSubmit, isLoading }: InvoiceFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,13 +119,21 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
     const availableQuantity = (product.quantity || 0) + originalQuantity;
     const newQuantity = Math.max(1, Math.min(quantity, availableQuantity))
     
+    if (quantity > availableQuantity) {
+        toast({
+            title: "Stock limit reached",
+            description: `Only ${availableQuantity} units of ${product.name} available.`,
+            variant: "destructive"
+        })
+    }
+    
     setItems(items.map(item => item.productId === productId ? { ...item, quantity: newQuantity } : item))
   }
 
   const subtotal = items.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0)
   const total = subtotal + Number(shippingCost || 0) - Number(discount || 0);
 
-  function onSubmit(data: InvoiceFormValues) {
+  async function handleFormSubmit(data: InvoiceFormValues) {
     if(items.length === 0) {
         toast({
             title: "No items in invoice",
@@ -133,38 +144,46 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
     }
 
     setIsSubmitting(true);
-    try {
-      const payload = { ...data, items, total, subtotal };
-      if (initialData) {
-        updateSale(initialData.id, payload, originalItems);
-        toast({
-          title: "Invoice Updated",
-          description: `Invoice #${initialData.id} has been successfully updated.`,
-        });
-      } else {
-        createSale(payload);
-        toast({
-          title: "Invoice Created",
-          description: "A new sales invoice has been successfully created.",
-        })
-      }
-      
-      router.push("/sales");
+    const payload = { ...data, items, total, subtotal };
+    await onSubmit(payload);
+    setIsSubmitting(false);
+  }
 
-    } catch (error) {
-       toast({
-        title: "An error occurred",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-        setIsSubmitting(false);
-    }
+  if (isLoading) {
+    return (
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2 space-y-8">
+            <Card>
+              <CardHeader><CardTitle>Products</CardTitle></CardHeader>
+              <CardContent>
+                 <Skeleton className="h-10 w-full mb-4"/>
+                 <Skeleton className="h-48 w-full"/>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="space-y-8">
+             <Card>
+              <CardHeader><CardTitle>Customer Details</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full"/>
+                  <Skeleton className="h-10 w-full"/>
+                  <Skeleton className="h-20 w-full"/>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>Summary</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                  <Skeleton className="h-24 w-full"/>
+              </CardContent>
+            </Card>
+          </div>
+       </div>
+    )
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-8">
             <Card>
@@ -250,7 +269,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData }: Inv
           </div>
           <div className="space-y-8">
             <Card>
-              <CardHeader><CardTitle>Customer Details</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Customer Details</CardTitle></Header>
               <CardContent className="space-y-4">
                 <FormField control={form.control} name="customerName" render={({ field }) => (
                   <FormItem><FormLabel>Name</FormLabel><FormControl><Input placeholder="Customer Name" {...field} /></FormControl><FormMessage /></FormItem>

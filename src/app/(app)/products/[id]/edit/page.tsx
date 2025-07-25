@@ -1,26 +1,55 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { ProductForm } from "@/components/products/ProductForm";
-import { getProduct } from "@/lib/api";
-import { notFound } from "next/navigation";
+import { getProduct, updateProduct } from "@/lib/api";
+import { notFound, useRouter } from "next/navigation";
 import type { Product } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProductFormValues } from "@/components/products/ProductForm";
+import { useToast } from "@/hooks/use-toast";
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
-  const [product, setProduct] = useState<Product | null | undefined>(null);
+  const [product, setProduct] = useState<Product | null | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
-    const foundProduct = getProduct(params.id);
-    setProduct(foundProduct);
+    const fetchProduct = async () => {
+        try {
+            const foundProduct = await getProduct(params.id);
+            setProduct(foundProduct);
+        } catch (error) {
+            console.error("Failed to fetch product:", error);
+            setProduct(null);
+        }
+    }
+    fetchProduct();
   }, [params.id]);
+  
+  const handleSubmit = async (data: ProductFormValues) => {
+    setIsSubmitting(true);
+    try {
+      await updateProduct(params.id, data);
+      toast({
+        title: "Product Updated",
+        description: `Product "${data.name}" has been successfully updated.`,
+      });
+      router.push("/products");
+    } catch (error) {
+       toast({
+        title: "An error occurred",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+    }
+  };
 
   if (product === undefined) {
-    notFound();
-  }
-
-  if (product === null) {
     return (
         <>
             <Header title="Edit Product" />
@@ -33,10 +62,19 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     )
   }
 
+  if (product === null) {
+      notFound();
+  }
+
+
   return (
     <>
       <Header title="Edit Product" />
-      <ProductForm initialData={product} />
+      <ProductForm 
+        initialData={product} 
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+      />
     </>
   );
 }

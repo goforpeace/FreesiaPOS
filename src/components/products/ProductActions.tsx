@@ -29,9 +29,9 @@ import { deleteProduct, rejectProduct } from "@/lib/api";
 export function ProductActions({ product, onProductUpdate }: { product: Product, onProductUpdate: () => void }) {
   const { toast } = useToast();
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     try {
-      deleteProduct(product.id);
+      await deleteProduct(product.id);
       toast({
         title: "Product Deleted",
         description: `Product "${product.name}" has been deleted.`,
@@ -46,9 +46,9 @@ export function ProductActions({ product, onProductUpdate }: { product: Product,
     }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     try {
-      rejectProduct(product.id);
+      await rejectProduct(product.id);
       toast({
         title: "Product Rejected",
         description: `Product "${product.name}" has been marked as rejected.`,

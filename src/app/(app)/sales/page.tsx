@@ -27,22 +27,28 @@ import { getSales } from "@/lib/api";
 import { SalesActions } from "@/components/sales/SalesActions";
 import { formatCurrency, cn } from "@/lib/utils";
 import type { Sale } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SalesPage() {
   const [sales, setSales] = useState<Sale[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  const refreshSales = () => {
-    setSales(getSales());
+  const refreshSales = async () => {
+    setLoading(true);
+    try {
+      const salesData = await getSales();
+      setSales(salesData);
+    } catch (error) {
+      console.error("Failed to fetch sales:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     refreshSales();
-    window.addEventListener('storage', refreshSales);
-    return () => {
-      window.removeEventListener('storage', refreshSales);
-    };
   }, []);
 
   const filteredSales = sales.filter(sale => {
@@ -161,17 +167,29 @@ export default function SalesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredSales.map((sale) => (
-                <TableRow key={sale.id}>
-                  <TableCell className="font-medium">{sale.id}</TableCell>
-                  <TableCell>{sale.customerName}</TableCell>
-                  <TableCell className="hidden md:table-cell">{format(new Date(sale.date), "dd MMM, yyyy")}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(sale.total)}</TableCell>
-                   <TableCell className="text-right">
-                    <SalesActions saleId={sale.id} onSaleUpdate={refreshSales} />
-                  </TableCell>
-                </TableRow>
-              ))}
+              {loading ? (
+                 [...Array(5)].map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                filteredSales.map((sale) => (
+                  <TableRow key={sale.id}>
+                    <TableCell className="font-medium">{sale.id}</TableCell>
+                    <TableCell>{sale.customerName}</TableCell>
+                    <TableCell className="hidden md:table-cell">{format(new Date(sale.date), "dd MMM, yyyy")}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(sale.total)}</TableCell>
+                    <TableCell className="text-right">
+                      <SalesActions saleId={sale.id} onSaleUpdate={refreshSales} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

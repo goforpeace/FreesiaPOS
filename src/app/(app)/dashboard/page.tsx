@@ -19,24 +19,28 @@ import { ProfitCalculator } from "@/components/dashboard/ProfitCalculator";
 import { getProducts, getSales } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import type { Product, Sale } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = () => {
-      setProducts(getProducts());
-      setSales(getSales());
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [productsData, salesData] = await Promise.all([getProducts(), getSales()]);
+        setProducts(productsData);
+        setSales(salesData);
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     
     loadData();
-
-    // Listen for storage changes to update the dashboard in real-time
-    window.addEventListener('storage', loadData);
-    return () => {
-      window.removeEventListener('storage', loadData);
-    };
   }, []);
 
   const totalSales = sales.reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
@@ -63,6 +67,23 @@ export default function DashboardPage() {
 
   const availableProducts = products.filter(p => !p.isRejected);
 
+  if (loading) {
+    return (
+        <>
+            <Header title="Dashboard" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {[...Array(8)].map((_, i) => (
+                    <CardSkeleton key={i} />
+                ))}
+            </div>
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">
+                <Skeleton className="h-[450px] col-span-1 lg:col-span-2" />
+                <Skeleton className="h-[450px]" />
+             </div>
+        </>
+    )
+  }
+
   return (
     <>
       <Header title="Dashboard" />
@@ -83,3 +104,10 @@ export default function DashboardPage() {
     </>
   );
 }
+
+const CardSkeleton = () => (
+    <div className="p-6 bg-card rounded-lg shadow-sm">
+        <Skeleton className="h-4 w-1/2 mb-4" />
+        <Skeleton className="h-8 w-3/4" />
+    </div>
+)
