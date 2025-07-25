@@ -1,7 +1,7 @@
 
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -15,15 +15,37 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Package, ShoppingCart, Settings, XCircle } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings, XCircle, LogOut } from "lucide-react";
 import React from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
+  const { toast } = useToast();
 
   const isProductsActive = pathname.startsWith("/products");
   const isSalesActive = pathname.startsWith("/sales");
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+       toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+       toast({
+        title: "Logout Failed",
+        description: "An error occurred while logging out. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <Sidebar>
@@ -131,6 +153,15 @@ export function SidebarNav() {
                   <span>Settings</span>
                 </span>
                 </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={handleLogout}
+                tooltip="Logout"
+                >
+                 <LogOut />
+                 <span>Logout</span>
+              </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
