@@ -3,9 +3,10 @@
 
 import { db } from '@/lib/firebase';
 import { doc, runTransaction } from 'firebase/firestore';
-import type { Sale, SelectedVariant } from '@/lib/types';
+import type { Sale } from '@/lib/types';
+import { revalidatePath } from 'next/cache';
 
-// Define the shape of the data expected from the client
+// Define the shape of the data expected from the form
 interface SaleItemData {
     productId: string;
     productName: string;
@@ -13,8 +14,10 @@ interface SaleItemData {
     quantity: number;
     unitPrice: number;
     imageUrl?: string | null;
-    variant?: SelectedVariant | null;
+    variantColor?: string | null;
+    variantImageUrl?: string | null;
 }
+
 interface SaleData {
     customerName: string;
     customerPhone: string;
@@ -25,6 +28,7 @@ interface SaleData {
     subtotal: number;
     total: number;
 }
+
 
 export async function createSaleAction(data: SaleData): Promise<{ saleId?: string; error?: string }> {
     try {
@@ -47,9 +51,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
             // 2. Create the new sale document
             const newId = `inv-${Date.now().toString().slice(-5)}${Math.floor(Math.random() * 100)}`;
             const saleRef = doc(db, 'sales', newId);
-
-            // Create a new Sale object that matches the Firestore structure
-            // Ensure all optional fields are handled correctly
+            
             const newSale: Omit<Sale, 'id'> = {
                 customerName: data.customerName,
                 customerPhone: data.customerPhone || null,
@@ -61,7 +63,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     imageUrl: item.imageUrl || null,
-                    variant: item.variant || null,
+                    variant: item.variantColor ? { color: item.variantColor, imageUrl: item.variantImageUrl || '' } : null,
                 })),
                 shippingCost: data.shippingCost || 0,
                 discount: data.discount || 0,
@@ -75,6 +77,11 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
 
             return newId;
         });
+        
+        // Revalidate paths to show updated data
+        revalidatePath('/');
+        revalidatePath('/control-panel');
+        revalidatePath('/products');
 
         return { saleId };
 
