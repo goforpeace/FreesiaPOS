@@ -11,6 +11,7 @@ import {
   CircleDollarSign,
   ClipboardList,
   Sun,
+  Hourglass,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -44,9 +45,11 @@ export default function DashboardPage() {
   }, []);
 
   const acceptedSales = sales.filter(s => s.status === 'accepted');
+  const pendingSales = sales.filter(s => s.status === 'pending');
 
   const totalSales = acceptedSales.reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
   const totalOrders = acceptedSales.length;
+  const totalPendingOrders = pendingSales.length;
 
   const totalProfit = acceptedSales.reduce((acc, sale) => {
     const costOfGoods = sale.items.reduce((itemAcc, item) => {
@@ -94,6 +97,7 @@ export default function DashboardPage() {
         <StatCard title="Daily Sales" value={formatCurrency(dailySales)} icon={Sun} description="From accepted sales" />
         <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} description="From accepted sales" />
         <StatCard title="Accepted Orders" value={totalOrders.toString()} icon={ClipboardList} />
+        <StatCard title="Pending Orders" value={totalPendingOrders.toString()} icon={Hourglass} />
         <StatCard title="Total Stock" value={totalStock.toString()} icon={Package} />
         <StatCard title="Stock Value (Cost)" value={formatCurrency(totalProductValue)} icon={ReceiptText} />
         <StatCard title="Rejected Products" value={rejectedProducts.toString()} icon={PackageX} />
