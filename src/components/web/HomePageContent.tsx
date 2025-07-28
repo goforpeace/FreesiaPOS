@@ -50,6 +50,32 @@ const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   );
 };
 
+const Ticker = () => {
+  const tickerItems = [
+    "Imported Premium Items",
+    "Full Cash on Delivery - ক্যাশ অন ডেলিভারী",
+    "Easy Return Policy",
+  ];
+
+  return (
+    <div className="bg-primary text-primary-foreground">
+      <div className="relative flex overflow-x-hidden">
+        <div className="py-2 animate-marquee whitespace-nowrap">
+          {tickerItems.map((item, index) => (
+            <span key={index} className="text-sm font-semibold mx-4">{item}</span>
+          ))}
+        </div>
+        <div className="absolute top-0 py-2 animate-marquee2 whitespace-nowrap">
+          {tickerItems.map((item, index) => (
+            <span key={index} className="text-sm font-semibold mx-4">{item}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 export function HomePageContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -129,6 +155,9 @@ export function HomePageContent() {
               </div>
           </section>
       )}
+
+      {/* Ticker Section */}
+      <Ticker />
 
        {/* Search Bar */}
       <section className="py-8 px-4 md:px-8 bg-muted/50">
@@ -235,23 +264,23 @@ const ProductCard = ({ product }: { product: Product }) => {
                             data-ai-hint="product image"
                         />
                     </div>
-                    <div className="p-4 border-t border-border">
-                        <h3 className="text-lg font-headline font-semibold text-card-foreground truncate">{product.name}</h3>
-                        <div className="flex items-baseline gap-2 mt-2">
-                             <p className="font-semibold text-foreground text-lg">{formatCurrency(displayPrice as number)}</p>
+                    <div className="p-3 border-t border-border">
+                        <h3 className="text-sm font-headline font-semibold text-card-foreground truncate">{product.name}</h3>
+                        <div className="flex items-baseline gap-1.5 mt-1">
+                             <p className="font-semibold text-foreground text-base">{formatCurrency(displayPrice as number)}</p>
                             {hasDiscount && (
-                                <p className="text-sm text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
+                                <p className="text-xs text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
                             )}
                         </div>
                     </div>
                 </CardContent>
             </Link>
-            <CardFooter className="p-4 pt-0 mt-auto flex-col gap-2">
-                 <Button className="w-full" variant="secondary" onClick={() => addItem(product)}>
+            <CardFooter className="p-3 pt-0 mt-auto flex-col gap-2">
+                 <Button className="w-full" size="sm" variant="secondary" onClick={() => addItem(product)}>
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
                 </Button>
-                <Button className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={handleOrderNow}>
+                <Button className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" size="sm" onClick={handleOrderNow}>
                     <Bolt className="mr-2 h-4 w-4" />
                     Order Now
                 </Button>
