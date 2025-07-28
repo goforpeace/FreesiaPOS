@@ -33,7 +33,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(auth, email, password);
-      router.push("/dashboard");
+      router.push("/control-panel");
     } catch (error: any) {
         let errorMessage = "An unexpected error occurred. Please try again.";
         if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {

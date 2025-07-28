@@ -18,7 +18,7 @@ export default function AppLayout({
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push('/secure-access');
     }
   }, [user, loading, router]);
 

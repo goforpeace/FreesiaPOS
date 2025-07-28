@@ -33,7 +33,7 @@ export function SidebarNav() {
   const handleLogout = async () => {
     try {
       await logout();
-      router.push("/login");
+      router.push("/secure-access");
        toast({
         title: "Logged Out",
         description: "You have been successfully logged out.",
@@ -69,10 +69,10 @@ export function SidebarNav() {
           <SidebarMenuItem>
              <SidebarMenuButton
                 asChild
-                isActive={pathname === "/dashboard"}
+                isActive={pathname === "/control-panel"}
                 tooltip="Dashboard"
                 >
-                <Link href="/dashboard" className="flex items-center gap-2">
+                <Link href="/control-panel" className="flex items-center gap-2">
                   <LayoutDashboard />
                   <span>Dashboard</span>
                 </Link>
