@@ -6,8 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from 'next/navigation'
 import { Header } from "@/components/web/Header";
-import { getProducts } from "@/lib/api";
-import type { Product } from "@/lib/types";
+import { ReviewsSection } from "@/components/web/ReviewsSection";
+import { getProducts, getReviews } from "@/lib/api";
+import type { Product, Review } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -19,23 +20,28 @@ import { useRouter } from "next/navigation";
 
 export default function WebHomePage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams()
   const searchQuery = searchParams.get('q') || '';
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const allProducts = await getProducts();
+        const [allProducts, allReviews] = await Promise.all([
+          getProducts(),
+          getReviews()
+        ]);
         setProducts(allProducts.filter(p => !p.isRejected && p.quantity > 0));
+        setReviews(allReviews);
       } catch (error) {
-        console.error("Failed to fetch products:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchData();
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -76,6 +82,9 @@ export default function WebHomePage() {
                 )}
             </div>
         </section>
+
+        {/* Reviews Section */}
+        <ReviewsSection reviews={reviews} />
         
         {/* All Products Section */}
         <section id="all-products" className="py-16 px-4 md:px-8 bg-secondary/30">

@@ -15,7 +15,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Package, ShoppingCart, Settings, XCircle, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings, Star, LogOut } from "lucide-react";
 import React from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/use-auth";
@@ -137,6 +137,19 @@ export function SidebarNav() {
               </CollapsibleContent>
             </SidebarMenuItem>
           </Collapsible>
+
+          <SidebarMenuItem>
+             <SidebarMenuButton
+                asChild
+                isActive={pathname === "/reviews"}
+                tooltip="Reviews"
+                >
+                <Link href="/reviews" className="flex items-center gap-2">
+                  <Star />
+                  <span>Reviews</span>
+                </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
 
         </SidebarMenu>
       </SidebarContent>

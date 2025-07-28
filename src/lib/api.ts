@@ -16,7 +16,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 
-import type { Product, Sale, SaleItem } from './types';
+import type { Product, Sale, SaleItem, Review } from './types';
 import { ProductFormValues } from '@/components/products/ProductForm';
 import { InvoiceFormValues } from '@/components/sales/InvoiceForm';
 
@@ -41,8 +41,7 @@ export const getProduct = async (id: string): Promise<Product | undefined> => {
 };
 
 export const createProduct = async (data: Omit<ProductFormValues, 'imageUrls'> & { imageUrls: string[] }) => {
-  // Generate a custom product ID like "prod_123456"
-  const newId = `prod_${Date.now().toString().slice(-6)}`;
+  const newId = `prod_${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 100)}`;
   const newProductRef = doc(db, 'products', newId);
 
   await setDoc(newProductRef, {
@@ -117,8 +116,7 @@ export const createSale = async (data: SaleFormData) => {
         }
     }
     
-    // Generate a custom invoice ID like "inv-123456"
-    const newId = `inv-${Date.now().toString().slice(-6)}`;
+    const newId = `inv-${Date.now().toString().slice(-5)}${Math.floor(Math.random() * 100)}`;
 
     const newSale: Omit<Sale, 'id'> = {
         ...data,
@@ -247,3 +245,24 @@ export const deleteSale = async (id: string) => {
     batch.delete(saleRef);
     await batch.commit();
 };
+
+// REVIEWS API
+const reviewsCollection = collection(db, 'reviews');
+
+export const getReviews = async (): Promise<Review[]> => {
+  const q = query(reviewsCollection, orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Review));
+}
+
+export const createReview = async (imageUrl: string) => {
+  await addDoc(reviewsCollection, {
+    imageUrl,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+export const deleteReview = async (id: string) => {
+  const docRef = doc(db, 'reviews', id);
+  await deleteDoc(docRef);
+}

@@ -44,3 +44,9 @@ export interface Sale {
 export interface CartItem extends Product {
   cartQuantity: number;
 }
+
+export interface Review {
+  id: string;
+  imageUrl: string;
+  createdAt: string;
+}
