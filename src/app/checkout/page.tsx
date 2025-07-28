@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -46,7 +46,6 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
   const [isClient, setIsClient] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     setIsClient(true);
@@ -54,14 +53,19 @@ export default function CheckoutPage() {
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
+    defaultValues: {
+      customerName: "",
+      customerPhone: "",
+      customerAddress: "",
+    }
   });
 
   const shippingOption = form.watch("shippingOption");
   const subtotal = totalPrice();
   const shippingCost = shippingOption ? SHIPPING_COSTS[shippingOption] : 0;
   const total = subtotal + shippingCost;
-
-  const onSubmit = (data: CheckoutFormValues) => {
+  
+  const handleAction = async (formData: FormData) => {
     if (items.length === 0) {
       toast({
         title: "Your cart is empty",
@@ -70,49 +74,51 @@ export default function CheckoutPage() {
       });
       return;
     }
+    
+    const customerName = formData.get('customerName') as string;
+    const customerPhone = formData.get('customerPhone') as string;
+    const customerAddress = formData.get('customerAddress') as string;
 
-    startTransition(async () => {
-      const saleData = {
-          customerName: data.customerName,
-          customerPhone: data.customerPhone,
-          customerAddress: data.customerAddress,
-          items: items.map(item => ({
-              productId: item.id,
-              productName: item.name,
-              productDescription: item.description || null,
-              quantity: item.orderQuantity,
-              unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
-              imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
-              variant: item.selectedVariant ? {
-                  color: item.selectedVariant.color,
-                  imageUrl: item.selectedVariant.imageUrl,
-              } : null,
-          })),
-          shippingCost,
-          discount: 0, 
-          subtotal,
-          total,
-      };
+    const saleData = {
+        customerName,
+        customerPhone,
+        customerAddress,
+        items: items.map(item => ({
+            productId: item.id,
+            productName: item.name,
+            productDescription: item.description || null,
+            quantity: item.orderQuantity,
+            unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
+            imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
+            variant: item.selectedVariant ? {
+                color: item.selectedVariant.color,
+                imageUrl: item.selectedVariant.imageUrl,
+            } : null,
+        })),
+        shippingCost,
+        discount: 0, 
+        subtotal,
+        total,
+    };
       
-      const result = await createSaleAction(saleData);
+    const result = await createSaleAction(saleData);
 
-      if (result.error) {
-          toast({
-              title: "Failed to place order",
-              description: result.error,
-              variant: "destructive",
-          });
-      } else {
-          toast({
-              title: "Order Placed Successfully!",
-              description: `Your order #${result.saleId} has been confirmed.`,
-          });
-          
-          form.reset();
-          clearCart();
-          router.push(`/order-confirmation/${result.saleId}`);
-      }
-    });
+    if (result.error) {
+        toast({
+            title: "Failed to place order",
+            description: result.error,
+            variant: "destructive",
+        });
+    } else {
+        toast({
+            title: "Order Placed Successfully!",
+            description: `Your order #${result.saleId} has been confirmed.`,
+        });
+        
+        form.reset();
+        clearCart();
+        router.push(`/order-confirmation/${result.saleId}`);
+    }
   };
   
   const handleRemoveItem = (item: CartItem) => {
@@ -149,7 +155,7 @@ export default function CheckoutPage() {
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid md:grid-cols-3 gap-12 items-start">
+            <form action={handleAction} className="grid md:grid-cols-3 gap-12 items-start">
               <div className="md:col-span-2 space-y-6">
                  {/* Shipping Details */}
                 <Card>
@@ -205,7 +211,7 @@ export default function CheckoutPage() {
                                 />
                             </div>
                             <p className="font-semibold w-24 text-right">{formatCurrency(price * item.orderQuantity)}</p>
-                            <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item)}>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveItem(item)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                             </div>
@@ -273,8 +279,8 @@ export default function CheckoutPage() {
                     <div className="text-center bg-secondary/50 p-3 rounded-md">
                         <p className="font-semibold text-primary">Cash on Delivery</p>
                     </div>
-                    <Button type="submit" className="w-full" size="lg" disabled={isPending}>
-                        {isPending ? "Placing Order..." : "Place Order"}
+                    <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
+                        {form.formState.isSubmitting ? "Placing Order..." : "Place Order"}
                     </Button>
                   </CardContent>
                 </Card>

@@ -61,7 +61,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     imageUrl: item.imageUrl || null,
-                    variant: item.variant || null, // This is now a plain object
+                    variant: item.variant || null,
                 })),
                 shippingCost: data.shippingCost || 0,
                 discount: data.discount || 0,
