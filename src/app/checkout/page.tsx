@@ -90,7 +90,7 @@ export default function CheckoutPage() {
         total,
       };
       
-      const newSaleId = await createSale(saleData);
+      const newSaleId = await createSale(saleData as any);
       toast({
         title: "Order Placed Successfully!",
         description: `Your order #${newSaleId} has been confirmed.`,

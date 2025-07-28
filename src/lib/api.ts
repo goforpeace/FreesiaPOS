@@ -54,7 +54,7 @@ export const createProduct = async (data: ProductFormValues) => {
 
 export const updateProduct = async (id: string, data: ProductFormValues) => {
   const docRef = doc(db, 'products', id);
-  await updateDoc(docRef, data);
+  await updateDoc(docRef, data as any);
 };
 
 
@@ -176,7 +176,7 @@ export const updateSale = async (id: string, data: SaleFormData) => {
         }
 
         // 3. Update the sale document
-        transaction.update(saleRef, saleData);
+        transaction.update(saleRef, saleData as any);
     });
 };
 
