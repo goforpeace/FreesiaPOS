@@ -1,4 +1,5 @@
 
+
 import { db } from './firebase';
 import {
   collection,
@@ -123,13 +124,18 @@ export const createSale = async (data: SaleFormData) => {
 
     const newSale: Omit<Sale, 'id'> = {
         customerName: data.customerName,
-        customerPhone: data.customerPhone,
-        customerAddress: data.customerAddress,
-        items: data.items,
-        shippingCost: data.shippingCost,
-        discount: data.discount,
-        subtotal: data.subtotal,
-        total: data.total,
+        customerPhone: data.customerPhone || null,
+        customerAddress: data.customerAddress || null,
+        items: data.items.map(item => ({
+            ...item,
+            productDescription: item.productDescription || null,
+            imageUrl: item.imageUrl || null,
+            variant: item.variant || null,
+        })),
+        shippingCost: data.shippingCost || 0,
+        discount: data.discount || 0,
+        subtotal: data.subtotal || 0,
+        total: data.total || 0,
         date: new Date().toISOString(),
         status: 'pending', // All sales start as pending
     };

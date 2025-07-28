@@ -36,19 +36,19 @@ export interface SelectedVariant {
 export interface SaleItem {
   productId: string;
   productName: string; // Can be edited
-  productDescription?: string;
+  productDescription?: string | null;
   quantity: number;
   unitPrice: number; // sellPrice at time of sale
-  imageUrl?: string;
-  variant?: SelectedVariant;
+  imageUrl?: string | null;
+  variant?: SelectedVariant | null;
 }
 
 export interface Sale {
   id: string; // Invoice Number
   customerId?: string;
   customerName: string;
-  customerPhone?: string;
-  customerAddress?: string;
+  customerPhone?: string | null;
+  customerAddress?: string | null;
   items: SaleItem[];
   shippingCost: number;
   discount: number;
