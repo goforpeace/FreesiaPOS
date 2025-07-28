@@ -43,7 +43,8 @@ export default function EditSalePage() {
   const handleSubmit = async (data: any) => {
      if (!sale) return;
     try {
-      await updateSale(id, data, sale.items);
+      // The `originalItems` are now passed inside the data payload from InvoiceForm
+      await updateSale(id, data);
       toast({
         title: "Invoice Updated",
         description: `Invoice #${id} has been successfully updated.`,
@@ -76,7 +77,7 @@ export default function EditSalePage() {
   }
 
   const availableProducts = allProducts.filter(p =>
-    !p.isRejected && (p.quantity > 0 || sale.items.some(i => i.productId === p.id))
+    !p.isRejected && (p.quantity > 0 || (sale?.items.some(i => i.productId === p.id)))
   );
 
   return (

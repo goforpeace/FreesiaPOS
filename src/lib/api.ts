@@ -26,7 +26,7 @@ import { InvoiceFormValues } from '@/components/sales/InvoiceForm';
 const productsCollection = collection(db, 'products');
 
 export const getProducts = async (): Promise<Product[]> => {
-  const q = query(productsCollection, orderBy('name'));
+  const q = query(productsCollection, orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
 };
@@ -41,7 +41,7 @@ export const getProduct = async (id: string): Promise<Product | undefined> => {
 };
 
 export const createProduct = async (data: ProductFormValues) => {
-  const newId = `prd_id${Math.floor(10000 + Math.random() * 90000)}`;
+  const newId = `prd_id${Math.floor(10025 + Math.random() * 90000)}`;
   const newProductRef = doc(db, 'products', newId);
 
   await setDoc(newProductRef, {
@@ -85,6 +85,7 @@ type SaleFormData = InvoiceFormValues & {
     items: SaleItem[];
     subtotal: number;
     total: number;
+    originalItems?: SaleItem[];
 }
 
 export const getSales = async (): Promise<Sale[]> => {
@@ -121,7 +122,14 @@ export const createSale = async (data: SaleFormData) => {
     const newId = `inv-${Date.now().toString().slice(-5)}${Math.floor(Math.random() * 100)}`;
 
     const newSale: Omit<Sale, 'id'> = {
-        ...data,
+        customerName: data.customerName,
+        customerPhone: data.customerPhone,
+        customerAddress: data.customerAddress,
+        items: data.items,
+        shippingCost: data.shippingCost,
+        discount: data.discount,
+        subtotal: data.subtotal,
+        total: data.total,
         date: new Date().toISOString(),
         status: 'pending', // All sales start as pending
     };
@@ -132,18 +140,17 @@ export const createSale = async (data: SaleFormData) => {
     return newId;
 };
 
-export const updateSale = async (id: string, data: SaleFormData, originalItems: SaleItem[]) => {
+export const updateSale = async (id: string, data: SaleFormData) => {
+    const { originalItems, ...saleData } = data;
+    if (!originalItems) {
+        throw new Error("Original items not provided for sale update.");
+    }
+    
     await runTransaction(db, async (transaction) => {
         const saleRef = doc(db, "sales", id);
-        const saleSnap = await transaction.get(saleRef);
-        if (!saleSnap.exists()) {
-            throw new Error("Sale not found to update!");
-        }
-        const currentItems = saleSnap.data().items as SaleItem[];
-
 
         // 1. Restore stock from original items
-        for (const item of currentItems) {
+        for (const item of originalItems) {
             const productRef = doc(db, "products", item.productId);
             const productDoc = await transaction.get(productRef);
             if (productDoc.exists()) {
@@ -153,13 +160,14 @@ export const updateSale = async (id: string, data: SaleFormData, originalItems: 
         }
 
         // 2. Deduct stock for new/updated items
-        for (const item of data.items) {
+        for (const item of saleData.items) {
             const productRef = doc(db, "products", item.productId);
             const productDoc = await transaction.get(productRef);
             if (productDoc.exists()) {
-                 const newQuantity = productDoc.data().quantity - item.quantity;
+                 const currentQuantity = productDoc.data().quantity;
+                 const newQuantity = currentQuantity - item.quantity;
                  if (newQuantity < 0) {
-                     throw new Error(`Not enough stock for ${productDoc.data().name}`);
+                     throw new Error(`Not enough stock for ${productDoc.data().name}. Only ${currentQuantity} available.`);
                  }
                 transaction.update(productRef, { quantity: newQuantity });
             } else {
@@ -168,11 +176,7 @@ export const updateSale = async (id: string, data: SaleFormData, originalItems: 
         }
 
         // 3. Update the sale document
-        const updatedSale: Partial<Sale> = { ...data };
-        transaction.update(saleRef, {
-            ...updatedSale,
-            date: saleSnap.data()?.date || new Date().toISOString()
-        });
+        transaction.update(saleRef, saleData);
     });
 };
 

@@ -60,13 +60,13 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [items, setItems] = useState<SaleItem[]>(initialData?.items || [])
+  const [items, setItems] = useState<SaleItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<string>("")
-  const [originalItems, setOriginalItems] = useState<SaleItem[]>(initialData?.items || [])
+  const [originalItems, setOriginalItems] = useState<SaleItem[]>([])
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: initialData || {
+    defaultValues: {
       customerName: "",
       customerPhone: "",
       customerAddress: "",
@@ -78,8 +78,8 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
   useEffect(() => {
     if (initialData) {
       form.reset(initialData);
-      setItems(initialData.items);
-      setOriginalItems(initialData.items);
+      setItems(initialData.items || []);
+      setOriginalItems(initialData.items || []);
     }
   }, [initialData, form]);
 
@@ -144,7 +144,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
     }
 
     setIsSubmitting(true);
-    const payload = { ...data, items, total, subtotal };
+    const payload = { ...data, items, total, subtotal, originalItems };
     await onSubmit(payload);
     setIsSubmitting(false);
   }
