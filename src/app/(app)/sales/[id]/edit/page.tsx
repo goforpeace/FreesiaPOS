@@ -5,12 +5,14 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { InvoiceForm } from "@/components/sales/InvoiceForm";
 import { getProducts, getSale, updateSale } from "@/lib/api";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import type { Product, Sale } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
-export default function EditSalePage({ params: { id } }: { params: { id: string } }) {
+export default function EditSalePage() {
+  const params = useParams();
+  const id = params.id as string;
   const [sale, setSale] = useState<Sale | null | undefined>(undefined);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +21,7 @@ export default function EditSalePage({ params: { id } }: { params: { id: string 
 
   useEffect(() => {
     const loadData = async () => {
+      if (!id) return;
       try {
         setLoading(true);
         const [saleData, productsData] = await Promise.all([

@@ -5,19 +5,22 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { ProductForm } from "@/components/products/ProductForm";
 import { getProduct, updateProduct } from "@/lib/api";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import type { Product } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductFormValues } from "@/components/products/ProductForm";
 import { useToast } from "@/hooks/use-toast";
 
-export default function EditProductPage({ params: { id } }: { params: { id: string } }) {
+export default function EditProductPage() {
+  const params = useParams();
+  const id = params.id as string;
   const [product, setProduct] = useState<Product | null | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!id) return;
     const fetchProduct = async () => {
         try {
             const foundProduct = await getProduct(id);
