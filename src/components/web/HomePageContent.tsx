@@ -69,7 +69,7 @@ export function HomePageContent() {
           getReviews(),
           getBanners()
         ]);
-        setProducts(allProducts.filter(p => !p.isRejected && p.quantity > 0));
+        setProducts(allProducts.filter(p => p.quantity > 0));
         setReviews(allReviews);
         setBanners(allBanners);
       } catch (error) {
@@ -156,9 +156,9 @@ export function HomePageContent() {
                   New Arrivals
               </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
               {loading ? (
-                  [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
+                  [...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)
               ) : newArrivals.length > 0 ? (
                   newArrivals.map(product => <ProductCard key={product.id} product={product} />)
               ) : (
@@ -175,9 +175,9 @@ export function HomePageContent() {
                   Offer Sale
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
                 {loading ? (
-                    [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
+                    [...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)
                 ) : (
                     offerSaleProducts.map(product => <ProductCard key={product.id} product={product} />)
                 )}
@@ -195,9 +195,9 @@ export function HomePageContent() {
                   All Products
               </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
                {loading ? (
-                  [...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)
+                  [...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)
               ) : filteredProducts.length > 0 ? (
                   filteredProducts.map(product => <ProductCard key={product.id} product={product} />)
               ) : (
