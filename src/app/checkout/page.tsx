@@ -71,56 +71,51 @@ export default function CheckoutPage() {
       return;
     }
 
+    const saleData = {
+        customerName: data.customerName,
+        customerPhone: data.customerPhone,
+        customerAddress: data.customerAddress,
+        items: items.map(item => {
+        const plainVariant: SelectedVariant | null = item.selectedVariant ? {
+            color: item.selectedVariant.color,
+            imageUrl: item.selectedVariant.imageUrl,
+        } : null;
+
+        return {
+            productId: item.id,
+            productName: item.name,
+            productDescription: item.description || null,
+            quantity: item.orderQuantity,
+            unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
+            imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
+            variant: plainVariant,
+        }
+        }),
+        shippingCost,
+        discount: 0, 
+        subtotal,
+        total,
+    };
+
     startTransition(async () => {
-      try {
-        const saleData = {
-            customerName: data.customerName,
-            customerPhone: data.customerPhone,
-            customerAddress: data.customerAddress,
-            items: items.map(item => {
-            const plainVariant: SelectedVariant | null = item.selectedVariant ? {
-                color: item.selectedVariant.color,
-                imageUrl: item.selectedVariant.imageUrl,
-            } : null;
+      const result = await createSaleAction(saleData);
 
-            return {
-                productId: item.id,
-                productName: item.name,
-                productDescription: item.description,
-                quantity: item.orderQuantity,
-                unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
-                imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
-                variant: plainVariant,
-            }
-            }),
-            shippingCost,
-            discount: 0, 
-            subtotal,
-            total,
-        };
-        
-        const result = await createSaleAction(saleData);
-
-        if (result.error) {
-            throw new Error(result.error);
-        }
-
-        toast({
-            title: "Order Placed Successfully!",
-            description: `Your order #${result.saleId} has been confirmed.`,
-        });
-        
-        form.reset();
-        clearCart();
-        router.push(`/order-confirmation/${result.saleId}`);
-
-        } catch (error: any) {
-            toast({
-                title: "Failed to place order",
-                description: error.message || "An unexpected error occurred. Please try again.",
-                variant: "destructive",
-            });
-        }
+      if (result.error) {
+          toast({
+              title: "Failed to place order",
+              description: result.error,
+              variant: "destructive",
+          });
+      } else {
+          toast({
+              title: "Order Placed Successfully!",
+              description: `Your order #${result.saleId} has been confirmed.`,
+          });
+          
+          form.reset();
+          clearCart();
+          router.push(`/order-confirmation/${result.saleId}`);
+      }
     });
   };
   
@@ -295,3 +290,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
