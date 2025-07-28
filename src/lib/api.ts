@@ -41,7 +41,7 @@ export const getProduct = async (id: string): Promise<Product | undefined> => {
 };
 
 export const createProduct = async (data: ProductFormValues) => {
-  const newId = `prod_${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 100)}`;
+  const newId = `prd_id${Math.floor(10000 + Math.random() * 90000)}`;
   const newProductRef = doc(db, 'products', newId);
 
   await setDoc(newProductRef, {
