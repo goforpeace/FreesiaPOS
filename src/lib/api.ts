@@ -44,9 +44,6 @@ export const createProduct = async (data: ProductFormValues) => {
   const newId = `prod_${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 100)}`;
   const newProductRef = doc(db, 'products', newId);
 
-  // The parent component expects `imageUrls` to be an array of strings,
-  // but react-hook-form's useFieldArray works with an array of objects.
-  // So we transform the data before submitting.
   const transformedData = {
     ...data,
     imageUrls: data.imageUrls.map(urlObj => urlObj.value),
@@ -62,9 +59,8 @@ export const createProduct = async (data: ProductFormValues) => {
 
 export const updateProduct = async (id: string, data: ProductFormValues) => {
   const docRef = doc(db, 'products', id);
-  // The parent component expects `imageUrls` to be an array of strings,
-  // but react-hook-form's useFieldArray works with an array of objects.
-  // So we transform the data before submitting.
+  // The form data includes `imageUrls` as an array of objects, 
+  // but Firestore expects an array of strings. We transform it here.
   const transformedData = {
     ...data,
     imageUrls: data.imageUrls.map(urlObj => urlObj.value),
