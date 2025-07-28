@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
 
 export default function AppLayout({
   children,
