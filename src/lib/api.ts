@@ -104,50 +104,6 @@ export const getSale = async (id: string): Promise<Sale | undefined> => {
     return undefined;
 };
 
-// This function is for ADMIN panel sale creation only
-export const createAdminSale = async (data: SaleFormData) => {
-    return runTransaction(db, async (transaction) => {
-        // Update stock
-        for (const item of data.items) {
-            const productRef = doc(db, 'products', item.productId);
-            const productSnap = await transaction.get(productRef);
-            if (productSnap.exists()) {
-                const currentQuantity = productSnap.data().quantity;
-                if (currentQuantity < item.quantity) {
-                    throw new Error(`Not enough stock for ${productSnap.data().name}`);
-                }
-                transaction.update(productRef, { quantity: currentQuantity - item.quantity });
-            }
-        }
-        
-        const newId = `inv-${Date.now().toString().slice(-5)}${Math.floor(Math.random() * 100)}`;
-
-        const newSale: Omit<Sale, 'id'> = {
-            customerName: data.customerName,
-            customerPhone: data.customerPhone || null,
-            customerAddress: data.customerAddress || null,
-            items: data.items.map(item => ({
-                ...item,
-                productDescription: item.productDescription || null,
-                imageUrl: item.imageUrl || null,
-                variant: item.variant || null,
-            })),
-            shippingCost: data.shippingCost || 0,
-            discount: data.discount || 0,
-            subtotal: data.subtotal || 0,
-            total: data.total || 0,
-            date: new Date().toISOString(),
-            status: 'pending', // All sales start as pending
-        };
-
-        const newSaleRef = doc(db, 'sales', newId);
-        transaction.set(newSaleRef, newSale);
-
-        return newId;
-    });
-};
-
-
 export const updateSale = async (id: string, data: SaleFormData) => {
     const { originalItems, ...saleData } = data;
     if (!originalItems) {

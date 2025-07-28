@@ -4,7 +4,8 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { InvoiceForm } from "@/components/sales/InvoiceForm";
-import { getProducts, createSale } from "@/lib/api";
+import { getProducts } from "@/lib/api";
+import { createSaleAction } from "@/app/actions/sales";
 import type { Product } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -32,12 +33,20 @@ export default function NewSalePage() {
 
   const handleSubmit = async (data: any) => {
     try {
-      const newSaleId = await createSale(data);
-      toast({
-        title: "Invoice Created",
-        description: `Invoice #${newSaleId} has been successfully created.`,
-      });
-      router.push("/sales");
+      const result = await createSaleAction(data);
+       if (result.error) {
+          toast({
+              title: "Failed to create invoice",
+              description: result.error,
+              variant: "destructive",
+          });
+      } else {
+        toast({
+          title: "Invoice Created",
+          description: `Invoice #${result.saleId} has been successfully created.`,
+        });
+        router.push("/sales");
+      }
     } catch (error: any) {
       toast({
         title: "An error occurred",

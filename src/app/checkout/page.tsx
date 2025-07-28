@@ -71,33 +71,29 @@ export default function CheckoutPage() {
       return;
     }
 
-    const saleData = {
-        customerName: data.customerName,
-        customerPhone: data.customerPhone,
-        customerAddress: data.customerAddress,
-        items: items.map(item => {
-        const plainVariant: SelectedVariant | null = item.selectedVariant ? {
-            color: item.selectedVariant.color,
-            imageUrl: item.selectedVariant.imageUrl,
-        } : null;
-
-        return {
-            productId: item.id,
-            productName: item.name,
-            productDescription: item.description || null,
-            quantity: item.orderQuantity,
-            unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
-            imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
-            variant: plainVariant,
-        }
-        }),
-        shippingCost,
-        discount: 0, 
-        subtotal,
-        total,
-    };
-
     startTransition(async () => {
+      const saleData = {
+          customerName: data.customerName,
+          customerPhone: data.customerPhone,
+          customerAddress: data.customerAddress,
+          items: items.map(item => ({
+              productId: item.id,
+              productName: item.name,
+              productDescription: item.description || null,
+              quantity: item.orderQuantity,
+              unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
+              imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
+              variant: item.selectedVariant ? {
+                  color: item.selectedVariant.color,
+                  imageUrl: item.selectedVariant.imageUrl,
+              } : null,
+          })),
+          shippingCost,
+          discount: 0, 
+          subtotal,
+          total,
+      };
+      
       const result = await createSaleAction(saleData);
 
       if (result.error) {
@@ -290,5 +286,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    
