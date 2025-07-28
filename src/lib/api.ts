@@ -105,41 +105,73 @@ export const getSale = async (id: string): Promise<Sale | undefined> => {
 };
 
 export const updateSale = async (id: string, data: SaleFormData) => {
-    const { originalItems, ...saleData } = data;
-    if (!originalItems) {
-        throw new Error("Original items not provided for sale update.");
-    }
+    const { originalItems = [], ...saleData } = data;
     
     await runTransaction(db, async (transaction) => {
         const saleRef = doc(db, "sales", id);
 
-        // 1. Restore stock from original items
+        // --- PHASE 1: READ ALL DATA FIRST ---
+        
+        // Create a map to hold all product references and documents to avoid duplicate reads
+        const productRefs = new Map<string, ReturnType<typeof doc>>();
+        const productDocs = new Map<string, any>();
+        
+        // Combine original and new items to get all relevant product IDs
+        const allItemProductIds = new Set([
+            ...originalItems.map(item => item.productId),
+            ...saleData.items.map(item => item.productId)
+        ]);
+
+        // Read all product documents involved in the transaction
+        for (const productId of allItemProductIds) {
+            const productRef = doc(db, "products", productId);
+            productRefs.set(productId, productRef);
+            const productDoc = await transaction.get(productRef);
+            if (!productDoc.exists()) {
+                // Find the product name for a better error message
+                const productName = saleData.items.find(i => i.productId === productId)?.productName || originalItems.find(i => i.productId === productId)?.productName || 'Unknown Product';
+                throw new Error(`Product '${productName}' (ID: ${productId}) not found.`);
+            }
+            productDocs.set(productId, productDoc.data());
+        }
+
+        // --- PHASE 2: CALCULATE AND VALIDATE IN MEMORY ---
+
+        // Calculate stock changes
+        const stockChanges = new Map<string, number>();
+
+        // Initialize with current quantities
+        for (const [productId, productData] of productDocs.entries()) {
+            stockChanges.set(productId, productData.quantity);
+        }
+
+        // Add back stock from original items
         for (const item of originalItems) {
-            const productRef = doc(db, "products", item.productId);
-            const productDoc = await transaction.get(productRef);
-            if (productDoc.exists()) {
-                const newQuantity = (productDoc.data().quantity || 0) + item.quantity;
-                transaction.update(productRef, { quantity: newQuantity });
-            }
+            const currentStock = stockChanges.get(item.productId) ?? 0;
+            stockChanges.set(item.productId, currentStock + item.quantity);
         }
 
-        // 2. Deduct stock for new/updated items
+        // Deduct stock for new items and validate availability
         for (const item of saleData.items) {
-            const productRef = doc(db, "products", item.productId);
-            const productDoc = await transaction.get(productRef);
-            if (productDoc.exists()) {
-                 const currentQuantity = productDoc.data().quantity;
-                 const newQuantity = currentQuantity - item.quantity;
-                 if (newQuantity < 0) {
-                     throw new Error(`Not enough stock for ${productDoc.data().name}. Only ${currentQuantity} available.`);
-                 }
-                transaction.update(productRef, { quantity: newQuantity });
-            } else {
-                 throw new Error(`Product ${item.productName} not found during update.`);
+            const availableStock = stockChanges.get(item.productId);
+            if (availableStock === undefined || availableStock < item.quantity) {
+                const productName = productDocs.get(item.productId)?.name || 'Unknown Product';
+                throw new Error(`Not enough stock for ${productName}. Only ${availableStock ?? 0} available.`);
             }
+            stockChanges.set(item.productId, availableStock - item.quantity);
         }
 
-        // 3. Update the sale document
+        // --- PHASE 3: WRITE ALL CHANGES ---
+
+        // Update all product quantities
+        for (const [productId, newQuantity] of stockChanges.entries()) {
+            const productRef = productRefs.get(productId);
+            if (productRef) {
+                transaction.update(productRef, { quantity: newQuantity });
+            }
+        }
+        
+        // Finally, update the sale document itself
         transaction.update(saleRef, saleData as any);
     });
 };
