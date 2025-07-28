@@ -3,7 +3,7 @@
 
 import { db } from '@/lib/firebase';
 import { doc, runTransaction } from 'firebase/firestore';
-import type { Sale, SaleItem, SelectedVariant } from '@/lib/types';
+import type { Sale, SelectedVariant } from '@/lib/types';
 
 // Define the shape of the data expected from the client
 interface SaleItemData {
@@ -26,7 +26,7 @@ interface SaleData {
     total: number;
 }
 
-export async function createSaleAction(data: SaleData) {
+export async function createSaleAction(data: SaleData): Promise<{ saleId?: string; error?: string }> {
     try {
         const saleId = await runTransaction(db, async (transaction) => {
             // 1. Check stock and prepare product updates
@@ -49,7 +49,7 @@ export async function createSaleAction(data: SaleData) {
             const saleRef = doc(db, 'sales', newId);
 
             // Create a new Sale object that matches the Firestore structure
-            // Ensure all optional fields are handled correctly (e.g., set to null if not present)
+            // Ensure all optional fields are handled correctly
             const newSale: Omit<Sale, 'id'> = {
                 customerName: data.customerName,
                 customerPhone: data.customerPhone || null,
@@ -61,7 +61,7 @@ export async function createSaleAction(data: SaleData) {
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     imageUrl: item.imageUrl || null,
-                    variant: item.variant || null,
+                    variant: item.variant || null, // This is now a plain object
                 })),
                 shippingCost: data.shippingCost || 0,
                 discount: data.discount || 0,

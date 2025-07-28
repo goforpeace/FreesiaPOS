@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { SelectedVariant } from "@/lib/types";
 
 const checkoutFormSchema = z.object({
   customerName: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -77,15 +78,23 @@ export default function CheckoutPage() {
         customerName: data.customerName,
         customerPhone: data.customerPhone,
         customerAddress: data.customerAddress,
-        items: items.map(item => ({
-          productId: item.id,
-          productName: item.name,
-          productDescription: item.description,
-          quantity: item.orderQuantity,
-          unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
-          imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
-          variant: item.selectedVariant || null,
-        })),
+        items: items.map(item => {
+          // Ensure the variant is a plain object, not a class or complex type
+          const plainVariant: SelectedVariant | null = item.selectedVariant ? {
+            color: item.selectedVariant.color,
+            imageUrl: item.selectedVariant.imageUrl,
+          } : null;
+
+          return {
+            productId: item.id,
+            productName: item.name,
+            productDescription: item.description,
+            quantity: item.orderQuantity,
+            unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
+            imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
+            variant: plainVariant,
+          }
+        }),
         shippingCost,
         discount: 0, // Assuming no discount form field for now
         subtotal,
@@ -289,3 +298,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
