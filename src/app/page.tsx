@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -140,4 +139,3 @@ const CardContent = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 const CardFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div className={`flex items-center p-6 pt-0 ${className}`} {...props} />
 );
-
