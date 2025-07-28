@@ -1,7 +1,7 @@
 
 'use client'
 
-export const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID
+export const FB_PIXEL_ID = '1075057791263186'
 
 export const pageview = () => {
   if (window.fbq && FB_PIXEL_ID) {
