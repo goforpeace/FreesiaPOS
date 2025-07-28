@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { PlusCircle, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,15 +20,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { type Product } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { type Product, type ProductVariant } from "@/lib/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+
+const variantSchema = z.object({
+  color: z.string().min(1, "Color is required."),
+  imageUrls: z.array(z.object({ value: z.string().url("Please enter a valid URL.") })).min(1, "At least one image URL is required per variant."),
+});
 
 const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   description: z.string().min(10, "Description must be at least 10 characters."),
-  imageUrls: z.array(z.string().url("Please enter a valid URL.")).min(1, "At least one image URL is required."),
+  variants: z.array(variantSchema).min(1, "At least one product variant is required."),
   quantity: z.coerce.number().int().min(0, "Quantity cannot be negative."),
   costPrice: z.coerce.number().min(0, "Cost price cannot be negative."),
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
@@ -38,60 +41,51 @@ const productFormSchema = z.object({
   isOfferSale: z.boolean().default(false),
 });
 
-export type ProductFormValues = z.infer<typeof productFormSchema>;
-
-// This is the type for the form fields, which is slightly different
-// because of how useFieldArray works with image URLs.
-const formSchema = productFormSchema.extend({
-    imageUrls: z.array(z.object({ value: z.string().url("Please enter a valid URL.") })).min(1, "At least one image URL is required."),
-})
-type FormValues = z.infer<typeof formSchema>;
-
+export type ProductFormValues = z.infer<typeof productFormSchema> & {
+    variants: Array<{ color: string; imageUrls: string[] }>;
+};
 
 interface ProductFormProps {
   initialData?: Product;
   isSubmitting: boolean;
-  onSubmit: (values: ProductFormValues) => void;
+  onSubmit: (values: any) => void;
 }
 
 export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp }: ProductFormProps) {
   const router = useRouter();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: initialData 
-      ? { 
-          ...initialData, 
-          imageUrls: initialData.imageUrls?.length ? initialData.imageUrls.map(url => ({ value: url })) : [{ value: '' }],
-          isNewArrival: initialData.isNewArrival || false,
-          isOfferSale: initialData.isOfferSale || false,
-          discountedPrice: initialData.discountedPrice || undefined,
-        }
-      : {
-          name: "",
-          description: "",
-          imageUrls: [{ value: "" }],
-          quantity: 0,
-          costPrice: 0,
-          sellPrice: 0,
-          discountedPrice: undefined,
-          isNewArrival: false,
-          isOfferSale: false,
-        },
+  const form = useForm<z.infer<typeof productFormSchema>>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: {
+        name: initialData?.name || "",
+        description: initialData?.description || "",
+        variants: initialData?.variants?.length 
+            ? initialData.variants.map(v => ({...v, imageUrls: v.imageUrls.map(url => ({value: url}))}))
+            : [{ color: "", imageUrls: [{ value: "" }] }],
+        quantity: initialData?.quantity || 0,
+        costPrice: initialData?.costPrice || 0,
+        sellPrice: initialData?.sellPrice || 0,
+        discountedPrice: initialData?.discountedPrice || undefined,
+        isNewArrival: initialData?.isNewArrival || false,
+        isOfferSale: initialData?.isOfferSale || false,
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "imageUrls"
+    name: "variants"
   });
 
-  const onSubmit = (values: FormValues) => {
-    // The parent component expects `imageUrls` to be an array of strings,
-    // but react-hook-form's useFieldArray works with an array of objects.
-    // So we transform the data before submitting.
+  const onSubmit = (values: z.infer<typeof productFormSchema>) => {
     const transformedValues = {
         ...values,
-        imageUrls: values.imageUrls.map(url => url.value),
+        variants: values.variants.map(variant => ({
+            ...variant,
+            imageUrls: variant.imageUrls.map(urlObj => urlObj.value),
+        })),
+        // This combines all variant images into the top-level `imageUrls` for backward compatibility
+        // and for components that might only use the primary image.
+        imageUrls: values.variants.flatMap(v => v.imageUrls.map(url => url.value)),
         discountedPrice: values.discountedPrice || 0,
     };
     onSubmitProp(transformedValues);
@@ -255,44 +249,24 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
           <div className="space-y-8">
              <Card>
               <CardHeader>
-                <CardTitle>Product Images</CardTitle>
+                <CardTitle>Product Variants</CardTitle>
                  <CardDescription>
-                  Add one or more image URLs for your product. The first image will be the main display image.
+                  Add one or more product variants. Each variant needs a color and at least one image.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {fields.map((field, index) => (
-                  <FormField
-                    key={field.id}
-                    control={form.control}
-                    name={`imageUrls.${index}.value`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={cn(index !== 0 && "sr-only")}>Image URL</FormLabel>
-                        <div className="flex items-center gap-2">
-                           <FormControl>
-                              <Input placeholder="https://example.com/image.png" {...field} />
-                           </FormControl>
-                           {fields.length > 1 && (
-                            <Button variant="ghost" size="icon" onClick={() => remove(index)}>
-                                <Trash2 className="h-4 w-4 text-destructive"/>
-                            </Button>
-                           )}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <CardContent className="space-y-6">
+                {fields.map((variantField, index) => (
+                    <VariantField key={variantField.id} form={form} variantIndex={index} removeVariant={() => remove(index)} />
                 ))}
                  <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="mt-2"
-                    onClick={() => append({ value: "" })}
+                    className="w-full"
+                    onClick={() => append({ color: "", imageUrls: [{value: ""}] })}
                   >
                     <PlusCircle className="mr-2 h-4 w-4"/>
-                    Add another image
+                    Add another variant
                  </Button>
               </CardContent>
             </Card>
@@ -305,4 +279,76 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
       </form>
     </Form>
   );
+}
+
+
+function VariantField({ form, variantIndex, removeVariant }: { form: any, variantIndex: number, removeVariant: () => void }) {
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: `variants.${variantIndex}.imageUrls`
+    });
+
+    return (
+        <div className="p-4 border rounded-md space-y-4 relative">
+             <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-6 w-6"
+                onClick={removeVariant}
+                >
+                <Trash2 className="h-4 w-4 text-destructive" />
+                <span className="sr-only">Remove Variant</span>
+            </Button>
+            <FormField
+                control={form.control}
+                name={`variants.${variantIndex}.color`}
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Variant Color</FormLabel>
+                    <FormControl>
+                    <Input placeholder="e.g. Cherry Red" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            
+            <div className="space-y-2">
+                <FormLabel>Variant Images</FormLabel>
+                {fields.map((imageField, imageIndex) => (
+                    <FormField
+                        key={imageField.id}
+                        control={form.control}
+                        name={`variants.${variantIndex}.imageUrls.${imageIndex}.value`}
+                        render={({ field }) => (
+                        <FormItem>
+                            <div className="flex items-center gap-2">
+                            <FormControl>
+                                <Input placeholder="https://example.com/image.png" {...field} />
+                            </FormControl>
+                            {fields.length > 1 && (
+                                <Button type="button" variant="ghost" size="icon" onClick={() => remove(imageIndex)}>
+                                <Trash2 className="h-4 w-4 text-destructive"/>
+                                </Button>
+                            )}
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                ))}
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => append({ value: "" })}
+                >
+                    <PlusCircle className="mr-2 h-4 w-4"/>
+                    Add Image URL
+                </Button>
+            </div>
+        </div>
+    )
 }

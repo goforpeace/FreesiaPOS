@@ -12,7 +12,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Bolt, Truck, RefreshCw, MessageSquare } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
-import { Product } from "@/lib/types";
+import { Product, ProductVariant, SelectedVariant } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Carousel,
@@ -33,27 +33,20 @@ export default function PublicProductDetailsPage() {
     const id = params.id as string;
     const [product, setProduct] = useState<Product | null | undefined>(undefined);
     const { addItem } = useCart();
+    
+    const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(undefined);
+    const [displayImages, setDisplayImages] = useState<string[]>([]);
+
     const [api, setApi] = useState<CarouselApi>()
     const [current, setCurrent] = useState(0)
  
     useEffect(() => {
-        if (!api) {
-            return
-        }
-    
-        setCurrent(api.selectedScrollSnap())
-    
-        const handleSelect = () => {
-            setCurrent(api.selectedScrollSnap())
-        }
-
-        api.on("select", handleSelect)
-    
-        return () => {
-            api.off("select", handleSelect)
-        }
-    }, [api])
-
+        if (!api) return;
+        setCurrent(api.selectedScrollSnap());
+        const handleSelect = () => setCurrent(api.selectedScrollSnap());
+        api.on("select", handleSelect);
+        return () => api.off("select", handleSelect);
+    }, [api]);
 
     useEffect(() => {
         if (id) {
@@ -63,15 +56,44 @@ export default function PublicProductDetailsPage() {
                     setProduct(null);
                 } else {
                     setProduct(fetchedProduct);
+                    // Set initial variant and images
+                    const initialVariant = fetchedProduct.variants?.[0];
+                    setSelectedVariant(initialVariant);
+                    setDisplayImages(initialVariant?.imageUrls || fetchedProduct.imageUrls || []);
                 }
             };
             fetchProduct();
         }
     }, [id]);
+    
+    useEffect(() => {
+        // Update images when variant changes
+        if (selectedVariant) {
+            setDisplayImages(selectedVariant.imageUrls);
+        } else if (product) {
+            setDisplayImages(product.imageUrls);
+        }
+        // Reset carousel to first slide
+        api?.scrollTo(0, true);
+    }, [selectedVariant, product, api]);
 
+
+    const handleAddToCart = () => {
+        if (!product) return;
+        const variantToSave: SelectedVariant | undefined = selectedVariant ? {
+            color: selectedVariant.color,
+            imageUrl: selectedVariant.imageUrls[0]
+        } : undefined;
+        addItem(product, variantToSave);
+    }
+    
     const handleOrderNow = () => {
         if (!product) return;
-        addItem(product);
+        const variantToSave: SelectedVariant | undefined = selectedVariant ? {
+            color: selectedVariant.color,
+            imageUrl: selectedVariant.imageUrls[0]
+        } : undefined;
+        addItem(product, variantToSave);
         router.push('/checkout');
     }
 
@@ -122,7 +144,7 @@ export default function PublicProductDetailsPage() {
                     <div>
                         <Carousel className="w-full" setApi={setApi}>
                             <CarouselContent>
-                                {(product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls : ['https://placehold.co/600x600.png']).map((url, index) => (
+                                {(displayImages.length > 0 ? displayImages : ['https://placehold.co/600x600.png']).map((url, index) => (
                                     <CarouselItem key={index}>
                                         <div className="aspect-square relative w-full rounded-lg overflow-hidden border">
                                             <Image
@@ -140,7 +162,7 @@ export default function PublicProductDetailsPage() {
                             <CarouselNext />
                         </Carousel>
                         <div className="grid grid-cols-5 gap-2 mt-4">
-                            {(product.imageUrls && product.imageUrls.length > 1) && product.imageUrls.map((url, index) => (
+                            {displayImages.length > 1 && displayImages.map((url, index) => (
                                 <button key={index} onClick={() => onThumbClick(index)} className={cn("overflow-hidden rounded-md aspect-square relative border-2", current === index ? "border-primary" : "border-transparent")}>
                                      <Image
                                         src={url || 'https://placehold.co/100x100.png'}
@@ -164,12 +186,31 @@ export default function PublicProductDetailsPage() {
                         <div className="prose lg:prose-lg text-foreground/80 font-body mb-8">
                            <p className="whitespace-pre-wrap">{product.description}</p>
                         </div>
+
+                        {product.variants && product.variants.length > 0 && (
+                            <div className="mb-8">
+                                <h4 className="text-sm font-medium mb-2">Color: <span className="font-bold">{selectedVariant?.color}</span></h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.variants.map((variant) => (
+                                         <button 
+                                            key={variant.color} 
+                                            onClick={() => setSelectedVariant(variant)} 
+                                            className={cn("h-10 w-10 rounded-full border-2 p-0.5", selectedVariant?.color === variant.color ? 'border-primary' : 'border-border')}
+                                            title={variant.color}
+                                        >
+                                            <Image src={variant.imageUrls[0]} alt={variant.color} width={36} height={36} className="rounded-full object-cover"/>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex flex-col sm:flex-row items-center gap-4">
-                            <Button size="lg" className="w-full sm:w-auto" onClick={() => addItem(product)}>
+                            <Button size="lg" className="w-full sm:w-auto" onClick={handleAddToCart} disabled={product.variants && product.variants.length > 0 && !selectedVariant}>
                                 <ShoppingCart className="mr-2 h-5 w-5" />
                                 Add to Cart
                             </Button>
-                            <Button size="lg" variant="secondary" className="w-full sm:w-auto" onClick={handleOrderNow}>
+                            <Button size="lg" variant="secondary" className="w-full sm:w-auto" onClick={handleOrderNow} disabled={product.variants && product.variants.length > 0 && !selectedVariant}>
                                 <Bolt className="mr-2 h-5 w-5" />
                                 Order Now
                             </Button>

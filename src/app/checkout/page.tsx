@@ -80,8 +80,9 @@ export default function CheckoutPage() {
           productName: item.name,
           productDescription: item.description,
           quantity: item.orderQuantity,
-          unitPrice: item.sellPrice,
-          imageUrl: item.imageUrls?.[0],
+          unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
+          imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0],
+          variant: item.selectedVariant,
         })),
         shippingCost,
         discount: 0,
@@ -109,6 +110,14 @@ export default function CheckoutPage() {
         setIsSubmitting(false);
     }
   };
+  
+  const handleRemoveItem = (item: CartItem) => {
+    removeItem(item.id, item.selectedVariant?.color);
+  }
+  
+  const handleUpdateQuantity = (item: CartItem, quantity: number) => {
+      updateQuantity(item.id, quantity, item.selectedVariant?.color);
+  }
 
   if (!isClient) {
     return null; // Render nothing on the server to avoid hydration issues
@@ -163,35 +172,41 @@ export default function CheckoutPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {items.map(item => (
-                        <div key={item.id} className="flex items-center gap-4">
-                          <Image
-                            src={item.imageUrls?.[0] || 'https://placehold.co/64x64.png'}
-                            alt={item.name}
-                            width={64}
-                            height={64}
-                            className="rounded-md object-cover"
-                          />
-                          <div className="flex-grow">
-                            <p className="font-semibold">{item.name}</p>
-                            <p className="text-sm text-muted-foreground">{formatCurrency(item.sellPrice)}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                             <Input 
-                                type="number" 
-                                value={item.orderQuantity}
-                                onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
-                                className="w-16 h-8 text-center"
-                                min="1"
-                                max={item.quantity}
-                             />
-                          </div>
-                           <p className="font-semibold w-24 text-right">{formatCurrency(item.sellPrice * item.orderQuantity)}</p>
-                          <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      ))}
+                      {items.map(item => {
+                         const price = item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice;
+                         const imageUrl = item.selectedVariant?.imageUrl || item.imageUrls?.[0] || 'https://placehold.co/64x64.png';
+                        
+                         return (
+                            <div key={`${item.id}-${item.selectedVariant?.color}`} className="flex items-center gap-4">
+                            <Image
+                                src={imageUrl}
+                                alt={item.name}
+                                width={64}
+                                height={64}
+                                className="rounded-md object-cover"
+                            />
+                            <div className="flex-grow">
+                                <p className="font-semibold">{item.name}</p>
+                                {item.selectedVariant && <p className="text-sm text-muted-foreground">Color: {item.selectedVariant.color}</p>}
+                                <p className="text-sm text-muted-foreground">{formatCurrency(price)}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Input 
+                                    type="number" 
+                                    value={item.orderQuantity}
+                                    onChange={(e) => handleUpdateQuantity(item, parseInt(e.target.value))}
+                                    className="w-16 h-8 text-center"
+                                    min="1"
+                                    max={item.quantity}
+                                />
+                            </div>
+                            <p className="font-semibold w-24 text-right">{formatCurrency(price * item.orderQuantity)}</p>
+                            <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(item)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                            </div>
+                        )
+                        })}
                     </div>
                   </CardContent>
                 </Card>
