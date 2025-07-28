@@ -15,7 +15,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Package, ShoppingCart, Settings, Star, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings, Star, LogOut, Image as ImageIcon } from "lucide-react";
 import React from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/use-auth";
@@ -147,6 +147,19 @@ export function SidebarNav() {
                 <Link href="/reviews" className="flex items-center gap-2">
                   <Star />
                   <span>Reviews</span>
+                </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+           <SidebarMenuItem>
+             <SidebarMenuButton
+                asChild
+                isActive={pathname === "/banners"}
+                tooltip="Banners"
+                >
+                <Link href="/banners" className="flex items-center gap-2">
+                  <ImageIcon />
+                  <span>Banners</span>
                 </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

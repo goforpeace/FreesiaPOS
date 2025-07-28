@@ -16,7 +16,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 
-import type { Product, Sale, SaleItem, Review } from './types';
+import type { Product, Sale, SaleItem, Review, Banner } from './types';
 import { ProductFormValues } from '@/components/products/ProductForm';
 import { InvoiceFormValues } from '@/components/sales/InvoiceForm';
 
@@ -266,5 +266,26 @@ export const createReview = async (imageUrl: string) => {
 
 export const deleteReview = async (id: string) => {
   const docRef = doc(db, 'reviews', id);
+  await deleteDoc(docRef);
+}
+
+// BANNERS API
+const bannersCollection = collection(db, 'banners');
+
+export const getBanners = async (): Promise<Banner[]> => {
+  const q = query(bannersCollection, orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Banner));
+}
+
+export const createBanner = async (imageUrl: string) => {
+  await addDoc(bannersCollection, {
+    imageUrl,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+export const deleteBanner = async (id: string) => {
+  const docRef = doc(db, 'banners', id);
   await deleteDoc(docRef);
 }

@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -49,6 +50,12 @@ export interface CartItem extends Product {
 }
 
 export interface Review {
+  id: string;
+  imageUrl: string;
+  createdAt: string;
+}
+
+export interface Banner {
   id: string;
   imageUrl: string;
   createdAt: string;

@@ -7,8 +7,8 @@ import Link from "next/link";
 import { useSearchParams } from 'next/navigation'
 import { Header } from "@/components/web/Header";
 import { ReviewsSection } from "@/components/web/ReviewsSection";
-import { getProducts, getReviews } from "@/lib/api";
-import type { Product, Review } from "@/lib/types";
+import { getProducts, getReviews, getBanners } from "@/lib/api";
+import type { Product, Review, Banner } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,46 @@ import { ShoppingCart, Bolt } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useCart } from "@/hooks/use-cart";
 import { useRouter } from "next/navigation";
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
+
+const BannerSlider = ({ banners }: { banners: Banner[] }) => {
+  const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
+
+  return (
+    <section className="relative h-[60vh] text-white flex items-center justify-center text-center overflow-hidden">
+      <div className="absolute inset-0" ref={emblaRef}>
+        <div className="flex h-full">
+          {banners.map((banner) => (
+            <div key={banner.id} className="flex-[0_0_100%] relative">
+              <Image
+                src={banner.imageUrl}
+                alt="Hero banner"
+                fill
+                className="object-cover"
+                data-ai-hint="fashion store interior"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="absolute inset-0 bg-black/40"></div>
+      <div className="relative z-10 p-4">
+        <h1 className="text-5xl md:text-7xl font-headline font-bold">Find Your Rare Beauty</h1>
+        <p className="mt-4 text-xl font-body max-w-2xl mx-auto">Discover exclusive collections and timeless pieces, because you deserve what's rare.</p>
+        <Button className="mt-8 bg-white text-primary hover:bg-white/90" size="lg" asChild>
+          <Link href="#all-products">Shop Now</Link>
+        </Button>
+      </div>
+    </section>
+  );
+};
 
 
 export default function WebHomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams()
   const searchQuery = searchParams.get('q') || '';
@@ -29,12 +64,14 @@ export default function WebHomePage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [allProducts, allReviews] = await Promise.all([
+        const [allProducts, allReviews, allBanners] = await Promise.all([
           getProducts(),
-          getReviews()
+          getReviews(),
+          getBanners()
         ]);
         setProducts(allProducts.filter(p => !p.isRejected && p.quantity > 0));
         setReviews(allReviews);
+        setBanners(allBanners);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       } finally {
@@ -59,23 +96,29 @@ export default function WebHomePage() {
       <Header />
       <main>
         {/* Hero Section */}
-        <section className="relative h-[60vh] text-white flex items-center justify-center text-center">
-             <Image
-                src="https://placehold.co/1600x900.png"
-                alt="Hero banner"
-                fill
-                className="object-cover z-0"
-                data-ai-hint="fashion store interior"
-             />
-             <div className="absolute inset-0 bg-black/40"></div>
-             <div className="relative z-10 p-4">
-                <h1 className="text-5xl md:text-7xl font-headline font-bold">Find Your Rare Beauty</h1>
-                <p className="mt-4 text-xl font-body max-w-2xl mx-auto">Discover exclusive collections and timeless pieces, because you deserve what's rare.</p>
-                <Button className="mt-8 bg-white text-primary hover:bg-white/90" size="lg" asChild>
-                    <Link href="#all-products">Shop Now</Link>
-                </Button>
-            </div>
-        </section>
+        {loading ? (
+            <Skeleton className="h-[60vh] w-full" />
+        ) : banners.length > 0 ? (
+            <BannerSlider banners={banners} />
+        ) : (
+            <section className="relative h-[60vh] text-white flex items-center justify-center text-center">
+                 <Image
+                    src="https://placehold.co/1600x900.png"
+                    alt="Hero banner"
+                    fill
+                    className="object-cover z-0"
+                    data-ai-hint="fashion store interior"
+                 />
+                 <div className="absolute inset-0 bg-black/40"></div>
+                 <div className="relative z-10 p-4">
+                    <h1 className="text-5xl md:text-7xl font-headline font-bold">Find Your Rare Beauty</h1>
+                    <p className="mt-4 text-xl font-body max-w-2xl mx-auto">Discover exclusive collections and timeless pieces, because you deserve what's rare.</p>
+                    <Button className="mt-8 bg-white text-primary hover:bg-white/90" size="lg" asChild>
+                        <Link href="#all-products">Shop Now</Link>
+                    </Button>
+                </div>
+            </section>
+        )}
 
         {/* New Arrivals Section */}
         <section className="py-16 px-4 md:px-8">
