@@ -74,7 +74,7 @@ export default function WebHomePage() {
         <section className="py-16 px-4 md:px-8">
             <div className="text-center mb-12">
                 <h2 className="text-2xl font-semibold uppercase tracking-wider text-foreground">New Arrivals</h2>
-                <div className="w-20 h-1 bg-primary mx-auto mt-2"></div>
+                <div className="w-20 h-1 bg-destructive mx-auto mt-2"></div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                 {loading ? (
@@ -89,10 +89,10 @@ export default function WebHomePage() {
 
         {/* Offer Sale Section */}
         {offerSaleProducts.length > 0 && (
-          <section className="py-16 px-4 md:px-8 bg-primary/10">
+          <section className="py-16 px-4 md:px-8 bg-card">
               <div className="text-center mb-12">
-                  <h2 className="text-2xl font-semibold uppercase tracking-wider text-primary">Offer Sale</h2>
-                  <div className="w-20 h-1 bg-primary mx-auto mt-2"></div>
+                  <h2 className="text-2xl font-semibold uppercase tracking-wider text-foreground">Offer Sale</h2>
+                  <div className="w-20 h-1 bg-destructive mx-auto mt-2"></div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                   {loading ? (
@@ -108,10 +108,10 @@ export default function WebHomePage() {
         <ReviewsSection reviews={reviews} />
         
         {/* All Products Section */}
-        <section id="all-products" className="py-16 px-4 md:px-8 bg-card/50">
+        <section id="all-products" className="py-16 px-4 md:px-8 bg-card">
             <div className="text-center mb-12">
                 <h2 className="text-2xl font-semibold uppercase tracking-wider text-foreground">All Products</h2>
-                <div className="w-20 h-1 bg-primary mx-auto mt-2"></div>
+                <div className="w-20 h-1 bg-destructive mx-auto mt-2"></div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                  {loading ? (
