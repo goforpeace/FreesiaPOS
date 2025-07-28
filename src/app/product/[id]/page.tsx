@@ -155,12 +155,12 @@ export default function PublicProductDetailsPage() {
                         <div className="prose lg:prose-lg text-foreground/80 font-body mb-8">
                            <p className="whitespace-pre-wrap">{product.description}</p>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <Button size="lg" onClick={() => addItem(product)}>
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                            <Button size="lg" className="w-full sm:w-auto" onClick={() => addItem(product)}>
                                 <ShoppingCart className="mr-2 h-5 w-5" />
                                 Add to Cart
                             </Button>
-                            <Button size="lg" variant="outline" className="w-full md:w-auto" onClick={handleOrderNow}>
+                            <Button size="lg" variant="secondary" className="w-full sm:w-auto" onClick={handleOrderNow}>
                                 <Bolt className="mr-2 h-5 w-5" />
                                 Order Now
                             </Button>

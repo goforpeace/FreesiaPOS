@@ -1,9 +1,10 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from 'next/navigation'
 import { Header } from "@/components/web/Header";
 import { getProducts } from "@/lib/api";
 import type { Product } from "@/lib/types";
@@ -19,6 +20,8 @@ import { useRouter } from "next/navigation";
 export default function WebHomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.get('q') || '';
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -35,7 +38,14 @@ export default function WebHomePage() {
     fetchProducts();
   }, []);
 
-  const newArrivals = [...products]
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => 
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [products, searchQuery]);
+
+
+  const newArrivals = [...filteredProducts]
     .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
     .slice(0, 4);
 
@@ -74,7 +84,7 @@ export default function WebHomePage() {
                  {loading ? (
                     [...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)
                 ) : (
-                    products.map(product => <ProductCard key={product.id} product={product} />)
+                    filteredProducts.map(product => <ProductCard key={product.id} product={product} />)
                 )}
             </div>
         </section>
@@ -120,7 +130,7 @@ const ProductCard = ({ product }: { product: Product }) => {
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
                 </Button>
-                <Button variant="outline" className="w-full" onClick={handleOrderNow}>
+                <Button variant="secondary" className="w-full" onClick={handleOrderNow}>
                     <Bolt className="mr-2 h-4 w-4" />
                     Order Now
                 </Button>
