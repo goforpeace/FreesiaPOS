@@ -13,6 +13,7 @@ import {
   orderBy,
   where,
   runTransaction,
+  setDoc,
 } from 'firebase/firestore';
 
 import type { Product, Sale, SaleItem } from './types';
@@ -40,7 +41,11 @@ export const getProduct = async (id: string): Promise<Product | undefined> => {
 };
 
 export const createProduct = async (data: Omit<ProductFormValues, 'imageUrls'> & { imageUrls: string[] }) => {
-  await addDoc(productsCollection, {
+  // Generate a custom product ID like "prod_123456"
+  const newId = `prod_${Date.now().toString().slice(-6)}`;
+  const newProductRef = doc(db, 'products', newId);
+
+  await setDoc(newProductRef, {
     ...data,
     isRejected: false,
     createdAt: new Date().toISOString(),
@@ -112,9 +117,8 @@ export const createSale = async (data: SaleFormData) => {
         }
     }
     
-    // Generate a shorter, more readable ID for the sale.
-    const newSaleRef = doc(collection(db, "id_generator")); // just to get a random id
-    const newId = newSaleRef.id.slice(0, 8).toUpperCase();
+    // Generate a custom invoice ID like "inv-123456"
+    const newId = `inv-${Date.now().toString().slice(-6)}`;
 
     const newSale: Omit<Sale, 'id'> = {
         ...data,
@@ -130,8 +134,16 @@ export const createSale = async (data: SaleFormData) => {
 
 export const updateSale = async (id: string, data: SaleFormData, originalItems: SaleItem[]) => {
     await runTransaction(db, async (transaction) => {
+        const saleRef = doc(db, "sales", id);
+        const saleSnap = await transaction.get(saleRef);
+        if (!saleSnap.exists()) {
+            throw new Error("Sale not found to update!");
+        }
+        const currentItems = saleSnap.data().items as SaleItem[];
+
+
         // 1. Restore stock from original items
-        for (const item of originalItems) {
+        for (const item of currentItems) {
             const productRef = doc(db, "products", item.productId);
             const productDoc = await transaction.get(productRef);
             if (productDoc.exists()) {
@@ -150,12 +162,12 @@ export const updateSale = async (id: string, data: SaleFormData, originalItems: 
                      throw new Error(`Not enough stock for ${productDoc.data().name}`);
                  }
                 transaction.update(productRef, { quantity: newQuantity });
+            } else {
+                 throw new Error(`Product ${item.productName} not found during update.`);
             }
         }
 
         // 3. Update the sale document
-        const saleRef = doc(db, "sales", id);
-        const saleSnap = await transaction.get(saleRef);
         const updatedSale: Partial<Sale> = { ...data };
         transaction.update(saleRef, {
             ...updatedSale,
@@ -166,43 +178,46 @@ export const updateSale = async (id: string, data: SaleFormData, originalItems: 
 
 export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted' | 'cancelled') => {
     const saleRef = doc(db, 'sales', id);
-    const saleSnap = await getDoc(saleRef);
-    if (!saleSnap.exists()) {
-        throw new Error("Sale not found");
-    }
     
-    const sale = saleSnap.data() as Sale;
-    const oldStatus = sale.status || 'pending';
-
-    // No change if status is the same
-    if (oldStatus === status) return;
-
-    const batch = writeBatch(db);
-
-    // Logic for restoring or deducting stock based on status change
-    if (status === 'cancelled' && oldStatus !== 'cancelled') {
-        // Restore stock if moving to cancelled
-        for (const item of sale.items) {
-            const productRef = doc(db, 'products', item.productId);
-            batch.update(productRef, { quantity: (await getDoc(productRef)).data()?.quantity + item.quantity });
+    await runTransaction(db, async (transaction) => {
+        const saleSnap = await transaction.get(saleRef);
+        if (!saleSnap.exists()) {
+            throw new Error("Sale not found");
         }
-    } else if (oldStatus === 'cancelled' && status !== 'cancelled') {
-        // Deduct stock if moving away from cancelled
-         for (const item of sale.items) {
-            const productRef = doc(db, 'products', item.productId);
-            const productDoc = await getDoc(productRef);
-            if(productDoc.exists()) {
-                 const newQuantity = productDoc.data().quantity - item.quantity;
-                 if (newQuantity < 0) {
-                     throw new Error(`Not enough stock for ${productDoc.data().name} to un-cancel this sale.`);
-                 }
-                batch.update(productRef, { quantity: newQuantity });
+
+        const sale = saleSnap.data() as Sale;
+        const oldStatus = sale.status || 'pending';
+
+        // No change if status is the same
+        if (oldStatus === status) return;
+
+        // Logic for restoring or deducting stock based on status change
+        if (status === 'cancelled' && oldStatus !== 'cancelled') {
+            // Restore stock if moving to cancelled
+            for (const item of sale.items) {
+                const productRef = doc(db, 'products', item.productId);
+                const productDoc = await transaction.get(productRef);
+                if(productDoc.exists()){
+                    transaction.update(productRef, { quantity: productDoc.data().quantity + item.quantity });
+                }
+            }
+        } else if (oldStatus === 'cancelled' && status !== 'cancelled') {
+            // Deduct stock if moving away from cancelled
+             for (const item of sale.items) {
+                const productRef = doc(db, 'products', item.productId);
+                const productDoc = await transaction.get(productRef);
+                if(productDoc.exists()) {
+                     const newQuantity = productDoc.data().quantity - item.quantity;
+                     if (newQuantity < 0) {
+                         throw new Error(`Not enough stock for ${productDoc.data().name} to un-cancel this sale.`);
+                     }
+                    transaction.update(productRef, { quantity: newQuantity });
+                }
             }
         }
-    }
-
-    batch.update(saleRef, { status });
-    await batch.commit();
+        
+        transaction.update(saleRef, { status });
+    });
 };
 
 
