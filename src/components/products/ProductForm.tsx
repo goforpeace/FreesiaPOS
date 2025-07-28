@@ -29,7 +29,7 @@ import { Separator } from "@/components/ui/separator";
 const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   description: z.string().min(10, "Description must be at least 10 characters."),
-  imageUrls: z.array(z.object({ value: z.string().url("Please enter a valid URL.") })).min(1, "At least one image URL is required."),
+  imageUrls: z.array(z.string().url("Please enter a valid URL.")).min(1, "At least one image URL is required."),
   quantity: z.coerce.number().int().min(0, "Quantity cannot be negative."),
   costPrice: z.coerce.number().min(0, "Cost price cannot be negative."),
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
@@ -38,6 +38,14 @@ const productFormSchema = z.object({
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
+
+// This is the type for the form fields, which is slightly different
+// because of how useFieldArray works with image URLs.
+const formSchema = productFormSchema.extend({
+    imageUrls: z.array(z.object({ value: z.string().url("Please enter a valid URL.") })).min(1, "At least one image URL is required."),
+})
+type FormValues = z.infer<typeof formSchema>;
+
 
 interface ProductFormProps {
   initialData?: Product;
@@ -48,8 +56,8 @@ interface ProductFormProps {
 export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp }: ProductFormProps) {
   const router = useRouter();
 
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productFormSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: initialData 
       ? { 
           ...initialData, 
@@ -74,7 +82,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
     name: "imageUrls"
   });
 
-  const onSubmit = (values: ProductFormValues) => {
+  const onSubmit = (values: FormValues) => {
     // The parent component expects `imageUrls` to be an array of strings,
     // but react-hook-form's useFieldArray works with an array of objects.
     // So we transform the data before submitting.
@@ -82,7 +90,6 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         ...values,
         imageUrls: values.imageUrls.map(url => url.value)
     };
-    // @ts-ignore
     onSubmitProp(transformedValues);
   }
 

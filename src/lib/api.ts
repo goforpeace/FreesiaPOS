@@ -44,13 +44,8 @@ export const createProduct = async (data: ProductFormValues) => {
   const newId = `prod_${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 100)}`;
   const newProductRef = doc(db, 'products', newId);
 
-  const transformedData = {
-    ...data,
-    imageUrls: data.imageUrls.map(urlObj => urlObj.value),
-  };
-
   await setDoc(newProductRef, {
-    ...transformedData,
+    ...data,
     isRejected: false,
     createdAt: new Date().toISOString(),
   });
@@ -59,13 +54,7 @@ export const createProduct = async (data: ProductFormValues) => {
 
 export const updateProduct = async (id: string, data: ProductFormValues) => {
   const docRef = doc(db, 'products', id);
-  // The form data includes `imageUrls` as an array of objects, 
-  // but Firestore expects an array of strings. We transform it here.
-  const transformedData = {
-    ...data,
-    imageUrls: data.imageUrls.map(urlObj => urlObj.value),
-  };
-  await updateDoc(docRef, transformedData);
+  await updateDoc(docRef, data);
 };
 
 

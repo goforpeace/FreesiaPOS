@@ -34,6 +34,7 @@ export default function EditProductPage() {
   }, [id]);
   
   const handleSubmit = async (data: ProductFormValues) => {
+    if (!id) return;
     setIsSubmitting(true);
     try {
       await updateProduct(id, data);
