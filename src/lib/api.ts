@@ -105,6 +105,9 @@ export const createSale = async (data: SaleFormData) => {
         const productSnap = await getDoc(productRef);
         if (productSnap.exists()) {
             const currentQuantity = productSnap.data().quantity;
+            if (currentQuantity < item.quantity) {
+                throw new Error(`Not enough stock for ${productSnap.data().name}`);
+            }
             batch.update(productRef, { quantity: currentQuantity - item.quantity });
         }
     }
@@ -115,6 +118,7 @@ export const createSale = async (data: SaleFormData) => {
     const newSale: Omit<Sale, 'id'> = {
         ...data,
         date: new Date().toISOString(),
+        status: 'pending', // All sales start as pending
     };
 
     batch.set(doc(db, 'sales', newId), newSale);
@@ -151,12 +155,17 @@ export const updateSale = async (id: string, data: SaleFormData, originalItems: 
         // 3. Update the sale document
         const saleRef = doc(db, "sales", id);
         const saleSnap = await transaction.get(saleRef);
-        const updatedSale: Omit<Sale, 'id' | 'date'> = { ...data };
+        const updatedSale: Partial<Sale> = { ...data };
         transaction.update(saleRef, {
             ...updatedSale,
             date: saleSnap.data()?.date || new Date().toISOString()
         });
     });
+};
+
+export const updateSaleStatus = async (id: string, status: 'pending' | 'confirmed' | 'cancelled') => {
+    const saleRef = doc(db, 'sales', id);
+    await updateDoc(saleRef, { status });
 };
 
 
@@ -171,13 +180,15 @@ export const deleteSale = async (id: string) => {
         throw new Error("Sale not found");
     }
 
-    // Restore stock
-    for (const item of sale.items) {
-        const productRef = doc(db, 'products', item.productId);
-        const productSnap = await getDoc(productRef);
-        if (productSnap.exists()) {
-            const currentQuantity = productSnap.data().quantity;
-            batch.update(productRef, { quantity: currentQuantity + item.quantity });
+    // Restore stock only if the sale wasn't cancelled (as cancelling would have already restored it)
+    if (sale.status !== 'cancelled') {
+        for (const item of sale.items) {
+            const productRef = doc(db, 'products', item.productId);
+            const productSnap = await getDoc(productRef);
+            if (productSnap.exists()) {
+                const currentQuantity = productSnap.data().quantity;
+                batch.update(productRef, { quantity: currentQuantity + item.quantity });
+            }
         }
     }
 

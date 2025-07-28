@@ -22,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
 
 import { getSales } from "@/lib/api";
 import { SalesActions } from "@/components/sales/SalesActions";
@@ -72,6 +73,7 @@ export default function SalesPage() {
     { label: "Invoice #", key: "id" },
     { label: "Date", key: "date" },
     { label: "Customer", key: "customerName" },
+    { label: "Status", key: "status" },
     { label: "Subtotal", key: "subtotal" },
     { label: "Shipping", key: "shippingCost" },
     { label: "Discount", key: "discount" },
@@ -159,6 +161,7 @@ export default function SalesPage() {
               <TableRow>
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Customer</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Date</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>
@@ -172,6 +175,7 @@ export default function SalesPage() {
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                     <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
@@ -179,13 +183,18 @@ export default function SalesPage() {
                 ))
               ) : (
                 filteredSales.map((sale) => (
-                  <TableRow key={sale.id}>
+                  <TableRow key={sale.id} className={sale.status === 'pending' ? 'bg-muted/50' : ''}>
                     <TableCell className="font-medium">{sale.id}</TableCell>
                     <TableCell>{sale.customerName}</TableCell>
+                    <TableCell>
+                        <Badge variant={sale.status === 'confirmed' ? 'secondary' : sale.status === 'cancelled' ? 'destructive' : 'outline'}>
+                            {sale.status.charAt(0).toUpperCase() + sale.status.slice(1)}
+                        </Badge>
+                    </TableCell>
                     <TableCell className="hidden md:table-cell">{format(new Date(sale.date), "dd MMM, yyyy")}</TableCell>
                     <TableCell className="text-right">{formatCurrency(sale.total)}</TableCell>
                     <TableCell className="text-right">
-                      <SalesActions saleId={sale.id} onSaleUpdate={refreshSales} />
+                      <SalesActions sale={sale} onSaleUpdate={refreshSales} />
                     </TableCell>
                   </TableRow>
                 ))

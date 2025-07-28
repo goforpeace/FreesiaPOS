@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MoreHorizontal, Eye, Trash2, Pencil } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, Pencil, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -23,17 +23,35 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { deleteSale } from "@/lib/api";
+import { deleteSale, updateSaleStatus } from "@/lib/api";
+import type { Sale } from "@/lib/types";
 
-export function SalesActions({ saleId, onSaleUpdate }: { saleId: string, onSaleUpdate: () => void }) {
+export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate: () => void }) {
   const { toast } = useToast();
+
+  const handleConfirm = async () => {
+    try {
+      await updateSaleStatus(sale.id, 'confirmed');
+       toast({
+        title: "Sale Confirmed",
+        description: `Invoice #${sale.id} has been confirmed.`,
+      });
+      onSaleUpdate();
+    } catch (error) {
+       toast({
+        title: "Error confirming sale",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
+  }
 
   const handleDelete = async () => {
     try {
-      await deleteSale(saleId);
+      await deleteSale(sale.id);
       toast({
         title: "Sale Deleted",
-        description: `Invoice #${saleId} has been deleted.`,
+        description: `Invoice #${sale.id} has been deleted.`,
       });
       onSaleUpdate();
     } catch (error) {
@@ -55,14 +73,20 @@ export function SalesActions({ saleId, onSaleUpdate }: { saleId: string, onSaleU
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+           {sale.status === 'pending' && (
+             <DropdownMenuItem onSelect={handleConfirm}>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              <span>Confirm Sale</span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem asChild>
-            <Link href={`/sales/${saleId}`}>
+            <Link href={`/sales/${sale.id}`}>
               <Eye className="mr-2 h-4 w-4" />
               <span>View Invoice</span>
             </Link>
           </DropdownMenuItem>
            <DropdownMenuItem asChild>
-            <Link href={`/sales/${saleId}/edit`}>
+            <Link href={`/sales/${sale.id}/edit`}>
               <Pencil className="mr-2 h-4 w-4" />
               <span>Edit</span>
             </Link>
