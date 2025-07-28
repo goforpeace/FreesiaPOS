@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { type Product } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -46,7 +47,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: initialData 
-      ? { ...initialData, imageUrls: initialData.imageUrls.map(url => ({ value: url })) }
+      ? { ...initialData, imageUrls: initialData.imageUrls?.length ? initialData.imageUrls.map(url => ({ value: url })) : [{ value: '' }] }
       : {
           name: "",
           description: "",
