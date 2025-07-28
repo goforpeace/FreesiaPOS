@@ -75,7 +75,7 @@ export default function CheckoutPage() {
   const shippingCost = shippingOption ? SHIPPING_COSTS[shippingOption] : 0;
   const total = subtotal + shippingCost;
   
-  const handleAction = async (formData: FormData) => {
+  const onSubmit = async (data: CheckoutFormValues) => {
     if (items.length === 0) {
       toast({
         title: "Your cart is empty",
@@ -85,25 +85,10 @@ export default function CheckoutPage() {
       return;
     }
     
-    // Validate form fields before proceeding
-    const validation = checkoutFormSchema.safeParse({
-        customerName: formData.get('customerName'),
-        customerPhone: formData.get('customerPhone'),
-        customerAddress: formData.get('customerAddress'),
-        shippingOption: formData.get('shippingOption')
-    });
-
-    if(!validation.success) {
-        form.trigger();
-        return;
-    }
-
     setIsSubmitting(true);
 
     const saleData = {
-        customerName: validation.data.customerName,
-        customerPhone: validation.data.customerPhone,
-        customerAddress: validation.data.customerAddress,
+        ...data,
         items: items.map(item => ({
             productId: item.id,
             productName: item.name,
@@ -128,6 +113,7 @@ export default function CheckoutPage() {
             description: result.error,
             variant: "destructive",
         });
+        setIsSubmitting(false);
     } else {
         toast({
             title: "Order Placed Successfully!",
@@ -138,7 +124,6 @@ export default function CheckoutPage() {
         clearCart();
         router.push(`/order-confirmation/${result.saleId}`);
     }
-    setIsSubmitting(false);
   };
   
   const handleRemoveItem = (item: CartItem) => {
@@ -175,7 +160,7 @@ export default function CheckoutPage() {
           </div>
         ) : (
           <Form {...form}>
-            <form action={handleAction} className="grid md:grid-cols-3 gap-12 items-start">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid md:grid-cols-3 gap-12 items-start">
               <div className="md:col-span-2 space-y-6">
                  {/* Shipping Details */}
                 <Card>
@@ -310,3 +295,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
