@@ -3,13 +3,23 @@
 
 import { db } from '@/lib/firebase';
 import { doc, runTransaction } from 'firebase/firestore';
-import type { Sale, SaleItem } from '@/lib/types';
+import type { Sale, SaleItem, SelectedVariant } from '@/lib/types';
 
+// Define the shape of the data expected from the client
+interface SaleItemData {
+    productId: string;
+    productName: string;
+    productDescription?: string | null;
+    quantity: number;
+    unitPrice: number;
+    imageUrl?: string | null;
+    variant?: SelectedVariant | null;
+}
 interface SaleData {
     customerName: string;
     customerPhone: string;
     customerAddress: string;
-    items: SaleItem[];
+    items: SaleItemData[];
     shippingCost: number;
     discount: number;
     subtotal: number;
@@ -38,6 +48,8 @@ export async function createSaleAction(data: SaleData) {
             const newId = `inv-${Date.now().toString().slice(-5)}${Math.floor(Math.random() * 100)}`;
             const saleRef = doc(db, 'sales', newId);
 
+            // Create a new Sale object that matches the Firestore structure
+            // Ensure all optional fields are handled correctly (e.g., set to null if not present)
             const newSale: Omit<Sale, 'id'> = {
                 customerName: data.customerName,
                 customerPhone: data.customerPhone || null,
@@ -67,8 +79,7 @@ export async function createSaleAction(data: SaleData) {
         return { saleId };
 
     } catch (error: any) {
+        console.error("Error in createSaleAction:", error);
         return { error: error.message };
     }
 }
-
-    

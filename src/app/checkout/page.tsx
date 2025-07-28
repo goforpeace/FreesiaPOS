@@ -83,16 +83,16 @@ export default function CheckoutPage() {
           productDescription: item.description,
           quantity: item.orderQuantity,
           unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
-          imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0],
-          variant: item.selectedVariant,
+          imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
+          variant: item.selectedVariant || null,
         })),
         shippingCost,
-        discount: 0,
+        discount: 0, // Assuming no discount form field for now
         subtotal,
         total,
       };
       
-      const result = await createSaleAction(saleData as any);
+      const result = await createSaleAction(saleData);
 
       if (result.error) {
         throw new Error(result.error);
@@ -289,5 +289,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    
