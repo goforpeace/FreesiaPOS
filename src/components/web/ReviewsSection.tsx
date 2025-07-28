@@ -22,9 +22,10 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
   }
 
   return (
-    <section className="py-16 bg-secondary/30">
+    <section className="py-16 bg-card/50">
       <div className="text-center mb-12">
-        <h2 className="inline-block text-3xl font-headline bg-primary text-primary-foreground py-2 px-6 rounded-full shadow-lg">Reviews</h2>
+        <h2 className="text-2xl font-semibold uppercase tracking-wider text-foreground">Reviews</h2>
+        <div className="w-20 h-1 bg-primary mx-auto mt-2"></div>
       </div>
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex -ml-4">

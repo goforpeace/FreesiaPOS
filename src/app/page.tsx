@@ -74,7 +74,8 @@ export default function WebHomePage() {
         {/* New Arrivals Section */}
         <section className="py-16 px-4 md:px-8">
             <div className="text-center mb-12">
-                <h2 className="inline-block text-3xl font-headline bg-primary text-primary-foreground py-2 px-6 rounded-full shadow-lg">New Arrivals</h2>
+                <h2 className="text-2xl font-semibold uppercase tracking-wider text-foreground">New Arrivals</h2>
+                <div className="w-20 h-1 bg-primary mx-auto mt-2"></div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                 {loading ? (
@@ -89,9 +90,10 @@ export default function WebHomePage() {
         <ReviewsSection reviews={reviews} />
         
         {/* All Products Section */}
-        <section id="all-products" className="py-16 px-4 md:px-8 bg-secondary/60">
+        <section id="all-products" className="py-16 px-4 md:px-8 bg-card/50">
             <div className="text-center mb-12">
-                <h2 className="inline-block text-3xl font-headline bg-primary text-primary-foreground py-2 px-6 rounded-full shadow-lg">All Products</h2>
+                <h2 className="text-2xl font-semibold uppercase tracking-wider text-foreground">All Products</h2>
+                <div className="w-20 h-1 bg-primary mx-auto mt-2"></div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                  {loading ? (
@@ -102,7 +104,7 @@ export default function WebHomePage() {
             </div>
         </section>
       </main>
-      <footer className="bg-sidebar text-sidebar-foreground py-8 px-4 text-center">
+      <footer className="bg-card text-foreground py-8 px-4 text-center">
         <p>&copy; {new Date().getFullYear()} Freesia Finds. All rights reserved.</p>
         <p className="italic mt-2">Because you deserve what's rare!</p>
       </footer>
@@ -120,7 +122,7 @@ const ProductCard = ({ product }: { product: Product }) => {
     }
 
     return (
-        <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+        <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border-[#FFD6C0]">
             <Link href={`/product/${product.id}`}>
                 <CardContent className="p-0">
                      <div className="relative aspect-square w-full overflow-hidden">
@@ -133,17 +135,17 @@ const ProductCard = ({ product }: { product: Product }) => {
                         />
                     </div>
                     <div className="p-4 border-t">
-                        <h3 className="text-lg font-headline font-semibold text-primary truncate">{product.name}</h3>
+                        <h3 className="text-lg font-headline font-semibold text-foreground truncate">{product.name}</h3>
                         <p className="text-muted-foreground mt-2 font-bold text-accent">{formatCurrency(product.sellPrice)}</p>
                     </div>
                 </CardContent>
             </Link>
             <CardFooter className="p-4 pt-0 mt-auto flex-col gap-2">
-                 <Button className="w-full" onClick={() => addItem(product)}>
+                 <Button className="w-full" variant="secondary" onClick={() => addItem(product)}>
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
                 </Button>
-                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleOrderNow}>
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold" onClick={handleOrderNow}>
                     <Bolt className="mr-2 h-4 w-4" />
                     Order Now
                 </Button>
@@ -153,15 +155,15 @@ const ProductCard = ({ product }: { product: Product }) => {
 }
 
 const ProductCardSkeleton = () => (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <Skeleton className="w-full aspect-square" />
+    <div className="bg-card rounded-lg shadow-sm overflow-hidden border border-[#FFD6C0]">
+        <Skeleton className="w-full aspect-square bg-muted" />
         <div className="p-4">
-            <Skeleton className="h-6 w-3/4 mb-2" />
-            <Skeleton className="h-5 w-1/2" />
+            <Skeleton className="h-6 w-3/4 mb-2 bg-muted" />
+            <Skeleton className="h-5 w-1/2 bg-muted" />
         </div>
         <div className="p-4 pt-0 flex flex-col gap-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full bg-muted" />
+            <Skeleton className="h-10 w-full bg-muted" />
         </div>
     </div>
 );
