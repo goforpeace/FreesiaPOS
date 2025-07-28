@@ -2,12 +2,22 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default rule: All documents are readable by anyone, but only writable by authenticated users.
-    // This allows your public website to display products, banners, and reviews without issue.
-    // All administrative actions in your dashboard (creating, updating, deleting) are protected
-    // and require you to be logged in.
-    match /{document=**} {
+    
+    // Sales collection rules
+    match /sales/{saleId} {
+      // Allow anyone to create a new sale (place an order)
+      allow create: if true;
+      
+      // Allow only authenticated users (admins) to read, update, or delete sales
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Products, Banners, Reviews, and other collections
+    match /{collection}/{docId} {
+      // Allow public read for all other collections
       allow read: if true;
+
+      // Allow only authenticated users (admins) to write (create, update, delete)
       allow write: if request.auth != null;
     }
   }
