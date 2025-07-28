@@ -33,6 +33,7 @@ const productFormSchema = z.object({
   quantity: z.coerce.number().int().min(0, "Quantity cannot be negative."),
   costPrice: z.coerce.number().min(0, "Cost price cannot be negative."),
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
+  discountedPrice: z.coerce.number().min(0).optional().nullable(),
   isNewArrival: z.boolean().default(false),
   isOfferSale: z.boolean().default(false),
 });
@@ -64,6 +65,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
           imageUrls: initialData.imageUrls?.length ? initialData.imageUrls.map(url => ({ value: url })) : [{ value: '' }],
           isNewArrival: initialData.isNewArrival || false,
           isOfferSale: initialData.isOfferSale || false,
+          discountedPrice: initialData.discountedPrice || undefined,
         }
       : {
           name: "",
@@ -72,6 +74,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
           quantity: 0,
           costPrice: 0,
           sellPrice: 0,
+          discountedPrice: undefined,
           isNewArrival: false,
           isOfferSale: false,
         },
@@ -88,7 +91,8 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
     // So we transform the data before submitting.
     const transformedValues = {
         ...values,
-        imageUrls: values.imageUrls.map(url => url.value)
+        imageUrls: values.imageUrls.map(url => url.value),
+        discountedPrice: values.discountedPrice || 0,
     };
     onSubmitProp(transformedValues);
   }
@@ -139,7 +143,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
               <CardHeader>
                 <CardTitle>Pricing & Stock</CardTitle>
               </CardHeader>
-              <CardContent className="grid md:grid-cols-3 gap-4">
+              <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
                   name="costPrice"
@@ -162,6 +166,20 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                       <FormControl>
                         <Input type="number" placeholder="5500" {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="discountedPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Discounted Price</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="4900" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormDescription>Optional</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

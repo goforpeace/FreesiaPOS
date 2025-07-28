@@ -141,6 +141,10 @@ const ProductCard = ({ product }: { product: Product }) => {
         addItem(product);
         router.push('/checkout');
     }
+    
+    const hasDiscount = product.discountedPrice && product.discountedPrice > 0;
+    const displayPrice = hasDiscount ? product.discountedPrice : product.sellPrice;
+    const originalPrice = product.sellPrice;
 
     return (
         <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
@@ -157,7 +161,12 @@ const ProductCard = ({ product }: { product: Product }) => {
                     </div>
                     <div className="p-4 border-t border-border">
                         <h3 className="text-lg font-headline font-semibold text-card-foreground truncate">{product.name}</h3>
-                        <p className="font-semibold text-card-foreground mt-2">{formatCurrency(product.sellPrice)}</p>
+                        <div className="flex items-baseline gap-2 mt-2">
+                             <p className="font-semibold text-foreground text-lg">{formatCurrency(displayPrice as number)}</p>
+                            {hasDiscount && (
+                                <p className="text-sm text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
+                            )}
+                        </div>
                     </div>
                 </CardContent>
             </Link>

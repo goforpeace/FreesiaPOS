@@ -110,6 +110,10 @@ export default function PublicProductDetailsPage() {
         api?.scrollTo(index);
     };
 
+    const hasDiscount = product.discountedPrice && product.discountedPrice > 0;
+    const displayPrice = hasDiscount ? product.discountedPrice : product.sellPrice;
+    const originalPrice = product.sellPrice;
+
     return (
         <div className="bg-background min-h-screen">
             <Header />
@@ -151,7 +155,12 @@ export default function PublicProductDetailsPage() {
                     </div>
                     <div>
                         <h1 className="text-4xl lg:text-5xl font-headline font-bold text-primary mb-4">{product.name}</h1>
-                        <p className="text-2xl font-body font-semibold text-accent mb-6">{formatCurrency(product.sellPrice)}</p>
+                        <div className="flex items-baseline gap-2 mb-6">
+                            <p className="text-2xl font-body font-semibold text-accent">{formatCurrency(displayPrice as number)}</p>
+                            {hasDiscount && (
+                                <p className="text-xl font-body text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
+                            )}
+                        </div>
                         <div className="prose lg:prose-lg text-foreground/80 font-body mb-8">
                            <p className="whitespace-pre-wrap">{product.description}</p>
                         </div>

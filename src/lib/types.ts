@@ -6,6 +6,7 @@ export interface Product {
   quantity: number;
   costPrice: number;
   sellPrice: number;
+  discountedPrice?: number;
   isRejected: boolean;
   createdAt?: string;
   isNewArrival?: boolean;
