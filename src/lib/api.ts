@@ -104,8 +104,8 @@ export const getSale = async (id: string): Promise<Sale | undefined> => {
     return undefined;
 };
 
-// This function is now only used for ADMIN panel sale creation
-export const createSale = async (data: SaleFormData) => {
+// This function is for ADMIN panel sale creation only
+export const createAdminSale = async (data: SaleFormData) => {
     return runTransaction(db, async (transaction) => {
         // Update stock
         for (const item of data.items) {
@@ -146,6 +146,7 @@ export const createSale = async (data: SaleFormData) => {
         return newId;
     });
 };
+
 
 export const updateSale = async (id: string, data: SaleFormData) => {
     const { originalItems, ...saleData } = data;
@@ -299,5 +300,3 @@ export const deleteBanner = async (id: string) => {
   const docRef = doc(db, 'banners', id);
   await deleteDoc(docRef);
 }
-
-    

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -46,7 +46,7 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
   const [isClient, setIsClient] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     setIsClient(true);
@@ -61,70 +61,67 @@ export default function CheckoutPage() {
   const shippingCost = shippingOption ? SHIPPING_COSTS[shippingOption] : 0;
   const total = subtotal + shippingCost;
 
-  const handlePlaceOrder = async (data: CheckoutFormValues) => {
-    setIsSubmitting(true);
+  const onSubmit = (data: CheckoutFormValues) => {
     if (items.length === 0) {
       toast({
         title: "Your cart is empty",
         description: "Please add products to your cart before placing an order.",
         variant: "destructive",
       });
-      setIsSubmitting(false);
       return;
     }
 
-    try {
-      const saleData = {
-        customerName: data.customerName,
-        customerPhone: data.customerPhone,
-        customerAddress: data.customerAddress,
-        items: items.map(item => {
-          // Ensure the variant is a plain object, not a class or complex type
-          const plainVariant: SelectedVariant | null = item.selectedVariant ? {
-            color: item.selectedVariant.color,
-            imageUrl: item.selectedVariant.imageUrl,
-          } : null;
+    startTransition(async () => {
+      try {
+        const saleData = {
+            customerName: data.customerName,
+            customerPhone: data.customerPhone,
+            customerAddress: data.customerAddress,
+            items: items.map(item => {
+            const plainVariant: SelectedVariant | null = item.selectedVariant ? {
+                color: item.selectedVariant.color,
+                imageUrl: item.selectedVariant.imageUrl,
+            } : null;
 
-          return {
-            productId: item.id,
-            productName: item.name,
-            productDescription: item.description,
-            quantity: item.orderQuantity,
-            unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
-            imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
-            variant: plainVariant,
-          }
-        }),
-        shippingCost,
-        discount: 0, // Assuming no discount form field for now
-        subtotal,
-        total,
-      };
-      
-      const result = await createSaleAction(saleData);
+            return {
+                productId: item.id,
+                productName: item.name,
+                productDescription: item.description,
+                quantity: item.orderQuantity,
+                unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
+                imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
+                variant: plainVariant,
+            }
+            }),
+            shippingCost,
+            discount: 0, 
+            subtotal,
+            total,
+        };
+        
+        const result = await createSaleAction(saleData);
 
-      if (result.error) {
-        throw new Error(result.error);
-      }
+        if (result.error) {
+            throw new Error(result.error);
+        }
 
-      toast({
-        title: "Order Placed Successfully!",
-        description: `Your order #${result.saleId} has been confirmed.`,
-      });
-      
-      form.reset();
-      clearCart();
-      router.push(`/order-confirmation/${result.saleId}`);
+        toast({
+            title: "Order Placed Successfully!",
+            description: `Your order #${result.saleId} has been confirmed.`,
+        });
+        
+        form.reset();
+        clearCart();
+        router.push(`/order-confirmation/${result.saleId}`);
 
-    } catch (error: any) {
-      toast({
-        title: "Failed to place order",
-        description: error.message || "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-        setIsSubmitting(false);
-    }
+        } catch (error: any) {
+            toast({
+                title: "Failed to place order",
+                description: error.message || "An unexpected error occurred. Please try again.",
+                variant: "destructive",
+            });
+        }
+    });
   };
   
   const handleRemoveItem = (item: CartItem) => {
@@ -161,7 +158,7 @@ export default function CheckoutPage() {
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handlePlaceOrder)} className="grid md:grid-cols-3 gap-12 items-start">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid md:grid-cols-3 gap-12 items-start">
               <div className="md:col-span-2 space-y-6">
                  {/* Shipping Details */}
                 <Card>
@@ -285,8 +282,8 @@ export default function CheckoutPage() {
                     <div className="text-center bg-secondary/50 p-3 rounded-md">
                         <p className="font-semibold text-primary">Cash on Delivery</p>
                     </div>
-                    <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-                        {isSubmitting ? "Placing Order..." : "Place Order"}
+                    <Button type="submit" className="w-full" size="lg" disabled={isPending}>
+                        {isPending ? "Placing Order..." : "Place Order"}
                     </Button>
                   </CardContent>
                 </Card>
@@ -298,5 +295,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    
