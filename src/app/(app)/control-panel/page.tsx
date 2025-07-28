@@ -47,27 +47,34 @@ export default function DashboardPage() {
   const acceptedSales = sales.filter(s => s.status === 'accepted');
   const pendingSales = sales.filter(s => s.status === 'pending');
 
-  const totalSales = acceptedSales.reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
+  const totalSalesValue = acceptedSales.reduce((acc, sale) => acc + sale.total, 0);
   const totalOrders = acceptedSales.length;
   const totalPendingOrders = pendingSales.length;
 
+  // Correct Profit Calculation: (Total Revenue from items) - (Total Cost of items sold)
   const totalProfit = acceptedSales.reduce((acc, sale) => {
+    // Revenue from this sale is the subtotal minus any discount. Shipping is not included in profit calculation.
+    const revenueFromSale = sale.subtotal - sale.discount;
+    
+    // Cost of goods for this sale
     const costOfGoods = sale.items.reduce((itemAcc, item) => {
       const product = products.find(p => p.id === item.productId);
+      // The price used should be the cost price of the product at the time of calculation.
       return itemAcc + (product ? product.costPrice * item.quantity : 0);
     }, 0);
-    const revenueFromSale = sale.subtotal - sale.discount;
-    return acc + (revenueFromSale - costOfGoods);
+
+    const profitFromSale = revenueFromSale - costOfGoods;
+    return acc + profitFromSale;
   }, 0);
   
   const today = new Date().toISOString().split('T')[0];
   const dailySales = acceptedSales
     .filter(sale => sale.date.startsWith(today))
-    .reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
+    .reduce((acc, sale) => acc + sale.total, 0);
 
   const totalStock = products.reduce((acc, product) => acc + product.quantity, 0);
   const totalProductValue = products.reduce((acc, product) => acc + (product.costPrice * product.quantity), 0);
-  const rejectedProducts = products.filter(p => p.isRejected).length;
+  const rejectedProductsCount = products.filter(p => p.isRejected).length;
   const rejectedValue = products.filter(p => p.isRejected).reduce((acc, p) => acc + p.costPrice * p.quantity, 0);
 
   const availableProducts = products.filter(p => !p.isRejected);
@@ -93,14 +100,14 @@ export default function DashboardPage() {
     <>
       <Header title="Dashboard" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={CircleDollarSign} description="From accepted sales" />
-        <StatCard title="Daily Sales" value={formatCurrency(dailySales)} icon={Sun} description="From accepted sales" />
+        <StatCard title="Total Sales" value={formatCurrency(totalSalesValue)} icon={CircleDollarSign} description="From accepted sales" />
+        <StatCard title="Daily Sales" value={formatCurrency(dailySales)} icon={Sun} description="From accepted sales today" />
         <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} description="From accepted sales" />
         <StatCard title="Accepted Orders" value={totalOrders.toString()} icon={ClipboardList} />
         <StatCard title="Pending Orders" value={totalPendingOrders.toString()} icon={Hourglass} />
         <StatCard title="Total Stock" value={totalStock.toString()} icon={Package} />
         <StatCard title="Stock Value (Cost)" value={formatCurrency(totalProductValue)} icon={ReceiptText} />
-        <StatCard title="Rejected Products" value={rejectedProducts.toString()} icon={PackageX} />
+        <StatCard title="Rejected Products" value={rejectedProductsCount.toString()} icon={PackageX} />
         <StatCard title="Rejected Value" value={formatCurrency(rejectedValue)} icon={TrendingUp} description="Based on cost price" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">

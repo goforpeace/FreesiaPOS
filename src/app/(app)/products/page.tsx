@@ -41,7 +41,7 @@ export default function ProductsPage() {
     try {
       setLoading(true);
       const fetchedProducts = await getProducts();
-      setProducts(fetchedProducts.filter(p => !p.isRejected));
+      setProducts(fetchedProducts);
     } catch (error) {
       console.error("Failed to fetch products:", error);
     } finally {
@@ -83,7 +83,7 @@ export default function ProductsPage() {
   }, [products, sortOption]);
   
   const filteredProducts = sortedProducts.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    !product.isRejected && product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
