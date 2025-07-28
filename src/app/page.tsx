@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,6 +11,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 
 export default function WebHomePage() {
@@ -122,20 +124,4 @@ const ProductCardSkeleton = () => (
             <Skeleton className="h-10 w-full" />
         </div>
     </div>
-);
-
-// We'll reuse ShadCN Card components but define them here for clarity in web context
-const Card = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={`bg-card text-card-foreground rounded-lg border shadow-sm transition-shadow hover:shadow-lg ${className}`}
-    {...props}
-  />
-);
-
-const CardContent = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={`p-6 ${className}`} {...props} />
-);
-
-const CardFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={`flex items-center p-6 pt-0 ${className}`} {...props} />
 );
