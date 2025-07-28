@@ -73,7 +73,9 @@ export default function WebHomePage() {
 
         {/* New Arrivals Section */}
         <section className="py-16 px-4 md:px-8">
-            <h2 className="text-4xl font-headline text-center text-primary mb-12">New Arrivals</h2>
+            <div className="text-center mb-12">
+                <h2 className="inline-block text-3xl font-headline bg-primary text-primary-foreground py-2 px-6 rounded-full shadow-lg">New Arrivals</h2>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                 {loading ? (
                     [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
@@ -87,8 +89,10 @@ export default function WebHomePage() {
         <ReviewsSection reviews={reviews} />
         
         {/* All Products Section */}
-        <section id="all-products" className="py-16 px-4 md:px-8 bg-secondary/30">
-            <h2 className="text-4xl font-headline text-center text-primary mb-12">All Products</h2>
+        <section id="all-products" className="py-16 px-4 md:px-8 bg-secondary/60">
+            <div className="text-center mb-12">
+                <h2 className="inline-block text-3xl font-headline bg-primary text-primary-foreground py-2 px-6 rounded-full shadow-lg">All Products</h2>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                  {loading ? (
                     [...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)
@@ -116,7 +120,7 @@ const ProductCard = ({ product }: { product: Product }) => {
     }
 
     return (
-        <Card className="group overflow-hidden flex flex-col">
+        <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <Link href={`/product/${product.id}`}>
                 <CardContent className="p-0">
                      <div className="relative aspect-square w-full overflow-hidden">
@@ -139,7 +143,7 @@ const ProductCard = ({ product }: { product: Product }) => {
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
                 </Button>
-                <Button variant="secondary" className="w-full" onClick={handleOrderNow}>
+                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleOrderNow}>
                     <Bolt className="mr-2 h-4 w-4" />
                     Order Now
                 </Button>

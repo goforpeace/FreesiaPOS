@@ -28,11 +28,13 @@ export function Header() {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
     const { totalItems } = useCart();
-    const [cartCount, setCartCount] = useState(0);
-
+    const [isClient, setIsClient] = useState(false);
+    
     useEffect(() => {
-        setCartCount(totalItems());
-    }, [totalItems, totalItems()]);
+        setIsClient(true);
+    }, []);
+
+    const cartCount = totalItems();
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,7 +44,8 @@ export function Header() {
         } else {
             params.delete('q');
         }
-        router.push(`${pathname}?${params.toString()}`);
+        router.push(`/?${params.toString()}#all-products`);
+        setIsSearchOpen(false);
     }
 
     return (
@@ -52,15 +55,15 @@ export function Header() {
                      <Image 
                         src="https://i.imgur.com/k7qYBOW.png" 
                         alt="Freesia Finds Logo" 
-                        width={52} 
-                        height={52} 
+                        width={60} 
+                        height={60} 
                         className="rounded-md"
                         data-ai-hint="logo"
                     />
                     <span className="font-bold font-headline text-2xl text-primary hidden sm:inline-block">Freesia Finds</span>
                 </Link>
 
-                <nav className={cn("hidden md:flex items-center gap-8 text-base font-medium", isSearchOpen && "hidden")}>
+                <nav className={cn("hidden md:flex items-center gap-8 text-lg font-medium", isSearchOpen && "hidden")}>
                     {navLinks.map(link => (
                         <Link key={link.name} href={link.href} className="text-foreground/70 transition-colors hover:text-foreground">{link.name}</Link>
                     ))}
@@ -71,7 +74,7 @@ export function Header() {
                         <Input 
                             type="search" 
                             placeholder="Search for products..."
-                            className="w-full"
+                            className="w-full pr-10"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -90,8 +93,8 @@ export function Header() {
                         <Link href="/checkout">
                             <div className="relative">
                                 <ShoppingBag className="h-6 w-6" />
-                                {cartCount > 0 && (
-                                    <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs text-accent-foreground">
+                                {isClient && cartCount > 0 && (
+                                    <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                                         {cartCount}
                                     </span>
                                 )}
