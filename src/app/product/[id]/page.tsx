@@ -74,7 +74,7 @@ export default function PublicProductDetailsPage() {
                     <div>
                         <Carousel className="w-full">
                             <CarouselContent>
-                                {product.imageUrls.map((url, index) => (
+                                {(product.imageUrls || []).map((url, index) => (
                                     <CarouselItem key={index}>
                                         <div className="aspect-square relative w-full rounded-lg overflow-hidden border">
                                             <Image
