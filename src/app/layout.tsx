@@ -4,7 +4,6 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/hooks/use-auth";
 import { FacebookPixel } from '@/components/analytics/FacebookPixel';
-import { Suspense } from 'react';
 
 export const metadata: Metadata = {
   title: 'Freesia Finds POS',
@@ -28,9 +27,7 @@ export default function RootLayout({
           {children}
           <Toaster />
         </AuthProvider>
-         <Suspense fallback={null}>
-            <FacebookPixel />
-        </Suspense>
+        <FacebookPixel />
       </body>
     </html>
   );

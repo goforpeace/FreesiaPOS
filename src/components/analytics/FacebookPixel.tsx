@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import * as fbp from '@/lib/fpixel'
+import { Suspense } from 'react'
 
 declare global {
     interface Window {
@@ -12,12 +13,13 @@ declare global {
     }
 }
 
-export const FacebookPixel = () => {
+const FacebookPixelContent = () => {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   useEffect(() => {
     if (fbp.FB_PIXEL_ID) {
+      // This triggers pageviews on subsequent navigations
       fbp.pageview()
     }
   }, [pathname, searchParams])
@@ -38,9 +40,23 @@ export const FacebookPixel = () => {
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${fbp.FB_PIXEL_ID}');
+            fbq('track', 'PageView');
           `,
         }}
       />
+      <noscript>
+        <img height="1" width="1" style={{display: 'none'}}
+             src={`https://www.facebook.com/tr?id=${fbp.FB_PIXEL_ID}&ev=PageView&noscript=1`}
+        />
+      </noscript>
     </>
   )
+}
+
+export const FacebookPixel = () => {
+    return (
+        <Suspense fallback={null}>
+            <FacebookPixelContent />
+        </Suspense>
+    )
 }
