@@ -182,22 +182,25 @@ export default function SalesPage() {
                   </TableRow>
                 ))
               ) : (
-                filteredSales.map((sale) => (
-                  <TableRow key={sale.id} className={sale.status === 'pending' ? 'bg-muted/50' : ''}>
-                    <TableCell className="font-medium">{sale.id}</TableCell>
-                    <TableCell>{sale.customerName}</TableCell>
-                    <TableCell>
-                        <Badge variant={sale.status === 'confirmed' ? 'secondary' : sale.status === 'cancelled' ? 'destructive' : 'outline'}>
-                            {sale.status.charAt(0).toUpperCase() + sale.status.slice(1)}
-                        </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{format(new Date(sale.date), "dd MMM, yyyy")}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(sale.total)}</TableCell>
-                    <TableCell className="text-right">
-                      <SalesActions sale={sale} onSaleUpdate={refreshSales} />
-                    </TableCell>
-                  </TableRow>
-                ))
+                filteredSales.map((sale) => {
+                  const status = sale.status || 'pending';
+                  return (
+                    <TableRow key={sale.id} className={status === 'pending' ? 'bg-muted/50' : ''}>
+                      <TableCell className="font-medium">{sale.id}</TableCell>
+                      <TableCell>{sale.customerName}</TableCell>
+                      <TableCell>
+                          <Badge variant={status === 'confirmed' ? 'secondary' : status === 'cancelled' ? 'destructive' : 'outline'}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{format(new Date(sale.date), "dd MMM, yyyy")}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(sale.total)}</TableCell>
+                      <TableCell className="text-right">
+                        <SalesActions sale={sale} onSaleUpdate={refreshSales} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
