@@ -112,7 +112,8 @@ export const createSale = async (data: SaleFormData) => {
         }
     }
     
-    const newSaleRef = doc(salesCollection);
+    // Generate a shorter, more readable ID for the sale.
+    const newSaleRef = doc(collection(db, "id_generator")); // just to get a random id
     const newId = newSaleRef.id.slice(0, 8).toUpperCase();
 
     const newSale: Omit<Sale, 'id'> = {
@@ -165,7 +166,43 @@ export const updateSale = async (id: string, data: SaleFormData, originalItems: 
 
 export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted' | 'cancelled') => {
     const saleRef = doc(db, 'sales', id);
-    await updateDoc(saleRef, { status });
+    const saleSnap = await getDoc(saleRef);
+    if (!saleSnap.exists()) {
+        throw new Error("Sale not found");
+    }
+    
+    const sale = saleSnap.data() as Sale;
+    const oldStatus = sale.status || 'pending';
+
+    // No change if status is the same
+    if (oldStatus === status) return;
+
+    const batch = writeBatch(db);
+
+    // Logic for restoring or deducting stock based on status change
+    if (status === 'cancelled' && oldStatus !== 'cancelled') {
+        // Restore stock if moving to cancelled
+        for (const item of sale.items) {
+            const productRef = doc(db, 'products', item.productId);
+            batch.update(productRef, { quantity: (await getDoc(productRef)).data()?.quantity + item.quantity });
+        }
+    } else if (oldStatus === 'cancelled' && status !== 'cancelled') {
+        // Deduct stock if moving away from cancelled
+         for (const item of sale.items) {
+            const productRef = doc(db, 'products', item.productId);
+            const productDoc = await getDoc(productRef);
+            if(productDoc.exists()) {
+                 const newQuantity = productDoc.data().quantity - item.quantity;
+                 if (newQuantity < 0) {
+                     throw new Error(`Not enough stock for ${productDoc.data().name} to un-cancel this sale.`);
+                 }
+                batch.update(productRef, { quantity: newQuantity });
+            }
+        }
+    }
+
+    batch.update(saleRef, { status });
+    await batch.commit();
 };
 
 
@@ -195,7 +232,3 @@ export const deleteSale = async (id: string) => {
     batch.delete(saleRef);
     await batch.commit();
 };
-
-// Remove the old client-side local storage functions
-// getProductsFromStorage, saveProductsToStorage, getSalesFromStorage, saveSalesToStorage
-// The entire logic is now handled by Firestore functions above.

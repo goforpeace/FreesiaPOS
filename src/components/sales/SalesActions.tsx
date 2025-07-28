@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MoreHorizontal, Eye, Trash2, Pencil, CheckCircle } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, Pencil, CheckCircle, XCircle, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -29,17 +29,17 @@ import type { Sale } from "@/lib/types";
 export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate: () => void }) {
   const { toast } = useToast();
 
-  const handleAccept = async () => {
+  const handleStatusChange = async (status: 'pending' | 'accepted' | 'cancelled') => {
     try {
-      await updateSaleStatus(sale.id, 'accepted');
+      await updateSaleStatus(sale.id, status);
        toast({
-        title: "Sale Accepted",
-        description: `Invoice #${sale.id} has been accepted.`,
+        title: "Sale Status Updated",
+        description: `Invoice #${sale.id} has been marked as ${status}.`,
       });
       onSaleUpdate();
     } catch (error) {
        toast({
-        title: "Error accepting sale",
+        title: `Error updating status to ${status}`,
         description: "An unexpected error occurred.",
         variant: "destructive",
       });
@@ -63,6 +63,8 @@ export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate:
     }
   };
 
+  const status = sale.status || 'pending';
+
   return (
     <AlertDialog>
       <DropdownMenu>
@@ -73,12 +75,25 @@ export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate:
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-           {sale.status === 'pending' && (
-             <DropdownMenuItem onSelect={handleAccept}>
+           {status === 'pending' && (
+             <DropdownMenuItem onSelect={() => handleStatusChange('accepted')}>
               <CheckCircle className="mr-2 h-4 w-4" />
-              <span>Accept Sale</span>
+              <span>Mark as Accepted</span>
             </DropdownMenuItem>
           )}
+           {status === 'accepted' && (
+             <DropdownMenuItem onSelect={() => handleStatusChange('pending')}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              <span>Mark as Pending</span>
+            </DropdownMenuItem>
+          )}
+          {status !== 'cancelled' && (
+             <DropdownMenuItem onSelect={() => handleStatusChange('cancelled')}>
+              <XCircle className="mr-2 h-4 w-4" />
+              <span>Mark as Cancelled</span>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href={`/sales/${sale.id}`}>
               <Eye className="mr-2 h-4 w-4" />
