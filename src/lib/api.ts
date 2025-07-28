@@ -40,21 +40,38 @@ export const getProduct = async (id: string): Promise<Product | undefined> => {
   return undefined;
 };
 
-export const createProduct = async (data: Omit<ProductFormValues, 'imageUrls'> & { imageUrls: string[] }) => {
+export const createProduct = async (data: ProductFormValues) => {
   const newId = `prod_${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 100)}`;
   const newProductRef = doc(db, 'products', newId);
 
-  await setDoc(newProductRef, {
+  // The parent component expects `imageUrls` to be an array of strings,
+  // but react-hook-form's useFieldArray works with an array of objects.
+  // So we transform the data before submitting.
+  const transformedData = {
     ...data,
+    imageUrls: data.imageUrls.map(urlObj => urlObj.value),
+  };
+
+  await setDoc(newProductRef, {
+    ...transformedData,
     isRejected: false,
     createdAt: new Date().toISOString(),
   });
 };
 
-export const updateProduct = async (id: string, data: Omit<ProductFormValues, 'imageUrls'> & { imageUrls: string[] }) => {
+
+export const updateProduct = async (id: string, data: ProductFormValues) => {
   const docRef = doc(db, 'products', id);
-  await updateDoc(docRef, data);
+  // The parent component expects `imageUrls` to be an array of strings,
+  // but react-hook-form's useFieldArray works with an array of objects.
+  // So we transform the data before submitting.
+  const transformedData = {
+    ...data,
+    imageUrls: data.imageUrls.map(urlObj => urlObj.value),
+  };
+  await updateDoc(docRef, transformedData);
 };
+
 
 export const deleteProduct = async (id: string) => {
   const salesCollection = collection(db, 'sales');

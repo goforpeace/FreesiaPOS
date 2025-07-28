@@ -33,7 +33,7 @@ export default function EditProductPage() {
     fetchProduct();
   }, [id]);
   
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
     try {
       await updateProduct(id, data);

@@ -8,6 +8,8 @@ export interface Product {
   sellPrice: number;
   isRejected: boolean;
   createdAt?: string;
+  isNewArrival?: boolean;
+  isOfferSale?: boolean;
 }
 
 export interface Customer {

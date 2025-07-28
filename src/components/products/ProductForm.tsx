@@ -23,6 +23,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { type Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 
 const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -31,6 +33,8 @@ const productFormSchema = z.object({
   quantity: z.coerce.number().int().min(0, "Quantity cannot be negative."),
   costPrice: z.coerce.number().min(0, "Cost price cannot be negative."),
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
+  isNewArrival: z.boolean().default(false),
+  isOfferSale: z.boolean().default(false),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -47,7 +51,12 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: initialData 
-      ? { ...initialData, imageUrls: initialData.imageUrls?.length ? initialData.imageUrls.map(url => ({ value: url })) : [{ value: '' }] }
+      ? { 
+          ...initialData, 
+          imageUrls: initialData.imageUrls?.length ? initialData.imageUrls.map(url => ({ value: url })) : [{ value: '' }],
+          isNewArrival: initialData.isNewArrival || false,
+          isOfferSale: initialData.isOfferSale || false,
+        }
       : {
           name: "",
           description: "",
@@ -55,6 +64,8 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
           quantity: 0,
           costPrice: 0,
           sellPrice: 0,
+          isNewArrival: false,
+          isOfferSale: false,
         },
   });
 
@@ -158,6 +169,58 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                         <Input type="number" placeholder="25" {...field} />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+             <Card>
+              <CardHeader>
+                <CardTitle>Categories</CardTitle>
+                <CardDescription>Select categories to display this product in specific sections of the website.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                 <FormField
+                  control={form.control}
+                  name="isNewArrival"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          New Arrival
+                        </FormLabel>
+                        <FormDescription>
+                          Display this product in the "New Arrivals" section on the homepage.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="isOfferSale"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Offer Sale
+                        </FormLabel>
+                        <FormDescription>
+                           Display this product in a special "Offer Sale" section on the homepage.
+                        </FormDescription>
+                      </div>
                     </FormItem>
                   )}
                 />

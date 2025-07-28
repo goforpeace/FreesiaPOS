@@ -50,10 +50,9 @@ export default function WebHomePage() {
     )
   }, [products, searchQuery]);
 
+  const newArrivals = filteredProducts.filter(p => p.isNewArrival);
+  const offerSaleProducts = filteredProducts.filter(p => p.isOfferSale);
 
-  const newArrivals = [...filteredProducts]
-    .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
-    .slice(0, 4);
 
   return (
     <div className="bg-background min-h-screen">
@@ -80,11 +79,30 @@ export default function WebHomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                 {loading ? (
                     [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
-                ) : (
+                ) : newArrivals.length > 0 ? (
                     newArrivals.map(product => <ProductCard key={product.id} product={product} />)
+                ) : (
+                    <p className="text-center col-span-full text-muted-foreground">No new arrivals to show right now.</p>
                 )}
             </div>
         </section>
+
+        {/* Offer Sale Section */}
+        {offerSaleProducts.length > 0 && (
+          <section className="py-16 px-4 md:px-8 bg-primary/10">
+              <div className="text-center mb-12">
+                  <h2 className="text-2xl font-semibold uppercase tracking-wider text-primary">Offer Sale</h2>
+                  <div className="w-20 h-1 bg-primary mx-auto mt-2"></div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+                  {loading ? (
+                      [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
+                  ) : (
+                      offerSaleProducts.map(product => <ProductCard key={product.id} product={product} />)
+                  )}
+              </div>
+          </section>
+        )}
 
         {/* Reviews Section */}
         <ReviewsSection reviews={reviews} />
@@ -136,7 +154,7 @@ const ProductCard = ({ product }: { product: Product }) => {
                     </div>
                     <div className="p-4 border-t">
                         <h3 className="text-lg font-headline font-semibold text-foreground truncate">{product.name}</h3>
-                        <p className="text-muted-foreground mt-2 font-bold text-accent">{formatCurrency(product.sellPrice)}</p>
+                        <p className="font-semibold text-foreground mt-2">{formatCurrency(product.sellPrice)}</p>
                     </div>
                 </CardContent>
             </Link>
@@ -145,7 +163,7 @@ const ProductCard = ({ product }: { product: Product }) => {
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
                 </Button>
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold" onClick={handleOrderNow}>
+                <Button className="w-full bg-destructive text-white hover:bg-destructive/90 font-bold" onClick={handleOrderNow}>
                     <Bolt className="mr-2 h-4 w-4" />
                     Order Now
                 </Button>
