@@ -87,7 +87,7 @@ export default function WebHomePage() {
 
 const ProductCard = ({ product }: { product: Product }) => (
     <Card className="group overflow-hidden">
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/product/${product.id}`}>
             <CardContent className="p-0">
                  <div className="relative aspect-square w-full overflow-hidden">
                     <Image
