@@ -5,9 +5,37 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/hooks/use-auth";
 import { FacebookPixel } from '@/components/analytics/FacebookPixel';
 
+const title = "Freesia Finds - Shop Now";
+const description = "Discover exclusive collections and timeless pieces at Freesia Finds. Because you deserve what's rare!";
+const logoUrl = "https://i.imgur.com/k7qYBOW.png";
+
 export const metadata: Metadata = {
-  title: 'Freesia Finds POS',
-  description: 'Point of Sale for Freesia Finds',
+  title: title,
+  description: description,
+  icons: {
+    icon: logoUrl,
+    shortcut: logoUrl,
+    apple: logoUrl,
+  },
+  openGraph: {
+    title: title,
+    description: description,
+    images: [
+      {
+        url: logoUrl,
+        width: 80,
+        height: 80,
+        alt: "Freesia Finds Logo",
+      },
+    ],
+    type: 'website',
+  },
+   twitter: {
+    card: "summary_large_image",
+    title: title,
+    description: description,
+    images: [logoUrl],
+  },
 };
 
 export default function RootLayout({
