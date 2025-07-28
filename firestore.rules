@@ -1,27 +1,20 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Products can be read by anyone, but only changed by admins.
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    // Reviews can be read by anyone, but only changed by admins.
-    match /reviews/{reviewId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    // Banners can be read by anyone, but only changed by admins.
-    match /banners/{bannerId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
     
-    // Sales can only be read or changed by admins.
-    match /sales/{saleId} {
+    // Allow public read access to collections needed for the website
+    match /products/{document=**} {
+      allow read: if true;
+    }
+    match /banners/{document=**} {
+      allow read: if true;
+    }
+     match /reviews/{document=**} {
+      allow read: if true;
+    }
+
+    // Allow authenticated users to read and write all data
+    match /{path=**} {
       allow read, write: if request.auth != null;
     }
   }
