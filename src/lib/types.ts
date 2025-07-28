@@ -2,7 +2,7 @@ export interface Product {
   id: string;
   name: string;
   description: string;
-  imageUrl: string;
+  imageUrls: string[];
   quantity: number;
   costPrice: number;
   sellPrice: number;
@@ -23,7 +23,7 @@ export interface SaleItem {
   productDescription?: string;
   quantity: number;
   unitPrice: number; // sellPrice at time of sale
-  imageUrl?: string;
+  imageUrl?: string; // Will store the first image from Product.imageUrls
 }
 
 export interface Sale {

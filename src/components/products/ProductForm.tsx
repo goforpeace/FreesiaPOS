@@ -2,10 +2,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { PlusCircle, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,13 +20,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { type Product } from "@/lib/types";
 
 const productFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   description: z.string().min(10, "Description must be at least 10 characters."),
-  imageUrl: z.string().url("Please enter a valid URL.").or(z.literal("")),
+  imageUrls: z.array(z.object({ value: z.string().url("Please enter a valid URL.") })).min(1, "At least one image URL is required."),
   quantity: z.coerce.number().int().min(0, "Quantity cannot be negative."),
   costPrice: z.coerce.number().min(0, "Cost price cannot be negative."),
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
@@ -39,22 +40,39 @@ interface ProductFormProps {
   onSubmit: (values: ProductFormValues) => void;
 }
 
-export function ProductForm({ initialData, isSubmitting, onSubmit }: ProductFormProps) {
+export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp }: ProductFormProps) {
   const router = useRouter();
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: initialData || {
-      name: "",
-      description: "",
-      imageUrl: "",
-      quantity: 0,
-      costPrice: 0,
-      sellPrice: 0,
-    },
+    defaultValues: initialData 
+      ? { ...initialData, imageUrls: initialData.imageUrls.map(url => ({ value: url })) }
+      : {
+          name: "",
+          description: "",
+          imageUrls: [{ value: "" }],
+          quantity: 0,
+          costPrice: 0,
+          sellPrice: 0,
+        },
   });
-  
-  const imageUrl = form.watch("imageUrl");
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "imageUrls"
+  });
+
+  const onSubmit = (values: ProductFormValues) => {
+    // The parent component expects `imageUrls` to be an array of strings,
+    // but react-hook-form's useFieldArray works with an array of objects.
+    // So we transform the data before submitting.
+    const transformedValues = {
+        ...values,
+        imageUrls: values.imageUrls.map(url => url.value)
+    };
+    // @ts-ignore
+    onSubmitProp(transformedValues);
+  }
 
   return (
     <Form {...form}>
@@ -148,30 +166,45 @@ export function ProductForm({ initialData, isSubmitting, onSubmit }: ProductForm
           <div className="space-y-8">
              <Card>
               <CardHeader>
-                <CardTitle>Product Image</CardTitle>
+                <CardTitle>Product Images</CardTitle>
+                 <CardDescription>
+                  Add one or more image URLs for your product. The first image will be the main display image.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="imageUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Image URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://example.com/image.png" {...field} />
-                      </FormControl>
-                       <FormDescription>
-                          Paste a link to the product image.
-                        </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {imageUrl && (
-                  <div className="aspect-square relative w-full rounded-md overflow-hidden border">
-                     <Image src={imageUrl} alt="Product preview" fill className="object-cover" data-ai-hint="product image" />
-                  </div>
-                )}
+                {fields.map((field, index) => (
+                  <FormField
+                    key={field.id}
+                    control={form.control}
+                    name={`imageUrls.${index}.value`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className={cn(index !== 0 && "sr-only")}>Image URL</FormLabel>
+                        <div className="flex items-center gap-2">
+                           <FormControl>
+                              <Input placeholder="https://example.com/image.png" {...field} />
+                           </FormControl>
+                           {fields.length > 1 && (
+                            <Button variant="ghost" size="icon" onClick={() => remove(index)}>
+                                <Trash2 className="h-4 w-4 text-destructive"/>
+                            </Button>
+                           )}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+                 <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => append({ value: "" })}
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4"/>
+                    Add another image
+                 </Button>
               </CardContent>
             </Card>
           </div>

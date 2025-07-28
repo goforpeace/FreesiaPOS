@@ -11,6 +11,13 @@ import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 export function ProductDetails({ initialProduct }: { initialProduct: Product }) {
     const router = useRouter();
@@ -28,14 +35,25 @@ export function ProductDetails({ initialProduct }: { initialProduct: Product }) 
                 <CardContent className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="md:col-span-1">
-                             <Image
-                                alt={product.name}
-                                className="aspect-square rounded-md object-cover w-full"
-                                height="400"
-                                src={product.imageUrl || 'https://placehold.co/400x400.png'}
-                                width="400"
-                                data-ai-hint="product image"
-                            />
+                            <Carousel className="w-full max-w-sm mx-auto">
+                                <CarouselContent>
+                                    {product.imageUrls.map((url, index) => (
+                                        <CarouselItem key={index}>
+                                            <div className="aspect-square relative">
+                                                <Image
+                                                    alt={`${product.name} image ${index + 1}`}
+                                                    className="rounded-md object-cover"
+                                                    src={url || 'https://placehold.co/400x400.png'}
+                                                    fill
+                                                    data-ai-hint="product image"
+                                                />
+                                            </div>
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                <CarouselPrevious />
+                                <CarouselNext />
+                            </Carousel>
                         </div>
                         <div className="md:col-span-2 space-y-4">
                             <CardTitle className="text-4xl font-headline">{product.name}</CardTitle>

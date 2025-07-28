@@ -30,7 +30,7 @@ export default function EditProductPage({ params: { id } }: { params: { id: stri
     fetchProduct();
   }, [id]);
   
-  const handleSubmit = async (data: ProductFormValues) => {
+  const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
       await updateProduct(id, data);

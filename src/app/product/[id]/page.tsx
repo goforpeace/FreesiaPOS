@@ -13,6 +13,13 @@ import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { Product } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 export default function PublicProductDetailsPage() {
     const params = useParams();
@@ -65,15 +72,25 @@ export default function PublicProductDetailsPage() {
             <main className="container mx-auto py-12 px-4">
                 <div className="grid md:grid-cols-2 gap-12 items-start">
                     <div>
-                        <div className="aspect-square relative w-full rounded-lg overflow-hidden border">
-                            <Image
-                                src={product.imageUrl || 'https://placehold.co/600x600.png'}
-                                alt={product.name}
-                                fill
-                                className="object-cover"
-                                data-ai-hint="product image"
-                            />
-                        </div>
+                        <Carousel className="w-full">
+                            <CarouselContent>
+                                {product.imageUrls.map((url, index) => (
+                                    <CarouselItem key={index}>
+                                        <div className="aspect-square relative w-full rounded-lg overflow-hidden border">
+                                            <Image
+                                                src={url || 'https://placehold.co/600x600.png'}
+                                                alt={`${product.name} image ${index + 1}`}
+                                                fill
+                                                className="object-cover"
+                                                data-ai-hint="product image"
+                                            />
+                                        </div>
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                        </Carousel>
                     </div>
                     <div>
                         <h1 className="text-4xl lg:text-5xl font-headline font-bold text-primary mb-4">{product.name}</h1>

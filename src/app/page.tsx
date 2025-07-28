@@ -94,7 +94,7 @@ const ProductCard = ({ product }: { product: Product }) => {
                 <CardContent className="p-0">
                      <div className="relative aspect-square w-full overflow-hidden">
                         <Image
-                            src={product.imageUrl || 'https://placehold.co/400x400.png'}
+                            src={product.imageUrls?.[0] || 'https://placehold.co/400x400.png'}
                             alt={product.name}
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-110"

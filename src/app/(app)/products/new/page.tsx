@@ -14,7 +14,7 @@ export default function NewProductPage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (data: ProductFormValues) => {
+  const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
       await createProduct(data);

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo } from "react"
@@ -65,7 +66,7 @@ export function ProfitCalculator({ products }: ProfitCalculatorProps) {
                 <SelectItem key={product.id} value={product.id}>
                   <div className="flex items-center gap-3">
                     <Image
-                      src={product.imageUrl || 'https://placehold.co/40x40.png'}
+                      src={product.imageUrls?.[0] || 'https://placehold.co/40x40.png'}
                       alt={product.name}
                       width={40}
                       height={40}

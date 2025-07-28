@@ -94,7 +94,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
         productDescription: product.description,
         quantity: 1,
         unitPrice: product.sellPrice,
-        imageUrl: product.imageUrl,
+        imageUrl: product.imageUrls?.[0],
       }])
       setSelectedProduct("")
     }
@@ -197,7 +197,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
                         <SelectItem key={p.id} value={p.id} disabled={!!items.find(item => item.productId === p.id)}>
                           <div className="flex items-center gap-3">
                             <Image 
-                                src={p.imageUrl || 'https://placehold.co/40x40.png'} 
+                                src={p.imageUrls?.[0] || 'https://placehold.co/40x40.png'} 
                                 alt={p.name} 
                                 width={40} 
                                 height={40} 

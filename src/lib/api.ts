@@ -39,7 +39,7 @@ export const getProduct = async (id: string): Promise<Product | undefined> => {
   return undefined;
 };
 
-export const createProduct = async (data: ProductFormValues) => {
+export const createProduct = async (data: Omit<ProductFormValues, 'imageUrls'> & { imageUrls: string[] }) => {
   await addDoc(productsCollection, {
     ...data,
     isRejected: false,
@@ -47,7 +47,7 @@ export const createProduct = async (data: ProductFormValues) => {
   });
 };
 
-export const updateProduct = async (id: string, data: ProductFormValues) => {
+export const updateProduct = async (id: string, data: Omit<ProductFormValues, 'imageUrls'> & { imageUrls: string[] }) => {
   const docRef = doc(db, 'products', id);
   await updateDoc(docRef, data);
 };

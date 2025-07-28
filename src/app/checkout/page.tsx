@@ -81,7 +81,7 @@ export default function CheckoutPage() {
           productDescription: item.description,
           quantity: item.orderQuantity,
           unitPrice: item.sellPrice,
-          imageUrl: item.imageUrl,
+          imageUrl: item.imageUrls?.[0],
         })),
         shippingCost,
         discount: 0,
@@ -166,7 +166,7 @@ export default function CheckoutPage() {
                       {items.map(item => (
                         <div key={item.id} className="flex items-center gap-4">
                           <Image
-                            src={item.imageUrl || 'https://placehold.co/64x64.png'}
+                            src={item.imageUrls?.[0] || 'https://placehold.co/64x64.png'}
                             alt={item.name}
                             width={64}
                             height={64}
