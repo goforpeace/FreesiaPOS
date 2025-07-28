@@ -3,21 +3,30 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Sales collection rules
+    // Allow anyone to create a sale (place an order), but only authenticated
+    // users (admins) can modify or delete existing sales.
     match /sales/{saleId} {
-      // Allow anyone to create a new sale (place an order)
+      allow read: if true;
       allow create: if true;
-      
-      // Allow only authenticated users (admins) to read, update, or delete sales
-      allow read, update, delete: if request.auth != null;
+      allow update, delete: if request.auth != null;
     }
 
-    // Products, Banners, Reviews, and other collections
-    match /{collection}/{docId} {
-      // Allow public read for all other collections
+    // Allow anyone to read products.
+    // Allow updates only to the 'quantity' field. This is crucial for the checkout 
+    // transaction to decrement stock without exposing other product fields to be changed.
+    // All other writes (create, delete) require authentication.
+    match /products/{productId} {
       allow read: if true;
-
-      // Allow only authenticated users (admins) to write (create, update, delete)
+      allow create, delete: if request.auth != null;
+      allow update: if request.auth != null || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantity'])
+      );
+    }
+    
+    // Default fallback for any other collections (banners, reviews, etc.)
+    // They are readable by anyone, but only writable by authenticated users.
+    match /{document=**} {
+      allow read: if true;
       allow write: if request.auth != null;
     }
   }

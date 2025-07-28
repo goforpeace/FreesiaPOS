@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFormState } from "react-hook-form";
 import { z } from "zod";
 import { X, ArrowLeft, Trash2 } from "lucide-react";
 
@@ -22,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { SelectedVariant } from "@/lib/types";
 
 const checkoutFormSchema = z.object({
@@ -40,6 +40,14 @@ const SHIPPING_COSTS = {
   inside_dhaka: 80,
   outside_dhaka: 130,
 };
+
+function SubmitButton({ isSubmitting }: { isSubmitting: boolean }) {
+    return (
+        <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+            {isSubmitting ? "Placing Order..." : "Place Order"}
+        </Button>
+    )
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -59,6 +67,8 @@ export default function CheckoutPage() {
       customerAddress: "",
     }
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const shippingOption = form.watch("shippingOption");
   const subtotal = totalPrice();
@@ -75,14 +85,25 @@ export default function CheckoutPage() {
       return;
     }
     
-    const customerName = formData.get('customerName') as string;
-    const customerPhone = formData.get('customerPhone') as string;
-    const customerAddress = formData.get('customerAddress') as string;
+    // Validate form fields before proceeding
+    const validation = checkoutFormSchema.safeParse({
+        customerName: formData.get('customerName'),
+        customerPhone: formData.get('customerPhone'),
+        customerAddress: formData.get('customerAddress'),
+        shippingOption: formData.get('shippingOption')
+    });
+
+    if(!validation.success) {
+        form.trigger();
+        return;
+    }
+
+    setIsSubmitting(true);
 
     const saleData = {
-        customerName,
-        customerPhone,
-        customerAddress,
+        customerName: validation.data.customerName,
+        customerPhone: validation.data.customerPhone,
+        customerAddress: validation.data.customerAddress,
         items: items.map(item => ({
             productId: item.id,
             productName: item.name,
@@ -90,10 +111,8 @@ export default function CheckoutPage() {
             quantity: item.orderQuantity,
             unitPrice: item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice,
             imageUrl: item.selectedVariant?.imageUrl || item.imageUrls?.[0] || null,
-            variant: item.selectedVariant ? {
-                color: item.selectedVariant.color,
-                imageUrl: item.selectedVariant.imageUrl,
-            } : null,
+            variantColor: item.selectedVariant?.color || null,
+            variantImageUrl: item.selectedVariant?.imageUrl || null,
         })),
         shippingCost,
         discount: 0, 
@@ -119,6 +138,7 @@ export default function CheckoutPage() {
         clearCart();
         router.push(`/order-confirmation/${result.saleId}`);
     }
+    setIsSubmitting(false);
   };
   
   const handleRemoveItem = (item: CartItem) => {
@@ -239,14 +259,14 @@ export default function CheckoutPage() {
                                 >
                                     <Label className="flex items-center justify-between p-4 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                                         <div className="flex items-center gap-3">
-                                            <RadioGroupItem value="inside_dhaka"/>
+                                            <RadioGroupItem value="inside_dhaka" id="inside_dhaka"/>
                                             <span>Inside Dhaka</span>
                                         </div>
                                         <span className="font-semibold">{formatCurrency(SHIPPING_COSTS.inside_dhaka)}</span>
                                     </Label>
                                     <Label className="flex items-center justify-between p-4 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                                         <div className="flex items-center gap-3">
-                                          <RadioGroupItem value="outside_dhaka"/>
+                                          <RadioGroupItem value="outside_dhaka" id="outside_dhaka"/>
                                           <span>Outside Dhaka</span>
                                         </div>
                                         <span className="font-semibold">{formatCurrency(SHIPPING_COSTS.outside_dhaka)}</span>
@@ -279,9 +299,7 @@ export default function CheckoutPage() {
                     <div className="text-center bg-secondary/50 p-3 rounded-md">
                         <p className="font-semibold text-primary">Cash on Delivery</p>
                     </div>
-                    <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? "Placing Order..." : "Place Order"}
-                    </Button>
+                    <SubmitButton isSubmitting={isSubmitting} />
                   </CardContent>
                 </Card>
               </div>

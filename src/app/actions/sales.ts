@@ -2,8 +2,8 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { doc, runTransaction } from 'firebase/firestore';
-import type { Sale } from '@/lib/types';
+import { doc, runTransaction, collection, getDoc } from 'firebase/firestore';
+import type { Sale, Product } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
 // Define the shape of the data expected from the form
@@ -40,9 +40,11 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
                 if (!productSnap.exists()) {
                     throw new Error(`Product with ID ${item.productId} not found.`);
                 }
-                const currentQuantity = productSnap.data().quantity;
+                const productData = productSnap.data() as Product;
+                const currentQuantity = productData.quantity;
+
                 if (currentQuantity < item.quantity) {
-                    throw new Error(`Not enough stock for ${productSnap.data().name}. Only ${currentQuantity} left.`);
+                    throw new Error(`Not enough stock for ${productData.name}. Only ${currentQuantity} left.`);
                 }
                 const newQuantity = currentQuantity - item.quantity;
                 transaction.update(productRef, { quantity: newQuantity });
