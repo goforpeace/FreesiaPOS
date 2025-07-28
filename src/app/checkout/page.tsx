@@ -12,7 +12,7 @@ import { X, ArrowLeft, Trash2 } from "lucide-react";
 
 import { useCart, CartItem } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
-import { createSale } from "@/lib/api";
+import { createSaleAction } from "@/app/actions/sales";
 import { formatCurrency } from "@/lib/utils";
 
 import { Header } from "@/components/web/Header";
@@ -74,7 +74,9 @@ export default function CheckoutPage() {
 
     try {
       const saleData = {
-        ...data,
+        customerName: data.customerName,
+        customerPhone: data.customerPhone,
+        customerAddress: data.customerAddress,
         items: items.map(item => ({
           productId: item.id,
           productName: item.name,
@@ -90,15 +92,20 @@ export default function CheckoutPage() {
         total,
       };
       
-      const newSaleId = await createSale(saleData as any);
+      const result = await createSaleAction(saleData as any);
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
       toast({
         title: "Order Placed Successfully!",
-        description: `Your order #${newSaleId} has been confirmed.`,
+        description: `Your order #${result.saleId} has been confirmed.`,
       });
       
       form.reset();
       clearCart();
-      router.push(`/order-confirmation/${newSaleId}`);
+      router.push(`/order-confirmation/${result.saleId}`);
 
     } catch (error: any) {
       toast({
@@ -282,3 +289,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    

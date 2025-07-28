@@ -104,46 +104,47 @@ export const getSale = async (id: string): Promise<Sale | undefined> => {
     return undefined;
 };
 
+// This function is now only used for ADMIN panel sale creation
 export const createSale = async (data: SaleFormData) => {
-    const batch = writeBatch(db);
-
-    // Update stock
-    for (const item of data.items) {
-        const productRef = doc(db, 'products', item.productId);
-        const productSnap = await getDoc(productRef);
-        if (productSnap.exists()) {
-            const currentQuantity = productSnap.data().quantity;
-            if (currentQuantity < item.quantity) {
-                throw new Error(`Not enough stock for ${productSnap.data().name}`);
+    return runTransaction(db, async (transaction) => {
+        // Update stock
+        for (const item of data.items) {
+            const productRef = doc(db, 'products', item.productId);
+            const productSnap = await transaction.get(productRef);
+            if (productSnap.exists()) {
+                const currentQuantity = productSnap.data().quantity;
+                if (currentQuantity < item.quantity) {
+                    throw new Error(`Not enough stock for ${productSnap.data().name}`);
+                }
+                transaction.update(productRef, { quantity: currentQuantity - item.quantity });
             }
-            batch.update(productRef, { quantity: currentQuantity - item.quantity });
         }
-    }
-    
-    const newId = `inv-${Date.now().toString().slice(-5)}${Math.floor(Math.random() * 100)}`;
+        
+        const newId = `inv-${Date.now().toString().slice(-5)}${Math.floor(Math.random() * 100)}`;
 
-    const newSale: Omit<Sale, 'id'> = {
-        customerName: data.customerName,
-        customerPhone: data.customerPhone || null,
-        customerAddress: data.customerAddress || null,
-        items: data.items.map(item => ({
-            ...item,
-            productDescription: item.productDescription || null,
-            imageUrl: item.imageUrl || null,
-            variant: item.variant || null,
-        })),
-        shippingCost: data.shippingCost || 0,
-        discount: data.discount || 0,
-        subtotal: data.subtotal || 0,
-        total: data.total || 0,
-        date: new Date().toISOString(),
-        status: 'pending', // All sales start as pending
-    };
+        const newSale: Omit<Sale, 'id'> = {
+            customerName: data.customerName,
+            customerPhone: data.customerPhone || null,
+            customerAddress: data.customerAddress || null,
+            items: data.items.map(item => ({
+                ...item,
+                productDescription: item.productDescription || null,
+                imageUrl: item.imageUrl || null,
+                variant: item.variant || null,
+            })),
+            shippingCost: data.shippingCost || 0,
+            discount: data.discount || 0,
+            subtotal: data.subtotal || 0,
+            total: data.total || 0,
+            date: new Date().toISOString(),
+            status: 'pending', // All sales start as pending
+        };
 
-    batch.set(doc(db, 'sales', newId), newSale);
+        const newSaleRef = doc(db, 'sales', newId);
+        transaction.set(newSaleRef, newSale);
 
-    await batch.commit();
-    return newId;
+        return newId;
+    });
 };
 
 export const updateSale = async (id: string, data: SaleFormData) => {
@@ -233,29 +234,28 @@ export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted
 
 export const deleteSale = async (id: string) => {
     const saleRef = doc(db, 'sales', id);
-    const batch = writeBatch(db);
+    
+    await runTransaction(db, async (transaction) => {
+        const saleSnap = await transaction.get(saleRef);
+        if (!saleSnap.exists()) {
+            throw new Error("Sale not found");
+        }
+        const sale = saleSnap.data() as Sale;
 
-    const saleSnap = await getDoc(saleRef);
-    const sale = saleSnap.data() as Sale;
-
-    if (!sale) {
-        throw new Error("Sale not found");
-    }
-
-    // Restore stock only if the sale wasn't cancelled (as cancelling would have already restored it)
-    if (sale.status !== 'cancelled') {
-        for (const item of sale.items) {
-            const productRef = doc(db, 'products', item.productId);
-            const productSnap = await getDoc(productRef);
-            if (productSnap.exists()) {
-                const currentQuantity = productSnap.data().quantity;
-                batch.update(productRef, { quantity: currentQuantity + item.quantity });
+        // Restore stock only if the sale wasn't cancelled (as cancelling would have already restored it)
+        if (sale.status !== 'cancelled') {
+            for (const item of sale.items) {
+                const productRef = doc(db, 'products', item.productId);
+                const productSnap = await transaction.get(productRef);
+                if (productSnap.exists()) {
+                    const currentQuantity = productSnap.data().quantity;
+                    transaction.update(productRef, { quantity: currentQuantity + item.quantity });
+                }
             }
         }
-    }
 
-    batch.delete(saleRef);
-    await batch.commit();
+        transaction.delete(saleRef);
+    });
 };
 
 // REVIEWS API
@@ -299,3 +299,5 @@ export const deleteBanner = async (id: string) => {
   const docRef = doc(db, 'banners', id);
   await deleteDoc(docRef);
 }
+
+    
