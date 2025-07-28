@@ -38,7 +38,7 @@ export interface Sale {
   subtotal: number;
   total: number;
   date: string; // ISO 8601 format
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'accepted' | 'cancelled';
 }
 
 export interface CartItem extends Product {

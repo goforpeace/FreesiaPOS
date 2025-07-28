@@ -43,12 +43,12 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
-  const confirmedSales = sales.filter(s => s.status === 'confirmed');
+  const acceptedSales = sales.filter(s => s.status === 'accepted');
 
-  const totalSales = confirmedSales.reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
-  const totalOrders = confirmedSales.length;
+  const totalSales = acceptedSales.reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
+  const totalOrders = acceptedSales.length;
 
-  const totalProfit = confirmedSales.reduce((acc, sale) => {
+  const totalProfit = acceptedSales.reduce((acc, sale) => {
     const costOfGoods = sale.items.reduce((itemAcc, item) => {
       const product = products.find(p => p.id === item.productId);
       return itemAcc + (product ? product.costPrice * item.quantity : 0);
@@ -58,7 +58,7 @@ export default function DashboardPage() {
   }, 0);
   
   const today = new Date().toISOString().split('T')[0];
-  const dailySales = confirmedSales
+  const dailySales = acceptedSales
     .filter(sale => sale.date.startsWith(today))
     .reduce((acc, sale) => acc + (sale.subtotal - sale.discount), 0);
 
@@ -90,17 +90,17 @@ export default function DashboardPage() {
     <>
       <Header title="Dashboard" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={CircleDollarSign} description="From confirmed sales" />
-        <StatCard title="Daily Sales" value={formatCurrency(dailySales)} icon={Sun} description="From confirmed sales" />
-        <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} description="From confirmed sales" />
-        <StatCard title="Confirmed Orders" value={totalOrders.toString()} icon={ClipboardList} />
+        <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={CircleDollarSign} description="From accepted sales" />
+        <StatCard title="Daily Sales" value={formatCurrency(dailySales)} icon={Sun} description="From accepted sales" />
+        <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} description="From accepted sales" />
+        <StatCard title="Accepted Orders" value={totalOrders.toString()} icon={ClipboardList} />
         <StatCard title="Total Stock" value={totalStock.toString()} icon={Package} />
         <StatCard title="Stock Value (Cost)" value={formatCurrency(totalProductValue)} icon={ReceiptText} />
         <StatCard title="Rejected Products" value={rejectedProducts.toString()} icon={PackageX} />
         <StatCard title="Rejected Value" value={formatCurrency(rejectedValue)} icon={TrendingUp} description="Based on cost price" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">
-        <SalesReport sales={confirmedSales} />
+        <SalesReport sales={acceptedSales} />
         <ProfitCalculator products={availableProducts} />
       </div>
     </>

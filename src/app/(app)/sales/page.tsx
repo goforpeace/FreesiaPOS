@@ -189,7 +189,7 @@ export default function SalesPage() {
                       <TableCell className="font-medium">{sale.id}</TableCell>
                       <TableCell>{sale.customerName}</TableCell>
                       <TableCell>
-                          <Badge variant={status === 'confirmed' ? 'secondary' : status === 'cancelled' ? 'destructive' : 'outline'}>
+                          <Badge variant={status === 'accepted' ? 'secondary' : status === 'cancelled' ? 'destructive' : 'outline'}>
                               {status.charAt(0).toUpperCase() + status.slice(1)}
                           </Badge>
                       </TableCell>

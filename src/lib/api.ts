@@ -163,7 +163,7 @@ export const updateSale = async (id: string, data: SaleFormData, originalItems: 
     });
 };
 
-export const updateSaleStatus = async (id: string, status: 'pending' | 'confirmed' | 'cancelled') => {
+export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted' | 'cancelled') => {
     const saleRef = doc(db, 'sales', id);
     await updateDoc(saleRef, { status });
 };

@@ -29,17 +29,17 @@ import type { Sale } from "@/lib/types";
 export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate: () => void }) {
   const { toast } = useToast();
 
-  const handleConfirm = async () => {
+  const handleAccept = async () => {
     try {
-      await updateSaleStatus(sale.id, 'confirmed');
+      await updateSaleStatus(sale.id, 'accepted');
        toast({
-        title: "Sale Confirmed",
-        description: `Invoice #${sale.id} has been confirmed.`,
+        title: "Sale Accepted",
+        description: `Invoice #${sale.id} has been accepted.`,
       });
       onSaleUpdate();
     } catch (error) {
        toast({
-        title: "Error confirming sale",
+        title: "Error accepting sale",
         description: "An unexpected error occurred.",
         variant: "destructive",
       });
@@ -74,9 +74,9 @@ export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate:
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
            {sale.status === 'pending' && (
-             <DropdownMenuItem onSelect={handleConfirm}>
+             <DropdownMenuItem onSelect={handleAccept}>
               <CheckCircle className="mr-2 h-4 w-4" />
-              <span>Confirm Sale</span>
+              <span>Accept Sale</span>
             </DropdownMenuItem>
           )}
           <DropdownMenuItem asChild>
