@@ -10,9 +10,10 @@ import type { Product } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Bolt } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useCart } from "@/hooks/use-cart";
+import { useRouter } from "next/navigation";
 
 
 export default function WebHomePage() {
@@ -88,8 +89,15 @@ export default function WebHomePage() {
 
 const ProductCard = ({ product }: { product: Product }) => {
     const { addItem } = useCart();
+    const router = useRouter();
+
+    const handleOrderNow = () => {
+        addItem(product);
+        router.push('/checkout');
+    }
+
     return (
-        <Card className="group overflow-hidden">
+        <Card className="group overflow-hidden flex flex-col">
             <Link href={`/product/${product.id}`}>
                 <CardContent className="p-0">
                      <div className="relative aspect-square w-full overflow-hidden">
@@ -107,10 +115,14 @@ const ProductCard = ({ product }: { product: Product }) => {
                     </div>
                 </CardContent>
             </Link>
-            <CardFooter className="p-4 pt-0">
+            <CardFooter className="p-4 pt-0 mt-auto flex-col gap-2">
                  <Button className="w-full" onClick={() => addItem(product)}>
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
+                </Button>
+                <Button variant="outline" className="w-full" onClick={handleOrderNow}>
+                    <Bolt className="mr-2 h-4 w-4" />
+                    Order Now
                 </Button>
             </CardFooter>
         </Card>
@@ -124,7 +136,8 @@ const ProductCardSkeleton = () => (
             <Skeleton className="h-6 w-3/4 mb-2" />
             <Skeleton className="h-5 w-1/2" />
         </div>
-        <div className="p-4 pt-0">
+        <div className="p-4 pt-0 flex flex-col gap-2">
+            <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
         </div>
     </div>

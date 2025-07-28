@@ -4,12 +4,12 @@
 
 import { useState, useEffect } from "react";
 import { getProduct } from "@/lib/api";
-import { notFound, useParams } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Header } from "@/components/web/Header";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Bolt } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { Product } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 
 export default function PublicProductDetailsPage() {
     const params = useParams();
+    const router = useRouter();
     const id = params.id as string;
     const [product, setProduct] = useState<Product | null | undefined>(undefined);
     const { addItem } = useCart();
@@ -64,6 +65,12 @@ export default function PublicProductDetailsPage() {
             fetchProduct();
         }
     }, [id]);
+
+    const handleOrderNow = () => {
+        if (!product) return;
+        addItem(product);
+        router.push('/checkout');
+    }
 
     if (product === undefined) {
         return (
@@ -145,9 +152,13 @@ export default function PublicProductDetailsPage() {
                            <p className="whitespace-pre-wrap">{product.description}</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <Button size="lg" className="w-full md:w-auto" onClick={() => addItem(product)}>
+                            <Button size="lg" onClick={() => addItem(product)}>
                                 <ShoppingCart className="mr-2 h-5 w-5" />
                                 Add to Cart
+                            </Button>
+                            <Button size="lg" variant="outline" className="w-full md:w-auto" onClick={handleOrderNow}>
+                                <Bolt className="mr-2 h-5 w-5" />
+                                Order Now
                             </Button>
                         </div>
                          <p className="text-sm text-muted-foreground mt-4">{product.quantity} units available</p>
