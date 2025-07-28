@@ -14,6 +14,7 @@ import type { Sale } from "@/lib/types";
 import { CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
+import * as fbp from '@/lib/fpixel';
 
 export default function OrderConfirmationPage() {
     const params = useParams();
@@ -25,6 +26,18 @@ export default function OrderConfirmationPage() {
             const fetchSale = async () => {
                 const fetchedSale = await getSale(id);
                 setSale(fetchedSale);
+
+                if (fetchedSale) {
+                    // Facebook Pixel: Purchase event
+                    fbp.event('Purchase', {
+                        value: fetchedSale.total,
+                        currency: 'BDT',
+                        content_ids: fetchedSale.items.map(item => item.productId),
+                        content_type: 'product',
+                        num_items: fetchedSale.items.reduce((acc, item) => acc + item.quantity, 0),
+                        order_id: fetchedSale.id,
+                    });
+                }
             }
             fetchSale();
         }

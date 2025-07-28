@@ -4,6 +4,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, SelectedVariant } from '@/lib/types';
+import * as fbp from '@/lib/fpixel';
 import { toast } from './use-toast';
 
 export interface CartItem extends Product {
@@ -36,6 +37,16 @@ export const useCart = create<CartState>()(
                     ? `"${product.name}" (${selectedVariant.color})` 
                     : `"${product.name}"`;
 
+                const fireAddToCartEvent = () => {
+                    fbp.event('AddToCart', {
+                        content_name: product.name,
+                        content_ids: [product.id],
+                        content_type: 'product',
+                        value: product.discountedPrice || product.sellPrice,
+                        currency: 'BDT',
+                    });
+                };
+
                 if (existingItem) {
                     if (existingItem.orderQuantity < product.quantity) {
                         set({
@@ -46,6 +57,7 @@ export const useCart = create<CartState>()(
                             ),
                         });
                         toast({ title: "Added to cart", description: `Another ${itemIdentifier} was added.` });
+                        fireAddToCartEvent();
                     } else {
                          toast({ title: "Stock limit reached", description: `No more stock available for ${itemIdentifier}.`, variant: "destructive" });
                     }
@@ -58,6 +70,7 @@ export const useCart = create<CartState>()(
                         };
                         set({ items: [...currentItems, newCartItem] });
                         toast({ title: "Added to cart", description: `${itemIdentifier} has been added to your cart.` });
+                        fireAddToCartEvent();
                     } else {
                         toast({ title: "Out of stock", description: `${itemIdentifier} is currently out of stock.`, variant: "destructive" });
                     }

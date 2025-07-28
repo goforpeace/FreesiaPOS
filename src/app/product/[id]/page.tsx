@@ -14,6 +14,7 @@ import { ShoppingCart, Bolt, Truck, RefreshCw, MessageSquare } from "lucide-reac
 import { useCart } from "@/hooks/use-cart";
 import { Product, ProductVariant, SelectedVariant } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import * as fbp from '@/lib/fpixel';
 import {
   Carousel,
   CarouselContent,
@@ -60,6 +61,15 @@ export default function PublicProductDetailsPage() {
                     const initialVariant = fetchedProduct.variants?.[0];
                     setSelectedVariant(initialVariant);
                     setDisplayImages(initialVariant?.imageUrls || fetchedProduct.imageUrls || []);
+
+                    // Facebook Pixel: ViewContent event
+                    fbp.event('ViewContent', {
+                        content_name: fetchedProduct.name,
+                        content_ids: [fetchedProduct.id],
+                        content_type: 'product',
+                        value: fetchedProduct.discountedPrice || fetchedProduct.sellPrice,
+                        currency: 'BDT',
+                    });
                 }
             };
             fetchProduct();
