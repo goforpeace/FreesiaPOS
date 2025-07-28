@@ -59,8 +59,15 @@ export default function WebHomePage() {
       <Header />
       <main>
         {/* Hero Section */}
-        <section className="relative h-[60vh] bg-gradient-to-r from-primary via-purple-500 to-accent text-white flex items-center justify-center text-center">
-             <div className="absolute inset-0 bg-black/30"></div>
+        <section className="relative h-[60vh] text-white flex items-center justify-center text-center">
+             <Image
+                src="https://placehold.co/1600x900.png"
+                alt="Hero banner"
+                fill
+                className="object-cover z-0"
+                data-ai-hint="fashion store interior"
+             />
+             <div className="absolute inset-0 bg-black/40"></div>
              <div className="relative z-10 p-4">
                 <h1 className="text-5xl md:text-7xl font-headline font-bold">Find Your Rare Beauty</h1>
                 <p className="mt-4 text-xl font-body max-w-2xl mx-auto">Discover exclusive collections and timeless pieces, because you deserve what's rare.</p>
