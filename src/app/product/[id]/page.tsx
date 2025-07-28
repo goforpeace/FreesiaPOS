@@ -1,5 +1,8 @@
 
 
+"use client";
+
+import { useState, useEffect } from "react";
 import { getProduct } from "@/lib/api";
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -7,11 +10,48 @@ import { Header } from "@/components/web/Header";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
+import { useCart } from "@/hooks/use-cart";
+import { Product } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default async function PublicProductDetailsPage({ params: { id } }: { params: { id: string } }) {
-    const product = await getProduct(id);
+export default function PublicProductDetailsPage({ params: { id } }: { params: { id: string } }) {
+    const [product, setProduct] = useState<Product | null | undefined>(undefined);
+    const { addItem } = useCart();
 
-    if (!product || product.isRejected || product.quantity <= 0) {
+    useEffect(() => {
+        const fetchProduct = async () => {
+            const fetchedProduct = await getProduct(id);
+            if (!fetchedProduct || fetchedProduct.isRejected || fetchedProduct.quantity <= 0) {
+                setProduct(null);
+            } else {
+                setProduct(fetchedProduct);
+            }
+        };
+        fetchProduct();
+    }, [id]);
+
+    if (product === undefined) {
+        return (
+            <div className="bg-background min-h-screen">
+                <Header />
+                <main className="container mx-auto py-12 px-4">
+                     <div className="grid md:grid-cols-2 gap-12 items-start">
+                        <div>
+                             <Skeleton className="aspect-square w-full rounded-lg" />
+                        </div>
+                        <div className="space-y-4">
+                             <Skeleton className="h-12 w-3/4" />
+                             <Skeleton className="h-8 w-1/4" />
+                             <Skeleton className="h-24 w-full" />
+                             <Skeleton className="h-12 w-1/2" />
+                        </div>
+                     </div>
+                </main>
+            </div>
+        )
+    }
+
+    if (product === null) {
         notFound();
     }
 
@@ -38,7 +78,7 @@ export default async function PublicProductDetailsPage({ params: { id } }: { par
                            <p>{product.description}</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <Button size="lg" className="w-full md:w-auto">
+                            <Button size="lg" className="w-full md:w-auto" onClick={() => addItem(product)}>
                                 <ShoppingCart className="mr-2 h-5 w-5" />
                                 Add to Cart
                             </Button>

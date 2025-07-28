@@ -39,3 +39,7 @@ export interface Sale {
   total: number;
   date: string; // ISO 8601 format
 }
+
+export interface CartItem extends Product {
+  cartQuantity: number;
+}

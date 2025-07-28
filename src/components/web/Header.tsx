@@ -6,7 +6,8 @@ import Image from 'next/image';
 import { ShoppingBag, Search, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCart } from '@/hooks/use-cart';
 
 const navLinks = [
     { name: 'New Arrival', href: '#' },
@@ -16,6 +17,14 @@ const navLinks = [
 
 export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const { totalItems } = useCart();
+    const [cartCount, setCartCount] = useState(0);
+
+    // This useEffect ensures the cart count is updated on the client-side
+    // to avoid hydration mismatch errors.
+    useEffect(() => {
+        setCartCount(totalItems());
+    }, [totalItems, totalItems()]);
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -43,9 +52,18 @@ export function Header() {
                         <Search className="h-5 w-5" />
                         <span className="sr-only">Search</span>
                     </Button>
-                     <Button variant="ghost" size="icon">
-                        <ShoppingBag className="h-5 w-5" />
-                        <span className="sr-only">Shopping Cart</span>
+                     <Button variant="ghost" size="icon" asChild>
+                        <Link href="/checkout">
+                            <div className="relative">
+                                <ShoppingBag className="h-5 w-5" />
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </div>
+                            <span className="sr-only">Shopping Cart</span>
+                        </Link>
                     </Button>
 
                     <div className="md:hidden">

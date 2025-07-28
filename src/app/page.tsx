@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { useCart } from "@/hooks/use-cart";
 
 
 export default function WebHomePage() {
@@ -85,33 +86,36 @@ export default function WebHomePage() {
   );
 }
 
-const ProductCard = ({ product }: { product: Product }) => (
-    <Card className="group overflow-hidden">
-        <Link href={`/product/${product.id}`}>
-            <CardContent className="p-0">
-                 <div className="relative aspect-square w-full overflow-hidden">
-                    <Image
-                        src={product.imageUrl || 'https://placehold.co/400x400.png'}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-110"
-                        data-ai-hint="product image"
-                    />
-                </div>
-                <div className="p-4 border-t">
-                    <h3 className="text-lg font-headline font-semibold text-primary truncate">{product.name}</h3>
-                    <p className="text-muted-foreground mt-2 font-bold text-accent">{formatCurrency(product.sellPrice)}</p>
-                </div>
-            </CardContent>
-        </Link>
-        <CardFooter className="p-4 pt-0">
-             <Button className="w-full">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Add to Cart
-            </Button>
-        </CardFooter>
-    </Card>
-);
+const ProductCard = ({ product }: { product: Product }) => {
+    const { addItem } = useCart();
+    return (
+        <Card className="group overflow-hidden">
+            <Link href={`/product/${product.id}`}>
+                <CardContent className="p-0">
+                     <div className="relative aspect-square w-full overflow-hidden">
+                        <Image
+                            src={product.imageUrl || 'https://placehold.co/400x400.png'}
+                            alt={product.name}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-110"
+                            data-ai-hint="product image"
+                        />
+                    </div>
+                    <div className="p-4 border-t">
+                        <h3 className="text-lg font-headline font-semibold text-primary truncate">{product.name}</h3>
+                        <p className="text-muted-foreground mt-2 font-bold text-accent">{formatCurrency(product.sellPrice)}</p>
+                    </div>
+                </CardContent>
+            </Link>
+            <CardFooter className="p-4 pt-0">
+                 <Button className="w-full" onClick={() => addItem(product)}>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Add to Cart
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+}
 
 const ProductCardSkeleton = () => (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
