@@ -17,6 +17,14 @@ import { useCart } from "@/hooks/use-cart";
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
@@ -85,6 +93,7 @@ export function HomePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [sortOption, setSortOption] = useState("createdAt-desc");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,6 +133,37 @@ export function HomePageContent() {
       product.name.toLowerCase().includes(query.toLowerCase())
     )
   }, [products, searchParams]);
+  
+  const sortedProducts = useMemo(() => {
+    let sorted = [...filteredProducts];
+    if (sortOption) {
+      const [key, order] = sortOption.split("-");
+      sorted.sort((a, b) => {
+        let valA: string | number | undefined;
+        let valB: string | number | undefined;
+
+        const getPrice = (p: Product) => p.discountedPrice && p.discountedPrice > 0 ? p.discountedPrice : p.sellPrice;
+
+        if (key === 'createdAt') {
+          valA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          valB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        } else if (key === 'name') {
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+        } else if (key === 'price') {
+            valA = getPrice(a);
+            valB = getPrice(b);
+        }
+
+        if (valA === undefined || valB === undefined) return 0;
+        
+        if (valA < valB) return order === 'asc' ? -1 : 1;
+        if (valA > valB) return order === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sorted;
+  }, [filteredProducts, sortOption]);
 
   const newArrivals = filteredProducts.filter(p => p.isNewArrival);
   const offerSaleProducts = filteredProducts.filter(p => p.isOfferSale);
@@ -185,7 +225,7 @@ export function HomePageContent() {
                   New Arrivals
               </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
               {loading ? (
                   [...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)
               ) : newArrivals.length > 0 ? (
@@ -204,7 +244,7 @@ export function HomePageContent() {
                   Offer Sale
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
                 {loading ? (
                     [...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)
                 ) : (
@@ -224,11 +264,26 @@ export function HomePageContent() {
                   All Products
               </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto mb-8 flex justify-end">
+             <Select value={sortOption} onValueChange={setSortOption}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="createdAt-desc">Newest First</SelectItem>
+                <SelectItem value="createdAt-asc">Oldest First</SelectItem>
+                <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
                {loading ? (
                   [...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)
-              ) : filteredProducts.length > 0 ? (
-                  filteredProducts.map(product => <ProductCard key={product.id} product={product} />)
+              ) : sortedProducts.length > 0 ? (
+                  sortedProducts.map(product => <ProductCard key={product.id} product={product} />)
               ) : (
                 <p className="col-span-full text-center text-muted-foreground">No products found for your search.</p>
               )}
@@ -302,3 +357,5 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
