@@ -90,10 +90,10 @@ export default function DashboardPage() {
     <>
       <Header title="Dashboard" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Sales" value={formatCurrency(totalSales)} description="From confirmed sales" />
-        <StatCard title="Daily Sales" value={formatCurrency(dailySales)} description="From confirmed sales" />
-        <StatCard title="Total Profit" value={formatCurrency(totalProfit)} description="From confirmed sales" />
-        <StatCard title="Confirmed Orders" value={totalOrders.toString()} />
+        <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={CircleDollarSign} description="From confirmed sales" />
+        <StatCard title="Daily Sales" value={formatCurrency(dailySales)} icon={Sun} description="From confirmed sales" />
+        <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} description="From confirmed sales" />
+        <StatCard title="Confirmed Orders" value={totalOrders.toString()} icon={ClipboardList} />
         <StatCard title="Total Stock" value={totalStock.toString()} icon={Package} />
         <StatCard title="Stock Value (Cost)" value={formatCurrency(totalProductValue)} icon={ReceiptText} />
         <StatCard title="Rejected Products" value={rejectedProducts.toString()} icon={PackageX} />
