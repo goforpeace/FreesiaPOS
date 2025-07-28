@@ -4,19 +4,19 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { ReviewsSection } from "@/components/web/ReviewsSection";
 import { getProducts, getReviews, getBanners } from "@/lib/api";
 import type { Product, Review, Banner } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Bolt } from "lucide-react";
+import { ShoppingCart, Bolt, Search } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useCart } from "@/hooks/use-cart";
-import { useRouter } from "next/navigation";
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import { Input } from "@/components/ui/input";
 
 const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
@@ -55,8 +55,10 @@ export function HomePageContent() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const router = useRouter();
   const searchParams = useSearchParams()
-  const searchQuery = searchParams.get('q') || '';
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,11 +81,23 @@ export function HomePageContent() {
     fetchData();
   }, []);
 
+  const handleSearch = (e: React.FormEvent) => {
+      e.preventDefault();
+      const params = new URLSearchParams(searchParams.toString());
+      if (searchQuery) {
+          params.set('q', searchQuery);
+      } else {
+          params.delete('q');
+      }
+      router.replace(`/?${params.toString()}#all-products`, { scroll: false });
+  }
+
   const filteredProducts = useMemo(() => {
+    const query = searchParams.get('q') || '';
     return products.filter(product => 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      product.name.toLowerCase().includes(query.toLowerCase())
     )
-  }, [products, searchQuery]);
+  }, [products, searchParams]);
 
   const newArrivals = filteredProducts.filter(p => p.isNewArrival);
   const offerSaleProducts = filteredProducts.filter(p => p.isOfferSale);
@@ -116,8 +130,27 @@ export function HomePageContent() {
           </section>
       )}
 
+       {/* Search Bar */}
+      <section className="py-8 px-4 md:px-8 bg-muted/50">
+        <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+          <div className="relative">
+            <Input 
+              type="search" 
+              placeholder="Search by product name..."
+              className="w-full pr-12 h-12 text-lg"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button type="submit" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground hover:text-primary">
+              <Search className="h-6 w-6" />
+            </Button>
+          </div>
+        </form>
+      </section>
+
+
       {/* New Arrivals Section */}
-      <section className="py-16 px-4 md:px-8">
+      <section id="new-arrivals" className="py-16 px-4 md:px-8">
           <div className="text-center mb-12">
               <div className="inline-block bg-primary/20 text-primary font-semibold uppercase tracking-wider py-2 px-4 rounded-full text-2xl">
                   New Arrivals
@@ -136,7 +169,7 @@ export function HomePageContent() {
 
       {/* Offer Sale Section */}
       {offerSaleProducts.length > 0 && (
-        <section className="py-16 px-4 md:px-8">
+        <section id="offer-sale" className="py-16 px-4 md:px-8">
             <div className="text-center mb-12">
                <div className="inline-block bg-primary/20 text-primary font-semibold uppercase tracking-wider py-2 px-4 rounded-full text-2xl">
                   Offer Sale
@@ -165,8 +198,10 @@ export function HomePageContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                {loading ? (
                   [...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)
-              ) : (
+              ) : filteredProducts.length > 0 ? (
                   filteredProducts.map(product => <ProductCard key={product.id} product={product} />)
+              ) : (
+                <p className="col-span-full text-center text-muted-foreground">No products found for your search.</p>
               )}
           </div>
       </section>
