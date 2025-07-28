@@ -18,6 +18,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useRouter } from "next/navigation";
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import { ClientOnly } from "@/components/ui/client-only";
 
 const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
@@ -175,15 +176,17 @@ export default function WebHomePage() {
             </div>
         </section>
       </main>
-       <Link 
-        href="https://www.facebook.com/freesia.finds"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-1/2 translate-y-1/2 right-0 z-50 bg-blue-600 text-white p-2 rounded-l-lg shadow-lg flex flex-col items-center gap-1 transform transition-transform hover:scale-105 animate-bounce"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"></path></svg>
-          <span className="text-xs">Visit Page</span>
-      </Link>
+      <ClientOnly>
+        <Link 
+          href="https://www.facebook.com/freesia.finds"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-1/2 translate-y-1/2 right-0 z-50 bg-blue-600 text-white p-2 rounded-l-lg shadow-lg flex flex-col items-center gap-1 transform transition-transform hover:scale-105 animate-bounce"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"></path></svg>
+            <span className="text-xs">Visit Page</span>
+        </Link>
+      </ClientOnly>
       <footer className="bg-card text-card-foreground py-8 px-4 text-center">
         <p className="text-sm text-foreground">&copy; {new Date().getFullYear()} Freesia Finds. All rights reserved.</p>
         <p className="italic mt-2 text-sm text-muted-foreground">Because you deserve what's rare!</p>
