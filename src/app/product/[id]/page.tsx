@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { getProduct } from "@/lib/api";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import Image from "next/image";
 import { Header } from "@/components/web/Header";
 import { formatCurrency } from "@/lib/utils";
@@ -14,20 +14,24 @@ import { useCart } from "@/hooks/use-cart";
 import { Product } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function PublicProductDetailsPage({ params: { id } }: { params: { id: string } }) {
+export default function PublicProductDetailsPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [product, setProduct] = useState<Product | null | undefined>(undefined);
     const { addItem } = useCart();
 
     useEffect(() => {
-        const fetchProduct = async () => {
-            const fetchedProduct = await getProduct(id);
-            if (!fetchedProduct || fetchedProduct.isRejected || fetchedProduct.quantity <= 0) {
-                setProduct(null);
-            } else {
-                setProduct(fetchedProduct);
-            }
-        };
-        fetchProduct();
+        if (id) {
+            const fetchProduct = async () => {
+                const fetchedProduct = await getProduct(id);
+                if (!fetchedProduct || fetchedProduct.isRejected || fetchedProduct.quantity <= 0) {
+                    setProduct(null);
+                } else {
+                    setProduct(fetchedProduct);
+                }
+            };
+            fetchProduct();
+        }
     }, [id]);
 
     if (product === undefined) {
