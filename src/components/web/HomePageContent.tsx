@@ -253,9 +253,6 @@ export function HomePageContent() {
             </div>
         </section>
       )}
-
-      {/* Reviews Section */}
-      <ReviewsSection reviews={reviews} />
       
       {/* All Products Section */}
       <section id="all-products" className="py-16 px-4 md:px-8">
@@ -289,6 +286,9 @@ export function HomePageContent() {
               )}
           </div>
       </section>
+
+      {/* Reviews Section */}
+      <ReviewsSection reviews={reviews} />
     </main>
   );
 }
