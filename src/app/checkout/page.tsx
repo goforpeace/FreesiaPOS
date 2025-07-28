@@ -210,20 +210,20 @@ export default function CheckoutPage() {
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="space-y-2"
+                                    className="space-y-3"
                                 >
-                                    <Label className="flex items-center justify-between p-4 border rounded-md has-[:checked]:border-primary">
-                                        <FormControl>
-                                            <RadioGroupItem value="inside_dhaka" className="sr-only"/>
-                                        </FormControl>
-                                        <span>Inside Dhaka</span>
+                                    <Label className="flex items-center justify-between p-4 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                        <div className="flex items-center gap-3">
+                                            <RadioGroupItem value="inside_dhaka"/>
+                                            <span>Inside Dhaka</span>
+                                        </div>
                                         <span className="font-semibold">{formatCurrency(SHIPPING_COSTS.inside_dhaka)}</span>
                                     </Label>
-                                    <Label className="flex items-center justify-between p-4 border rounded-md has-[:checked]:border-primary">
-                                        <FormControl>
-                                            <RadioGroupItem value="outside_dhaka" className="sr-only"/>
-                                        </FormControl>
-                                         <span>Outside Dhaka</span>
+                                    <Label className="flex items-center justify-between p-4 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                        <div className="flex items-center gap-3">
+                                          <RadioGroupItem value="outside_dhaka"/>
+                                          <span>Outside Dhaka</span>
+                                        </div>
                                         <span className="font-semibold">{formatCurrency(SHIPPING_COSTS.outside_dhaka)}</span>
                                     </Label>
                                 </RadioGroup>
