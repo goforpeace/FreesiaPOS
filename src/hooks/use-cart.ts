@@ -4,7 +4,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product } from '@/lib/types';
-import { useToast } from './use-toast';
+import { toast } from './use-toast';
 
 export interface CartItem extends Product {
     orderQuantity: number;
@@ -25,7 +25,6 @@ export const useCart = create<CartState>()(
         (set, get) => ({
             items: [],
             addItem: (product) => {
-                const { toast } = useToast.getState();
                 const currentItems = get().items;
                 const existingItem = currentItems.find((item) => item.id === product.id);
 
@@ -52,7 +51,6 @@ export const useCart = create<CartState>()(
                 }
             },
             removeItem: (productId) => {
-                 const { toast } = useToast.getState();
                  const product = get().items.find(item => item.id === productId);
                  if(product) {
                     toast({ title: "Removed from cart", description: `"${product.name}" has been removed from your cart.` });
@@ -68,7 +66,6 @@ export const useCart = create<CartState>()(
                 const newQuantity = Math.max(1, Math.min(quantity, product.quantity));
 
                 if (quantity > product.quantity) {
-                     const { toast } = useToast.getState();
                      toast({
                         title: "Stock limit reached",
                         description: `Only ${product.quantity} units of ${product.name} available.`,
