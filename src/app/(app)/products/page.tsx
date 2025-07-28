@@ -41,8 +41,8 @@ export default function ProductsPage() {
     try {
       setLoading(true);
       const fetchedProducts = await getProducts();
-      // Fix: Ensure products without `isRejected` field (i.e., `undefined`) are not filtered out.
-      setProducts(fetchedProducts.filter(p => p.isRejected !== true));
+      // Only show non-rejected products on this page
+      setProducts(fetchedProducts.filter(p => !p.isRejected));
     } catch (error) {
       console.error("Failed to fetch products:", error);
     } finally {
