@@ -27,7 +27,7 @@ export function Header() {
     const cartCount = totalItems();
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
+        <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
             <div className="container flex h-20 max-w-screen-2xl items-center justify-between gap-4">
                 <Link href="/" className="flex items-center gap-3">
                      <Image 
