@@ -30,12 +30,12 @@ export function Header() {
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
             <div className="container flex h-20 max-w-screen-2xl items-center justify-between gap-4">
-                <Link href="/" className="flex items-center gap-3">
+                <Link href="/" className="flex items-center gap-3 ml-4">
                      <Image 
                         src="https://i.imgur.com/k7qYBOW.png" 
                         alt="Freesia Finds Logo" 
-                        width={60} 
-                        height={60} 
+                        width={80} 
+                        height={80} 
                         className="rounded-md"
                         data-ai-hint="logo"
                     />
