@@ -29,7 +29,7 @@ const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
 
   return (
-    <section className="relative h-[60vh] text-white flex items-center justify-center text-center overflow-hidden">
+    <section className="sticky top-20 z-40 h-[60vh] text-white flex items-center justify-center text-center overflow-hidden">
       <div className="absolute inset-0" ref={emblaRef}>
         <div className="flex h-full">
           {banners.map((banner) => (
@@ -65,7 +65,7 @@ const Ticker = () => {
   ];
 
   return (
-    <div className="bg-primary text-primary-foreground">
+    <div className="bg-primary text-primary-foreground relative z-40">
       <div className="relative flex overflow-x-hidden">
         <div className="py-2 animate-marquee whitespace-nowrap">
           {tickerItems.map((item, index) => (
@@ -226,7 +226,7 @@ export function HomePageContent() {
       ) : banners.length > 0 ? (
           <BannerSlider banners={banners} />
       ) : (
-          <section className="relative h-[60vh] text-white flex items-center justify-center text-center">
+          <section className="sticky top-20 z-40 h-[60vh] text-white flex items-center justify-center text-center">
                <Image
                   src="https://placehold.co/1600x900.png"
                   alt="Hero banner"
@@ -248,83 +248,85 @@ export function HomePageContent() {
       {/* Ticker Section */}
       <Ticker />
 
-       {/* Search Bar */}
-      <section className="py-8 px-4 md:px-8 bg-muted/50">
-        <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
-          <div className="relative">
-            <Input 
-              type="search" 
-              placeholder="Search by product name..."
-              className="w-full pr-12 h-12 text-lg"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Button type="submit" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground hover:text-primary">
-              <Search className="h-6 w-6" />
-            </Button>
-          </div>
-        </form>
-      </section>
+       <div className="relative z-30 bg-background">
+         {/* Search Bar */}
+        <section className="py-8 px-4 md:px-8 bg-muted/50">
+          <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+            <div className="relative">
+              <Input 
+                type="search" 
+                placeholder="Search by product name..."
+                className="w-full pr-12 h-12 text-lg"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button type="submit" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground hover:text-primary">
+                <Search className="h-6 w-6" />
+              </Button>
+            </div>
+          </form>
+        </section>
 
-      {/* Flash Sale Section */}
-      {flashSaleProducts.length > 0 && (
-        <section id="flash-sales" className="py-16 px-4 md:px-8">
-            <SectionHeader title="Flash Sales" id="flash-sales" />
+        {/* Flash Sale Section */}
+        {flashSaleProducts.length > 0 && (
+          <section id="flash-sales" className="py-16 px-4 md:px-8">
+              <SectionHeader title="Flash Sales" id="flash-sales" />
+              {loading ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
+                      {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
+                  </div>
+              ) : (
+                  <ProductSectionSlider products={flashSaleProducts} />
+              )}
+          </section>
+        )}
+
+        {/* New Sales Section */}
+        <section id="new-sales" className="py-16 px-4 md:px-8">
+            <SectionHeader title="New Sales" id="new-sales" />
             {loading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
-                    {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
-                </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
+                  {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
+              </div>
+            ) : newSaleProducts.length > 0 ? (
+                <ProductSectionSlider products={newSaleProducts} />
             ) : (
-                <ProductSectionSlider products={flashSaleProducts} />
+                <p className="text-center col-span-full text-muted-foreground">No new sales to show right now.</p>
             )}
         </section>
-      )}
+        
+        {/* All Products Section */}
+        <section id="all-products" className="py-16 px-4 md:px-8 bg-muted/20">
+            <SectionHeader title="All Products" id="all-products" />
+            <div className="max-w-7xl mx-auto mb-8 flex justify-end">
+              <Select value={sortOption} onValuechange={setSortOption}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="createdAt-desc">Newest First</SelectItem>
+                  <SelectItem value="createdAt-asc">Oldest First</SelectItem>
+                  <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                  <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                  <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                  <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
+                {loading ? (
+                    [...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)
+                ) : sortedProducts.length > 0 ? (
+                    sortedProducts.map(product => <ProductCard key={product.id} product={product} />)
+                ) : (
+                  <p className="col-span-full text-center text-muted-foreground">No products found for your search.</p>
+                )}
+            </div>
+        </section>
 
-      {/* New Sales Section */}
-       <section id="new-sales" className="py-16 px-4 md:px-8">
-          <SectionHeader title="New Sales" id="new-sales" />
-          {loading ? (
-             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
-                {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
-             </div>
-          ) : newSaleProducts.length > 0 ? (
-              <ProductSectionSlider products={newSaleProducts} />
-          ) : (
-              <p className="text-center col-span-full text-muted-foreground">No new sales to show right now.</p>
-          )}
-      </section>
-      
-      {/* All Products Section */}
-      <section id="all-products" className="py-16 px-4 md:px-8 bg-muted/20">
-          <SectionHeader title="All Products" id="all-products" />
-          <div className="max-w-7xl mx-auto mb-8 flex justify-end">
-             <Select value={sortOption} onValueChange={setSortOption}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="createdAt-desc">Newest First</SelectItem>
-                <SelectItem value="createdAt-asc">Oldest First</SelectItem>
-                <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
-               {loading ? (
-                  [...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)
-              ) : sortedProducts.length > 0 ? (
-                  sortedProducts.map(product => <ProductCard key={product.id} product={product} />)
-              ) : (
-                <p className="col-span-full text-center text-muted-foreground">No products found for your search.</p>
-              )}
-          </div>
-      </section>
-
-      {/* Reviews Section */}
-      <ReviewsSection reviews={reviews} />
+        {/* Reviews Section */}
+        <ReviewsSection reviews={reviews} />
+      </div>
     </main>
   );
 }
@@ -393,5 +395,7 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
 
     
