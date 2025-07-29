@@ -3,11 +3,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 const variantSchema = z.object({
@@ -103,8 +105,12 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+         <div className="flex justify-end gap-2">
+            <Button variant="outline" type="button" onClick={() => router.back()} disabled={isSubmitting}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>{initialData ? 'Save Changes' : 'Create Product'}</Button>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-8">
             <Card>
               <CardHeader>
@@ -282,7 +288,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
               </CardContent>
             </Card>
           </div>
-          <div className="space-y-8">
+          <div className="space-y-8 sticky top-4">
              <Card>
               <CardHeader>
                 <CardTitle>Product Variants</CardTitle>
@@ -290,15 +296,19 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                   Add one or more product variants. Each variant needs a color and at least one image.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {fields.map((variantField, index) => (
-                    <VariantField key={variantField.id} form={form} variantIndex={index} removeVariant={() => remove(index)} />
-                ))}
+              <CardContent>
+                 <ScrollArea className="h-[400px] w-full">
+                    <div className="space-y-6 pr-6">
+                        {fields.map((variantField, index) => (
+                            <VariantField key={variantField.id} form={form} variantIndex={index} removeVariant={() => remove(index)} />
+                        ))}
+                    </div>
+                 </ScrollArea>
                  <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="w-full"
+                    className="w-full mt-6"
                     onClick={() => append({ color: "", imageUrls: [{value: ""}] })}
                   >
                     <PlusCircle className="mr-2 h-4 w-4"/>
@@ -359,10 +369,6 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
             </Card>
           </div>
         </div>
-        <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={() => router.back()} disabled={isSubmitting}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>{initialData ? 'Save Changes' : 'Create Product'}</Button>
-        </div>
       </form>
     </Form>
   );
@@ -403,28 +409,38 @@ function VariantField({ form, variantIndex, removeVariant }: { form: any, varian
             
             <div className="space-y-2">
                 <FormLabel>Variant Images</FormLabel>
-                {fields.map((imageField, imageIndex) => (
-                    <FormField
-                        key={imageField.id}
-                        control={form.control}
-                        name={`variants.${variantIndex}.imageUrls.${imageIndex}.value`}
-                        render={({ field }) => (
-                        <FormItem>
-                            <div className="flex items-center gap-2">
-                            <FormControl>
-                                <Input placeholder="https://example.com/image.png" {...field} />
-                            </FormControl>
-                            {fields.length > 1 && (
-                                <Button type="button" variant="ghost" size="icon" onClick={() => remove(imageIndex)}>
-                                <Trash2 className="h-4 w-4 text-destructive"/>
-                                </Button>
+                {fields.map((imageField, imageIndex) => {
+                    const imageUrl = form.watch(`variants.${variantIndex}.imageUrls.${imageIndex}.value`);
+                    return (
+                        <FormField
+                            key={imageField.id}
+                            control={form.control}
+                            name={`variants.${variantIndex}.imageUrls.${imageIndex}.value`}
+                            render={({ field }) => (
+                            <FormItem>
+                                <div className="flex items-center gap-2">
+                                {imageUrl ? (
+                                    <Image src={imageUrl} alt="preview" width={40} height={40} className="rounded-md object-cover"/>
+                                ) : (
+                                    <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                    </div>
+                                )}
+                                <FormControl>
+                                    <Input placeholder="https://example.com/image.png" {...field} />
+                                </FormControl>
+                                {fields.length > 1 && (
+                                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(imageIndex)}>
+                                    <Trash2 className="h-4 w-4 text-destructive"/>
+                                    </Button>
+                                )}
+                                </div>
+                                <FormMessage />
+                            </FormItem>
                             )}
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                ))}
+                        />
+                    )
+                })}
                 <Button
                     type="button"
                     variant="outline"
