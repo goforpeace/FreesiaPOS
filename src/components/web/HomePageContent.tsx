@@ -366,22 +366,22 @@ const ProductCard = ({ product }: { product: Product }) => {
                             data-ai-hint="product image"
                         />
                     </div>
-                    <div className="p-3 border-t border-border">
-                        <h3 className="text-sm font-headline font-semibold text-card-foreground truncate">{product.name}</h3>
+                    <div className="p-2 md:p-3 border-t border-border">
+                        <h3 className="text-xs md:text-sm font-headline font-semibold text-card-foreground truncate">{product.name}</h3>
                         <div className="flex items-baseline gap-1.5 mt-1">
-                             <p className="font-semibold text-foreground text-base">{formatCurrency(displayPrice as number)}</p>
+                             <p className="font-semibold text-foreground text-sm md:text-base">{formatCurrency(displayPrice as number)}</p>
                             {hasDiscount && (
                                 <p className="text-xs text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
                             )}
                         </div>
                     </div>
                 </CardContent>
-                <CardFooter className="p-3 pt-0 mt-auto flex-col gap-2">
-                     <Button className="w-full h-9 text-sm" variant="secondary" onClick={(e) => { e.preventDefault(); addItem(product); }}>
+                <CardFooter className="p-2 md:p-3 pt-0 mt-auto flex-col gap-1.5 md:gap-2">
+                     <Button className="w-full h-8 md:h-9 text-xs md:text-sm" variant="secondary" onClick={(e) => { e.preventDefault(); addItem(product); }}>
                         <ShoppingCart className="mr-2 h-4 w-4" />
                         Add to Cart
                     </Button>
-                    <Button className="w-full h-9 text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={(e) => { e.preventDefault(); handleOrderNow(); }}>
+                    <Button className="w-full h-8 md:h-9 text-xs md:text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={(e) => { e.preventDefault(); handleOrderNow(); }}>
                         <Bolt className="mr-2 h-4 w-4" />
                         Order Now
                     </Button>
@@ -410,4 +410,5 @@ const ProductCardSkeleton = () => (
     
 
     
+
 
