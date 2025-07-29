@@ -186,9 +186,9 @@ export default function PublicProductDetailsPage() {
                         </div>
                     </div>
                     <div>
-                        <h1 className="text-4xl lg:text-5xl font-headline font-bold text-primary mb-4">{product.name}</h1>
+                        <h1 className="text-3xl lg:text-4xl font-headline font-bold text-primary mb-4">{product.name}</h1>
                         <div className="flex items-baseline gap-2 mb-6">
-                            <p className="text-2xl font-body font-semibold text-accent">{formatCurrency(displayPrice as number)}</p>
+                            <p className="text-3xl font-body font-bold text-accent">{formatCurrency(displayPrice as number)}</p>
                             {hasDiscount && (
                                 <p className="text-xl font-body text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
                             )}
@@ -233,7 +233,7 @@ export default function PublicProductDetailsPage() {
                                 Order Now
                             </Button>
                         </div>
-                         <p className="text-sm text-muted-foreground mt-4">{product.quantity} units available</p>
+                         <p className="text-sm font-medium text-primary mt-4">{product.quantity} units available</p>
 
                          <Card className="mt-8 bg-secondary/30">
                             <CardContent className="p-6 space-y-4">
@@ -279,3 +279,4 @@ export default function PublicProductDetailsPage() {
         </div>
     );
 }
+
