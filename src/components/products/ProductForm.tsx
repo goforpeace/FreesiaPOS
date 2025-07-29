@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,9 +21,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { type Product, type ProductVariant } from "@/lib/types";
+import { type Product, type ProductVariant, productTags, ProductTag } from "@/lib/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const variantSchema = z.object({
   color: z.string().min(1, "Color is required."),
@@ -39,6 +42,7 @@ const productFormSchema = z.object({
   discountedPrice: z.coerce.number().min(0).optional().nullable(),
   isNewArrival: z.boolean().default(false),
   isFlashSale: z.boolean().default(false),
+  tag: z.enum(productTags).optional().nullable(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema> & {
@@ -68,6 +72,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         discountedPrice: initialData?.discountedPrice || undefined,
         isNewArrival: initialData?.isNewArrival || false,
         isFlashSale: initialData?.isFlashSale || false,
+        tag: initialData?.tag || undefined,
     },
   });
 
@@ -195,8 +200,8 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
             </Card>
              <Card>
               <CardHeader>
-                <CardTitle>Categories</CardTitle>
-                <CardDescription>Select categories to display this product in specific sections of the website.</CardDescription>
+                <CardTitle>Categories & Tags</CardTitle>
+                <CardDescription>Select categories and a tag to display this product in specific sections of the website.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                  <FormField
@@ -240,6 +245,32 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                            Display this product in a special "Flash Sale" section on the homepage.
                         </FormDescription>
                       </div>
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="tag"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Product Tag</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a tag to display on the product" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">None</SelectItem>
+                          {productTags.map(tag => (
+                            <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        This tag will be displayed on the product card.
+                      </FormDescription>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />

@@ -1,5 +1,18 @@
 
 
+export const productTags = [
+  "Hot Sale",
+  "Unique",
+  "Trendy",
+  "Most Sale",
+  "Low Price",
+  "Discount",
+  "Upcoming",
+  "Pre-Book",
+] as const;
+
+export type ProductTag = typeof productTags[number];
+
 export interface ProductVariant {
   color: string;
   imageUrls: string[];
@@ -19,6 +32,7 @@ export interface Product {
   createdAt?: string;
   isNewArrival?: boolean;
   isFlashSale?: boolean;
+  tag?: ProductTag;
 }
 
 export interface Customer {

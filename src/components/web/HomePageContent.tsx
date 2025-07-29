@@ -8,11 +8,11 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from 'next/navigation'
 import { ReviewsSection } from "@/components/web/ReviewsSection";
 import { getProducts, getReviews, getBanners } from "@/lib/api";
-import type { Product, Review, Banner } from "@/lib/types";
+import type { Product, Review, Banner, ProductTag } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Bolt, Search, ChevronRight, ChevronLeft } from "lucide-react";
+import { ShoppingCart, Bolt, Search, ChevronRight, ChevronLeft, Tag, Clock, TrendingUp, Sparkles, Star, Zap, ThumbsUp } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useCart } from "@/hooks/use-cart";
 import useEmblaCarousel from 'embla-carousel-react';
@@ -66,7 +66,7 @@ const Ticker = () => {
   ];
 
   return (
-    <div className="bg-primary text-primary-foreground sticky top-20 z-40">
+    <div className="bg-primary text-primary-foreground sticky top-0 z-40">
       <div className="relative flex overflow-x-hidden">
         <div className="py-2 animate-marquee whitespace-nowrap">
           {tickerItems.map((item, index) => (
@@ -125,7 +125,7 @@ const ProductSectionSlider = ({ products, buttonText }: { products: Product[], b
         <ChevronRight className="h-6 w-6" />
       </Button>
       <div className="text-center mt-8">
-        <Button onClick={scrollNext} size="lg" className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 animate-bounce text-base font-bold">
+        <Button onClick={scrollNext} size="lg" className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 animate-pulse-horizontal text-base font-bold">
             {buttonText}
             <ChevronRight className="ml-2 h-5 w-5"/>
         </Button>
@@ -340,6 +340,17 @@ export function HomePageContent() {
   );
 }
 
+const tagIconMap: Record<ProductTag, React.ElementType> = {
+  "Hot Sale": Zap,
+  "Unique": Sparkles,
+  "Trendy": TrendingUp,
+  "Most Sale": Star,
+  "Low Price": ThumbsUp,
+  "Discount": Tag,
+  "Upcoming": Clock,
+  "Pre-Book": Clock,
+};
+
 const ProductCard = ({ product }: { product: Product }) => {
     const { addItem } = useCart();
     const router = useRouter();
@@ -352,9 +363,16 @@ const ProductCard = ({ product }: { product: Product }) => {
     const hasDiscount = product.discountedPrice && product.discountedPrice > 0;
     const displayPrice = hasDiscount ? product.discountedPrice : product.sellPrice;
     const originalPrice = product.sellPrice;
+    const TagIcon = product.tag ? tagIconMap[product.tag] : null;
 
     return (
-        <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)] h-full">
+        <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)] h-full relative">
+            {product.tag && TagIcon && (
+              <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+                <TagIcon className="h-3 w-3" />
+                <span>{product.tag}</span>
+              </div>
+            )}
             <Link href={`/product/${product.id}`} className="flex flex-col h-full">
                 <CardContent className="p-0">
                      <div className="relative aspect-square w-full overflow-hidden">
