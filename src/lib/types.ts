@@ -9,6 +9,7 @@ export const productTags = [
   "Discount",
   "Upcoming",
   "Pre-Book",
+  "Latest",
 ] as const;
 
 export type ProductTag = typeof productTags[number];

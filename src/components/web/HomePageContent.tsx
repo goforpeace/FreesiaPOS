@@ -66,7 +66,7 @@ const Ticker = () => {
   ];
 
   return (
-    <div className="bg-primary text-primary-foreground sticky top-0 z-40">
+    <div className="bg-primary text-primary-foreground sticky top-20 z-40">
       <div className="relative flex overflow-x-hidden">
         <div className="py-2 animate-marquee whitespace-nowrap">
           {tickerItems.map((item, index) => (
@@ -349,6 +349,7 @@ const tagIconMap: Record<ProductTag, React.ElementType> = {
   "Discount": Tag,
   "Upcoming": Clock,
   "Pre-Book": Clock,
+  "Latest": Sparkles,
 };
 
 const ProductCard = ({ product }: { product: Product }) => {
