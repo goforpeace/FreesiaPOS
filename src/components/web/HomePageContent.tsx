@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -84,14 +85,14 @@ const Ticker = () => {
 
 const ProductSectionSlider = ({ products }: { products: Product[] }) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    { align: 'start', loop: true }, 
+    { align: 'start', loop: true },
     [Autoplay({ delay: 5000, stopOnInteraction: true })]
   );
-  
-  const chunkedProducts = products.reduce((resultArray, item, index) => { 
-    const chunkIndex = Math.floor(index/4) 
-    if(!resultArray[chunkIndex]) {
-      resultArray[chunkIndex] = [] 
+
+  const chunkedProducts = products.reduce((resultArray, item, index) => {
+    const chunkIndex = Math.floor(index / 4)
+    if (!resultArray[chunkIndex]) {
+      resultArray[chunkIndex] = []
     }
     resultArray[chunkIndex].push(item)
     return resultArray
@@ -100,12 +101,14 @@ const ProductSectionSlider = ({ products }: { products: Product[] }) => {
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
+  if (products.length === 0) return null;
+
   return (
     <div className="relative max-w-7xl mx-auto">
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
           {chunkedProducts.map((chunk, index) => (
-            <div key={index} className="flex-[0_0_100%] min-w-0 pl-4">
+            <div key={index} className="flex-[0_0_100%] min-w-0 md:pl-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {chunk.map(product => (
                   <ProductCard key={product.id} product={product} />
@@ -115,12 +118,18 @@ const ProductSectionSlider = ({ products }: { products: Product[] }) => {
           ))}
         </div>
       </div>
-       <Button variant="outline" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 h-10 w-10 rounded-full shadow-md z-10 hidden md:flex" onClick={scrollPrev}>
-        <ChevronLeft className="h-6 w-6"/>
+      <Button variant="outline" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 h-10 w-10 rounded-full shadow-md z-10 hidden md:flex" onClick={scrollPrev}>
+        <ChevronLeft className="h-6 w-6" />
       </Button>
       <Button variant="outline" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 h-10 w-10 rounded-full shadow-md z-10 hidden md:flex" onClick={scrollNext}>
-        <ChevronRight className="h-6 w-6"/>
+        <ChevronRight className="h-6 w-6" />
       </Button>
+      <div className="text-center mt-8">
+        <Button onClick={scrollNext} size="lg" className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105">
+            More Offer!
+            <ChevronRight className="ml-2 h-5 w-5"/>
+        </Button>
+      </div>
     </div>
   )
 }
@@ -401,3 +410,4 @@ const ProductCardSkeleton = () => (
     
 
     
+
