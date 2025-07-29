@@ -89,9 +89,9 @@ const ProductSectionSlider = ({ products }: { products: Product[] }) => {
   );
   
   const chunkedProducts = products.reduce((resultArray, item, index) => { 
-    const chunkIndex = Math.floor(index / 8) // 8 items per slide (2 rows x 4 cols) on desktop
+    const chunkIndex = Math.floor(index/4) 
     if(!resultArray[chunkIndex]) {
-      resultArray[chunkIndex] = [] // start a new chunk
+      resultArray[chunkIndex] = [] 
     }
     resultArray[chunkIndex].push(item)
     return resultArray
@@ -299,7 +299,7 @@ export function HomePageContent() {
         <section id="all-products" className="py-16 px-4 md:px-8 bg-muted/20">
             <SectionHeader title="All Products" id="all-products" />
             <div className="max-w-7xl mx-auto mb-8 flex justify-end">
-              <Select value={sortOption} onValuechange={setSortOption}>
+              <Select value={sortOption} onValueChange={setSortOption}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
