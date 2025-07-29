@@ -288,3 +288,5 @@ export const deleteBanner = async (id: string) => {
   const docRef = doc(db, 'banners', id);
   await deleteDoc(docRef);
 }
+
+    

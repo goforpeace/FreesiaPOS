@@ -37,7 +37,7 @@ const productFormSchema = z.object({
   costPrice: z.coerce.number().min(0, "Cost price cannot be negative."),
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
   discountedPrice: z.coerce.number().min(0).optional().nullable(),
-  isNewSale: z.boolean().default(false),
+  isNewArrival: z.boolean().default(false),
   isFlashSale: z.boolean().default(false),
 });
 
@@ -66,7 +66,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         costPrice: initialData?.costPrice || 0,
         sellPrice: initialData?.sellPrice || 0,
         discountedPrice: initialData?.discountedPrice || undefined,
-        isNewSale: initialData?.isNewSale || false,
+        isNewArrival: initialData?.isNewArrival || false,
         isFlashSale: initialData?.isFlashSale || false,
     },
   });
@@ -201,7 +201,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
               <CardContent className="space-y-4">
                  <FormField
                   control={form.control}
-                  name="isNewSale"
+                  name="isNewArrival"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
@@ -212,10 +212,10 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          New Sales
+                          New Arrivals
                         </FormLabel>
                         <FormDescription>
-                          Display this product in the "New Sales" section on the homepage.
+                          Display this product in the "New Arrivals" section on the homepage.
                         </FormDescription>
                       </div>
                     </FormItem>

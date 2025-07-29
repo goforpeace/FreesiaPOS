@@ -83,7 +83,7 @@ const Ticker = () => {
   );
 }
 
-const ProductSectionSlider = ({ products }: { products: Product[] }) => {
+const ProductSectionSlider = ({ products, buttonText }: { products: Product[], buttonText: string }) => {
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { align: 'start', loop: true },
     [Autoplay({ delay: 5000, stopOnInteraction: true })]
@@ -125,8 +125,8 @@ const ProductSectionSlider = ({ products }: { products: Product[] }) => {
         <ChevronRight className="h-6 w-6" />
       </Button>
       <div className="text-center mt-8">
-        <Button onClick={scrollNext} size="lg" className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105">
-            More Offer!
+        <Button onClick={scrollNext} size="lg" className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 animate-bounce text-base font-bold">
+            {buttonText}
             <ChevronRight className="ml-2 h-5 w-5"/>
         </Button>
       </div>
@@ -225,7 +225,7 @@ export function HomePageContent() {
   }, [filteredProducts, sortOption]);
 
   const flashSaleProducts = products.filter(p => p.isFlashSale);
-  const newSaleProducts = products.filter(p => p.isNewSale);
+  const newArrivalProducts = products.filter(p => p.isNewArrival);
 
   return (
     <main>
@@ -285,22 +285,22 @@ export function HomePageContent() {
                       {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
                   </div>
               ) : (
-                  <ProductSectionSlider products={flashSaleProducts} />
+                  <ProductSectionSlider products={flashSaleProducts} buttonText="More Offer!" />
               )}
           </section>
         )}
 
-        {/* New Sales Section */}
-        <section id="new-sales" className="py-16 px-4 md:px-8">
-            <SectionHeader title="New Sales" id="new-sales" />
+        {/* New Arrivals Section */}
+        <section id="new-arrivals" className="py-16 px-4 md:px-8">
+            <SectionHeader title="New Arrivals" id="new-arrivals" />
             {loading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
                   {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
               </div>
-            ) : newSaleProducts.length > 0 ? (
-                <ProductSectionSlider products={newSaleProducts} />
+            ) : newArrivalProducts.length > 0 ? (
+                <ProductSectionSlider products={newArrivalProducts} buttonText="See More!" />
             ) : (
-                <p className="text-center col-span-full text-muted-foreground">No new sales to show right now.</p>
+                <p className="text-center col-span-full text-muted-foreground">No new arrivals to show right now.</p>
             )}
         </section>
         
@@ -406,9 +406,3 @@ const ProductCardSkeleton = () => (
 );
 
     
-
-    
-
-    
-
-

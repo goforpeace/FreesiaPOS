@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -11,7 +12,7 @@ import { useCart } from '@/hooks/use-cart';
 
 const navLinks = [
     { name: 'Flash Sales', href: '#flash-sales' },
-    { name: 'New Sales', href: '#new-sales' },
+    { name: 'New Arrivals', href: '#new-arrivals' },
     { name: 'All Products', href: '#all-products' },
 ];
 
@@ -104,3 +105,5 @@ export function Header() {
         </header>
     );
 }
+
+    

@@ -17,7 +17,7 @@ export interface Product {
   discountedPrice?: number;
   isRejected: boolean;
   createdAt?: string;
-  isNewSale?: boolean;
+  isNewArrival?: boolean;
   isFlashSale?: boolean;
 }
 
