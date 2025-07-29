@@ -37,8 +37,8 @@ const productFormSchema = z.object({
   costPrice: z.coerce.number().min(0, "Cost price cannot be negative."),
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
   discountedPrice: z.coerce.number().min(0).optional().nullable(),
-  isNewArrival: z.boolean().default(false),
-  isOfferSale: z.boolean().default(false),
+  isNewSale: z.boolean().default(false),
+  isFlashSale: z.boolean().default(false),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema> & {
@@ -66,8 +66,8 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         costPrice: initialData?.costPrice || 0,
         sellPrice: initialData?.sellPrice || 0,
         discountedPrice: initialData?.discountedPrice || undefined,
-        isNewArrival: initialData?.isNewArrival || false,
-        isOfferSale: initialData?.isOfferSale || false,
+        isNewSale: initialData?.isNewSale || false,
+        isFlashSale: initialData?.isFlashSale || false,
     },
   });
 
@@ -201,7 +201,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
               <CardContent className="space-y-4">
                  <FormField
                   control={form.control}
-                  name="isNewArrival"
+                  name="isNewSale"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
@@ -212,10 +212,10 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          New Arrival
+                          New Sales
                         </FormLabel>
                         <FormDescription>
-                          Display this product in the "New Arrivals" section on the homepage.
+                          Display this product in the "New Sales" section on the homepage.
                         </FormDescription>
                       </div>
                     </FormItem>
@@ -223,7 +223,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                 />
                  <FormField
                   control={form.control}
-                  name="isOfferSale"
+                  name="isFlashSale"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
@@ -234,10 +234,10 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          Offer Sale
+                          Flash Sale
                         </FormLabel>
                         <FormDescription>
-                           Display this product in a special "Offer Sale" section on the homepage.
+                           Display this product in a special "Flash Sale" section on the homepage.
                         </FormDescription>
                       </div>
                     </FormItem>

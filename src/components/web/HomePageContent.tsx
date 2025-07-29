@@ -11,7 +11,7 @@ import type { Product, Review, Banner } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Bolt, Search } from "lucide-react";
+import { ShoppingCart, Bolt, Search, ChevronRight, ChevronLeft } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useCart } from "@/hooks/use-cart";
 import useEmblaCarousel from 'embla-carousel-react';
@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { cn } from "@/lib/utils";
 
 const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
@@ -83,6 +83,44 @@ const Ticker = () => {
   );
 }
 
+const ProductSectionSlider = ({ products }: { products: Product[] }) => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    align: 'start',
+    loop: true,
+  }, [Autoplay({ delay: 4000, stopOnInteraction: true })]);
+
+  const scrollPrev = () => emblaApi?.scrollPrev();
+  const scrollNext = () => emblaApi?.scrollNext();
+
+  return (
+    <div className="relative max-w-7xl mx-auto">
+      <div className="overflow-hidden" ref={emblaRef}>
+        <div className="grid grid-flow-col auto-cols-[50%] sm:auto-cols-[33.33%] md:auto-cols-[25%] lg:auto-cols-[20%] gap-4 md:gap-6">
+          {products.map(product => (
+            <div key={product.id} className="pl-0">
+               <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <Button variant="outline" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 h-10 w-10 rounded-full shadow-md z-10 hidden md:flex" onClick={scrollPrev}>
+        <ChevronLeft className="h-6 w-6"/>
+      </Button>
+      <Button variant="outline" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 h-10 w-10 rounded-full shadow-md z-10 hidden md:flex" onClick={scrollNext}>
+        <ChevronRight className="h-6 w-6"/>
+      </Button>
+    </div>
+  )
+}
+
+const SectionHeader = ({ title, id }: { title: string, id: string }) => (
+    <div id={id} className="text-center mb-12">
+        <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary relative inline-block">
+            {title}
+            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-2/3 h-1 bg-accent/50 rounded-full"></span>
+        </h2>
+    </div>
+)
 
 export function HomePageContent() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -165,9 +203,8 @@ export function HomePageContent() {
     return sorted;
   }, [filteredProducts, sortOption]);
 
-  const newArrivals = filteredProducts.filter(p => p.isNewArrival);
-  const offerSaleProducts = filteredProducts.filter(p => p.isOfferSale);
-
+  const flashSaleProducts = filteredProducts.filter(p => p.isFlashSale);
+  const newSaleProducts = filteredProducts.filter(p => p.isNewSale);
 
   return (
     <main>
@@ -217,50 +254,37 @@ export function HomePageContent() {
         </form>
       </section>
 
-
-      {/* New Arrivals Section */}
-      <section id="new-arrivals" className="py-16 px-4 md:px-8">
-          <div className="text-center mb-12">
-              <div className="inline-block bg-primary/20 text-primary font-semibold uppercase tracking-wider py-2 px-4 rounded-full text-2xl">
-                  New Arrivals
-              </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
-              {loading ? (
-                  [...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)
-              ) : newArrivals.length > 0 ? (
-                  newArrivals.map(product => <ProductCard key={product.id} product={product} />)
-              ) : (
-                  <p className="text-center col-span-full text-muted-foreground">No new arrivals to show right now.</p>
-              )}
-          </div>
-      </section>
-
-      {/* Offer Sale Section */}
-      {offerSaleProducts.length > 0 && (
-        <section id="offer-sale" className="py-16 px-4 md:px-8">
-            <div className="text-center mb-12">
-               <div className="inline-block bg-primary/20 text-primary font-semibold uppercase tracking-wider py-2 px-4 rounded-full text-2xl">
-                  Offer Sale
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
-                {loading ? (
-                    [...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)
-                ) : (
-                    offerSaleProducts.map(product => <ProductCard key={product.id} product={product} />)
-                )}
-            </div>
+      {/* Flash Sale Section */}
+      {flashSaleProducts.length > 0 && (
+        <section id="flash-sales" className="py-16 px-4 md:px-8">
+            <SectionHeader title="Flash Sales" id="flash-sales" />
+            {loading ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
+                    {[...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)}
+                </div>
+            ) : (
+                <ProductSectionSlider products={flashSaleProducts} />
+            )}
         </section>
       )}
+
+      {/* New Sales Section */}
+       <section id="new-sales" className="py-16 px-4 md:px-8">
+          <SectionHeader title="New Sales" id="new-sales" />
+          {loading ? (
+             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
+                {[...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)}
+             </div>
+          ) : newSaleProducts.length > 0 ? (
+              <ProductSectionSlider products={newSaleProducts} />
+          ) : (
+              <p className="text-center col-span-full text-muted-foreground">No new sales to show right now.</p>
+          )}
+      </section>
       
       {/* All Products Section */}
-      <section id="all-products" className="py-16 px-4 md:px-8">
-          <div className="text-center mb-12">
-               <div className="inline-block bg-primary/20 text-primary font-semibold uppercase tracking-wider py-2 px-4 rounded-full text-2xl">
-                  All Products
-              </div>
-          </div>
+      <section id="all-products" className="py-16 px-4 md:px-8 bg-muted/20">
+          <SectionHeader title="All Products" id="all-products" />
           <div className="max-w-7xl mx-auto mb-8 flex justify-end">
              <Select value={sortOption} onValueChange={setSortOption}>
               <SelectTrigger className="w-[180px]">
@@ -331,11 +355,11 @@ const ProductCard = ({ product }: { product: Product }) => {
                 </CardContent>
             </Link>
             <CardFooter className="p-3 pt-0 mt-auto flex-col gap-2">
-                 <Button className="w-full" size="sm" variant="secondary" onClick={() => addItem(product)}>
+                 <Button className="w-full h-9 text-sm" variant="secondary" onClick={() => addItem(product)}>
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
                 </Button>
-                <Button className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" size="sm" onClick={handleOrderNow}>
+                <Button className="w-full h-9 text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={handleOrderNow}>
                     <Bolt className="mr-2 h-4 w-4" />
                     Order Now
                 </Button>
@@ -357,5 +381,3 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
-
-    

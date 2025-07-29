@@ -17,8 +17,8 @@ export interface Product {
   discountedPrice?: number;
   isRejected: boolean;
   createdAt?: string;
-  isNewArrival?: boolean;
-  isOfferSale?: boolean;
+  isNewSale?: boolean;
+  isFlashSale?: boolean;
 }
 
 export interface Customer {
@@ -70,7 +70,7 @@ export interface Review {
 }
 
 export interface Banner {
-  id: string;
+  id:string;
   imageUrl: string;
   createdAt: string;
 }

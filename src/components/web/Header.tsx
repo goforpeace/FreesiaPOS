@@ -10,9 +10,9 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/hooks/use-cart';
 
 const navLinks = [
-    { name: 'New Arrival', href: '#new-arrivals' },
+    { name: 'Flash Sales', href: '#flash-sales' },
+    { name: 'New Sales', href: '#new-sales' },
     { name: 'All Products', href: '#all-products' },
-    { name: 'Offer Sale', href: '#offer-sale' },
 ];
 
 export function Header() {
