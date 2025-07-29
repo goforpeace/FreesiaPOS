@@ -27,7 +27,7 @@ export function Header() {
     const cartCount = totalItems();
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
             <div className="container flex h-20 max-w-screen-2xl items-center justify-between gap-4">
                 <Link href="/" className="flex items-center gap-3">
                      <Image 
@@ -76,8 +76,8 @@ export function Header() {
                                         <Image 
                                             src="https://i.imgur.com/k7qYBOW.png" 
                                             alt="Freesia Finds Logo" 
-                                            width={40} 
-                                            height={40} 
+                                            width={50} 
+                                            height={50} 
                                             className="rounded-md"
                                             data-ai-hint="logo"
                                         />
