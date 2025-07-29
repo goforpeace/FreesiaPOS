@@ -74,3 +74,5 @@ export interface Banner {
   imageUrl: string;
   createdAt: string;
 }
+
+    

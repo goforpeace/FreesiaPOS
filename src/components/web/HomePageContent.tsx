@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
@@ -84,26 +83,39 @@ const Ticker = () => {
 }
 
 const ProductSectionSlider = ({ products }: { products: Product[] }) => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ 
-    align: 'start',
-    loop: true,
-  }, [Autoplay({ delay: 4000, stopOnInteraction: true })]);
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { align: 'start', loop: true }, 
+    [Autoplay({ delay: 5000, stopOnInteraction: true })]
+  );
+  
+  const chunkedProducts = products.reduce((resultArray, item, index) => { 
+    const chunkIndex = Math.floor(index / 8) // 8 items per slide (2 rows x 4 cols) on desktop
+    if(!resultArray[chunkIndex]) {
+      resultArray[chunkIndex] = [] // start a new chunk
+    }
+    resultArray[chunkIndex].push(item)
+    return resultArray
+  }, [] as Product[][]);
 
-  const scrollPrev = () => emblaApi?.scrollPrev();
-  const scrollNext = () => emblaApi?.scrollNext();
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
   return (
     <div className="relative max-w-7xl mx-auto">
       <div className="overflow-hidden" ref={emblaRef}>
-        <div className="grid grid-flow-col auto-cols-[50%] sm:auto-cols-[33.33%] md:auto-cols-[25%] lg:auto-cols-[20%] gap-4 md:gap-6">
-          {products.map(product => (
-            <div key={product.id} className="pl-0">
-               <ProductCard product={product} />
+        <div className="flex">
+          {chunkedProducts.map((chunk, index) => (
+            <div key={index} className="flex-[0_0_100%] min-w-0 pl-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {chunk.map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
             </div>
           ))}
         </div>
       </div>
-      <Button variant="outline" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 h-10 w-10 rounded-full shadow-md z-10 hidden md:flex" onClick={scrollPrev}>
+       <Button variant="outline" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 h-10 w-10 rounded-full shadow-md z-10 hidden md:flex" onClick={scrollPrev}>
         <ChevronLeft className="h-6 w-6"/>
       </Button>
       <Button variant="outline" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 h-10 w-10 rounded-full shadow-md z-10 hidden md:flex" onClick={scrollNext}>
@@ -142,7 +154,7 @@ export function HomePageContent() {
           getReviews(),
           getBanners()
         ]);
-        setProducts(allProducts.filter(p => p.quantity > 0));
+        setProducts(allProducts.filter(p => p.quantity > 0 && !p.isRejected));
         setReviews(allReviews);
         setBanners(allBanners);
       } catch (error) {
@@ -203,8 +215,8 @@ export function HomePageContent() {
     return sorted;
   }, [filteredProducts, sortOption]);
 
-  const flashSaleProducts = filteredProducts.filter(p => p.isFlashSale);
-  const newSaleProducts = filteredProducts.filter(p => p.isNewSale);
+  const flashSaleProducts = products.filter(p => p.isFlashSale);
+  const newSaleProducts = products.filter(p => p.isNewSale);
 
   return (
     <main>
@@ -260,7 +272,7 @@ export function HomePageContent() {
             <SectionHeader title="Flash Sales" id="flash-sales" />
             {loading ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
-                    {[...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)}
+                    {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
                 </div>
             ) : (
                 <ProductSectionSlider products={flashSaleProducts} />
@@ -273,7 +285,7 @@ export function HomePageContent() {
           <SectionHeader title="New Sales" id="new-sales" />
           {loading ? (
              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
-                {[...Array(5)].map((_, i) => <ProductCardSkeleton key={i} />)}
+                {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
              </div>
           ) : newSaleProducts.length > 0 ? (
               <ProductSectionSlider products={newSaleProducts} />
@@ -331,8 +343,8 @@ const ProductCard = ({ product }: { product: Product }) => {
     const originalPrice = product.sellPrice;
 
     return (
-        <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
-            <Link href={`/product/${product.id}`}>
+        <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)] h-full">
+            <Link href={`/product/${product.id}`} className="flex flex-col h-full">
                 <CardContent className="p-0">
                      <div className="relative aspect-square w-full overflow-hidden">
                         <Image
@@ -353,17 +365,17 @@ const ProductCard = ({ product }: { product: Product }) => {
                         </div>
                     </div>
                 </CardContent>
+                <CardFooter className="p-3 pt-0 mt-auto flex-col gap-2">
+                     <Button className="w-full h-9 text-sm" variant="secondary" onClick={(e) => { e.preventDefault(); addItem(product); }}>
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        Add to Cart
+                    </Button>
+                    <Button className="w-full h-9 text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={(e) => { e.preventDefault(); handleOrderNow(); }}>
+                        <Bolt className="mr-2 h-4 w-4" />
+                        Order Now
+                    </Button>
+                </CardFooter>
             </Link>
-            <CardFooter className="p-3 pt-0 mt-auto flex-col gap-2">
-                 <Button className="w-full h-9 text-sm" variant="secondary" onClick={() => addItem(product)}>
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    Add to Cart
-                </Button>
-                <Button className="w-full h-9 text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={handleOrderNow}>
-                    <Bolt className="mr-2 h-4 w-4" />
-                    Order Now
-                </Button>
-            </CardFooter>
         </Card>
     );
 }
@@ -381,3 +393,5 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
