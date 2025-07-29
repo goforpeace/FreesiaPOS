@@ -24,7 +24,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 
@@ -193,9 +193,6 @@ export default function PublicProductDetailsPage() {
                                 <p className="text-xl font-body text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
                             )}
                         </div>
-                        <div className="prose lg:prose-lg text-foreground/80 font-body mb-8">
-                           <p className="whitespace-pre-wrap">{product.description}</p>
-                        </div>
 
                         {product.variants && product.variants.length > 0 && (
                             <div className="mb-8">
@@ -214,6 +211,17 @@ export default function PublicProductDetailsPage() {
                                 </div>
                             </div>
                         )}
+                        
+                        <Card className="mb-8 bg-secondary/30">
+                            <CardHeader>
+                                <CardTitle className="text-xl font-headline">Product Specification</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="prose prose-sm text-foreground/80 font-body">
+                                    <p className="whitespace-pre-wrap">{product.description}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4">
                             <Button size="lg" className="w-full sm:w-auto" onClick={handleAddToCart} disabled={product.variants && product.variants.length > 0 && !selectedVariant}>
