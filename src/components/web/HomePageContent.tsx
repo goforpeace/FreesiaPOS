@@ -29,7 +29,7 @@ const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
 
   return (
-    <section className="sticky top-20 z-40 h-[60vh] text-white flex items-center justify-center text-center overflow-hidden">
+    <section className="relative h-[60vh] text-white flex items-center justify-center text-center overflow-hidden">
       <div className="absolute inset-0" ref={emblaRef}>
         <div className="flex h-full">
           {banners.map((banner) => (
@@ -65,7 +65,7 @@ const Ticker = () => {
   ];
 
   return (
-    <div className="bg-primary text-primary-foreground relative z-40">
+    <div className="bg-primary text-primary-foreground sticky top-20 z-40">
       <div className="relative flex overflow-x-hidden">
         <div className="py-2 animate-marquee whitespace-nowrap">
           {tickerItems.map((item, index) => (
@@ -226,7 +226,7 @@ export function HomePageContent() {
       ) : banners.length > 0 ? (
           <BannerSlider banners={banners} />
       ) : (
-          <section className="sticky top-20 z-40 h-[60vh] text-white flex items-center justify-center text-center">
+          <section className="relative h-[60vh] text-white flex items-center justify-center text-center">
                <Image
                   src="https://placehold.co/1600x900.png"
                   alt="Hero banner"
@@ -248,7 +248,7 @@ export function HomePageContent() {
       {/* Ticker Section */}
       <Ticker />
 
-       <div className="relative z-30 bg-background">
+       <div className="relative bg-background">
          {/* Search Bar */}
         <section className="py-8 px-4 md:px-8 bg-muted/50">
           <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
@@ -395,6 +395,8 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
 
     
 
