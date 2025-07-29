@@ -254,14 +254,13 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Product Tag</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value ?? ""}>
+                       <Select onValueChange={field.onChange} defaultValue={field.value ?? undefined}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a tag to display on the product" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
                           {productTags.map(tag => (
                             <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                           ))}
@@ -383,5 +382,3 @@ function VariantField({ form, variantIndex, removeVariant }: { form: any, varian
         </div>
     )
 }
-
-    
