@@ -6,7 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,9 @@ import { type Product, type ProductVariant, productTags, ProductTag } from "@/li
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 
 const variantSchema = z.object({
@@ -43,6 +47,7 @@ const productFormSchema = z.object({
   isNewArrival: z.boolean().default(false),
   isFlashSale: z.boolean().default(false),
   tag: z.enum(productTags).optional().nullable(),
+  createdAt: z.date().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema> & {
@@ -73,6 +78,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         isNewArrival: initialData?.isNewArrival || false,
         isFlashSale: initialData?.isFlashSale || false,
         tag: initialData?.tag || undefined,
+        createdAt: initialData?.createdAt ? new Date(initialData.createdAt) : undefined,
     },
   });
 
@@ -88,10 +94,9 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
             ...variant,
             imageUrls: variant.imageUrls.map(urlObj => urlObj.value),
         })),
-        // This combines all variant images into the top-level `imageUrls` for backward compatibility
-        // and for components that might only use the primary image.
         imageUrls: values.variants.flatMap(v => v.imageUrls.map(url => url.value)),
         discountedPrice: values.discountedPrice || 0,
+        createdAt: values.createdAt ? values.createdAt.toISOString() : new Date().toISOString(),
     };
     onSubmitProp(transformedValues);
   }
@@ -299,6 +304,57 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                     <PlusCircle className="mr-2 h-4 w-4"/>
                     Add another variant
                  </Button>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Advanced</CardTitle>
+              </CardHeader>
+              <CardContent>
+                 <FormField
+                    control={form.control}
+                    name="createdAt"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Creation Date</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP")
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                date > new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormDescription>
+                            Leave blank to use the current date. Set a past date for old products.
+                        </FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                 />
               </CardContent>
             </Card>
           </div>

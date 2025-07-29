@@ -41,19 +41,18 @@ export const getProduct = async (id: string): Promise<Product | undefined> => {
   return undefined;
 };
 
-export const createProduct = async (data: ProductFormValues) => {
+export const createProduct = async (data: ProductFormValues & { createdAt: string }) => {
   const newId = `prd_id${Math.floor(10025 + Math.random() * 90000)}`;
   const newProductRef = doc(db, 'products', newId);
 
   await setDoc(newProductRef, {
     ...data,
     isRejected: false,
-    createdAt: new Date().toISOString(),
   });
 };
 
 
-export const updateProduct = async (id: string, data: ProductFormValues) => {
+export const updateProduct = async (id: string, data: ProductFormValues & { createdAt: string }) => {
   const docRef = doc(db, 'products', id);
   await updateDoc(docRef, data as any);
 };
@@ -288,5 +287,3 @@ export const deleteBanner = async (id: string) => {
   const docRef = doc(db, 'banners', id);
   await deleteDoc(docRef);
 }
-
-    
