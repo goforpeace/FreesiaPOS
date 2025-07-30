@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -370,6 +369,9 @@ const ProductCard = ({ product }: { product: Product }) => {
     const originalPrice = product.sellPrice;
     const TagIcon = product.tag ? tagIconMap[product.tag] : null;
 
+    // A minimal, base64-encoded transparent GIF
+    const BLUR_DATA_URL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
     return (
         <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)] h-full relative">
             {product.tag && TagIcon && (
@@ -387,6 +389,8 @@ const ProductCard = ({ product }: { product: Product }) => {
                             fill
                             className="object-cover transition-transform duration-300 group-hover:scale-110"
                             data-ai-hint="product image"
+                            placeholder="blur"
+                            blurDataURL={BLUR_DATA_URL}
                         />
                     </div>
                     <div className="p-2 md:p-3 border-t border-border">
@@ -427,6 +431,8 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
 
     
 
