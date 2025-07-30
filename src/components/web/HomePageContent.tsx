@@ -64,17 +64,18 @@ const Ticker = () => {
     "Full Cash on Delivery - ক্যাশ অন ডেলিভারী",
     "Easy Return Policy",
   ];
+  const repeatedItems = [...tickerItems, ...tickerItems]; // Repeat items to ensure it covers wide screens
 
   return (
     <div className="bg-primary text-primary-foreground sticky top-20 z-40">
       <div className="relative flex overflow-x-hidden">
         <div className="py-2 animate-marquee whitespace-nowrap">
-          {tickerItems.map((item, index) => (
+          {repeatedItems.map((item, index) => (
             <span key={index} className="text-sm font-semibold mx-4">{item}</span>
           ))}
         </div>
         <div className="absolute top-0 py-2 animate-marquee2 whitespace-nowrap">
-          {tickerItems.map((item, index) => (
+          {repeatedItems.map((item, index) => (
             <span key={index} className="text-sm font-semibold mx-4">{item}</span>
           ))}
         </div>
@@ -369,7 +370,7 @@ const ProductCard = ({ product }: { product: Product }) => {
     return (
         <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)] h-full relative">
             {product.tag && TagIcon && (
-              <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
+              <div className="absolute top-2 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
                 <TagIcon className="h-3 w-3" />
                 <span>{product.tag}</span>
               </div>
@@ -423,5 +424,7 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
 
     
