@@ -1,6 +1,5 @@
 
 
-
 import { db } from './firebase';
 import {
   collection,
@@ -298,6 +297,16 @@ export const getCustomers = async (): Promise<Customer[]> => {
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer));
 };
+
+export const deleteCustomer = async (id: string) => {
+    const docRef = doc(db, 'customers', id);
+    // Note: This does not check for associated sales. Deleting a customer
+    // will leave sales documents with a dangling customerId.
+    // This is acceptable based on the current app design where sale documents
+    // store denormalized customer information.
+    await deleteDoc(docRef);
+}
+
 
 // COUPONS API
 const couponsCollection = collection(db, 'coupons');
