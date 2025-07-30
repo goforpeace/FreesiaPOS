@@ -33,13 +33,14 @@ const BannerSlider = ({ banners }: { banners: Banner[] }) => {
     <section className="relative h-[60vh] text-white flex items-center justify-center text-center overflow-hidden">
       <div className="absolute inset-0" ref={emblaRef}>
         <div className="flex h-full">
-          {banners.map((banner) => (
+          {banners.map((banner, index) => (
             <div key={banner.id} className="flex-[0_0_100%] relative">
               <Image
                 src={banner.imageUrl}
                 alt="Hero banner"
                 fill
                 className="object-cover"
+                priority={index === 0}
                 data-ai-hint="fashion store interior"
               />
             </div>
@@ -64,7 +65,7 @@ const Ticker = () => {
     "Full Cash on Delivery - ক্যাশ অন ডেলিভারী",
     "Easy Return Policy",
   ];
-  const repeatedItems = [...tickerItems, ...tickerItems]; // Repeat items to ensure it covers wide screens
+  const repeatedItems = [...tickerItems, ...tickerItems, ...tickerItems, ...tickerItems]; // Repeat items to ensure it covers wide screens
 
   return (
     <div className="bg-primary text-primary-foreground sticky top-20 z-40">
@@ -189,6 +190,7 @@ export function HomePageContent() {
 
   const filteredProducts = useMemo(() => {
     const query = searchParams.get('q') || '';
+    setSearchQuery(query); // Sync input with URL
     return products.filter(product => 
       product.name.toLowerCase().includes(query.toLowerCase())
     )
@@ -242,6 +244,7 @@ export function HomePageContent() {
                   alt="Hero banner"
                   fill
                   className="object-cover z-0"
+                  priority
                   data-ai-hint="fashion store interior"
                />
                <div className="absolute inset-0 bg-black/40"></div>
@@ -424,6 +427,8 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
 
     
 
