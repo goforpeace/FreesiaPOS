@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,12 +9,13 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFormState } from "react-hook-form";
 import { z } from "zod";
-import { X, ArrowLeft, Trash2 } from "lucide-react";
+import { X, ArrowLeft, Trash2, Loader2, Tag } from "lucide-react";
 
 import { useCart, CartItem } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
-import { createSaleAction } from "@/app/actions/sales";
+import { createSaleAction, checkCoupon } from "@/app/actions/sales";
 import { formatCurrency } from "@/lib/utils";
+import type { Coupon } from "@/lib/types";
 
 import { Header } from "@/components/web/Header";
 import { Button } from "@/components/ui/button";
@@ -69,11 +71,36 @@ export default function CheckoutPage() {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState<Coupon | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
 
   const shippingOption = form.watch("shippingOption");
   const subtotal = totalPrice();
   const shippingCost = shippingOption ? SHIPPING_COSTS[shippingOption] : 0;
-  const total = subtotal + shippingCost;
+  
+  const discount = coupon ? (subtotal * coupon.discountPercentage) / 100 : 0;
+  
+  const total = subtotal + shippingCost - discount;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode) {
+        setCouponError("Please enter a coupon code.");
+        return;
+    }
+    setIsCheckingCoupon(true);
+    setCouponError(null);
+    setCoupon(null);
+    const result = await checkCoupon(couponCode);
+    if (result.error) {
+        setCouponError(result.error);
+    } else if (result.data) {
+        setCoupon(result.data);
+        toast({ title: "Coupon Applied!", description: `You got a ${result.data.discountPercentage}% discount.`});
+    }
+    setIsCheckingCoupon(false);
+  }
   
   const onSubmit = async (data: CheckoutFormValues) => {
     if (items.length === 0) {
@@ -100,9 +127,10 @@ export default function CheckoutPage() {
             variantImageUrl: item.selectedVariant?.imageUrl || null,
         })),
         shippingCost,
-        discount: 0, 
+        discount, 
         subtotal,
         total,
+        couponCode: coupon?.code,
     };
       
     const result = await createSaleAction(saleData);
@@ -263,6 +291,33 @@ export default function CheckoutPage() {
                          )} />
                      </CardContent>
                 </Card>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Have a Coupon?</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex gap-2">
+                            <Input 
+                                placeholder="Enter coupon code" 
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                                disabled={isCheckingCoupon || !!coupon}
+                            />
+                            <Button 
+                                type="button" 
+                                onClick={handleApplyCoupon}
+                                disabled={isCheckingCoupon || !!coupon}
+                            >
+                                {isCheckingCoupon && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Apply
+                            </Button>
+                        </div>
+                        {coupon && <p className="text-sm text-green-600 font-medium">Coupon "{coupon.code}" applied!</p>}
+                        {couponError && <p className="text-sm text-destructive font-medium">{couponError}</p>}
+                    </CardContent>
+                </Card>
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Payment Summary</CardTitle>
@@ -276,6 +331,12 @@ export default function CheckoutPage() {
                       <span className="text-muted-foreground">Shipping</span>
                       <span>{formatCurrency(shippingCost)}</span>
                     </div>
+                    {discount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                          <span className="text-muted-foreground">Discount ({coupon?.code})</span>
+                          <span>- {formatCurrency(discount)}</span>
+                        </div>
+                    )}
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total</span>
@@ -295,5 +356,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    

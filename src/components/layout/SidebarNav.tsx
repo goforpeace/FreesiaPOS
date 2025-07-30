@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -15,7 +16,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Package, ShoppingCart, Settings, Star, LogOut, Image as ImageIcon } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Settings, Star, LogOut, Image as ImageIcon, Users, TicketPercent } from "lucide-react";
 import React from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/use-auth";
@@ -29,6 +30,7 @@ export function SidebarNav() {
 
   const isProductsActive = pathname.startsWith("/products");
   const isSalesActive = pathname.startsWith("/sales");
+  const isSettingsActive = pathname.startsWith("/coupons") || pathname.startsWith("/banners") || pathname.startsWith("/reviews");
 
   const handleLogout = async () => {
     try {
@@ -137,49 +139,55 @@ export function SidebarNav() {
               </CollapsibleContent>
             </SidebarMenuItem>
           </Collapsible>
-
-          <SidebarMenuItem>
-             <SidebarMenuButton
-                asChild
-                isActive={pathname === "/reviews"}
-                tooltip="Reviews"
+            <SidebarMenuItem>
+                <SidebarMenuButton
+                    asChild
+                    isActive={pathname === "/customers"}
+                    tooltip="Customers"
                 >
-                <Link href="/reviews" className="flex items-center gap-2">
-                  <Star />
-                  <span>Reviews</span>
-                </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+                    <Link href="/customers" className="flex items-center gap-2">
+                        <Users />
+                        <span>Customers</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
 
-           <SidebarMenuItem>
-             <SidebarMenuButton
-                asChild
-                isActive={pathname === "/banners"}
-                tooltip="Banners"
-                >
-                <Link href="/banners" className="flex items-center gap-2">
-                  <ImageIcon />
-                  <span>Banners</span>
-                </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          <Collapsible asChild defaultOpen={isSettingsActive}>
+            <SidebarMenuItem>
+              <CollapsibleTrigger asChild>
+                  <SidebarMenuButton
+                  isActive={isSettingsActive}
+                  tooltip="Settings"
+                  className="justify-between"
+                  >
+                  <span className="flex items-center gap-2">
+                    <Settings />
+                    <span>Settings</span>
+                  </span>
+                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down size-5 transition-transform data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden"><path d="m6 9 6 6 6-6"/></svg>
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent asChild>
+                <SidebarMenuSub>
+                    <SidebarMenuItem>
+                       <SidebarMenuSubButton href="/reviews" isActive={pathname === '/reviews'}>Reviews</SidebarMenuSubButton>
+                    </SidebarMenuItem>
+                     <SidebarMenuItem>
+                       <SidebarMenuSubButton href="/banners" isActive={pathname === '/banners'}>Banners</SidebarMenuSubButton>
+                     </SidebarMenuItem>
+                    <SidebarMenuItem>
+                       <SidebarMenuSubButton href="/coupons" isActive={pathname === '/coupons'}>Coupons</SidebarMenuSubButton>
+                    </SidebarMenuItem>
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </SidebarMenuItem>
+          </Collapsible>
+
 
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-           <SidebarMenuItem>
-                <SidebarMenuButton
-                href="#"
-                asChild
-                tooltip="Settings"
-                >
-                <span className="flex items-center gap-2">
-                  <Settings />
-                  <span>Settings</span>
-                </span>
-                </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={handleLogout}

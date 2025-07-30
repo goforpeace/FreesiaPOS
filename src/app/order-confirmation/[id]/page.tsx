@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -80,7 +81,7 @@ export default function OrderConfirmationPage() {
         <div className="bg-background min-h-screen">
             <Header />
             <main className="container mx-auto py-12 px-4 max-w-3xl">
-                <div ref={confirmationRef}>
+                <div ref={confirmationRef} className="bg-background p-2">
                     <Card className="text-center">
                         <CardHeader className="items-center">
                             <CheckCircle2 className="h-16 w-16 text-green-500 mb-4"/>
@@ -128,10 +129,16 @@ export default function OrderConfirmationPage() {
                                     <span className="text-muted-foreground">Subtotal</span>
                                     <span>{formatCurrency(sale.subtotal)}</span>
                                 </div>
-                                <div className="flex justify-between">
+                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Shipping</span>
                                     <span>{formatCurrency(sale.shippingCost)}</span>
                                 </div>
+                                {sale.discount > 0 && (
+                                     <div className="flex justify-between text-destructive">
+                                        <span className="text-muted-foreground">Discount {sale.couponCode && `(${sale.couponCode})`}</span>
+                                        <span>- {formatCurrency(sale.discount)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between font-bold text-base">
                                     <span>Total</span>
                                     <span>{formatCurrency(sale.total)}</span>
@@ -140,11 +147,11 @@ export default function OrderConfirmationPage() {
                         </CardContent>
                     </Card>
                 </div>
-                <div className="text-center mt-8 flex items-center justify-center gap-4">
-                    <Button asChild>
+                <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Button asChild className="w-full sm:w-auto">
                         <Link href="/">Continue Shopping</Link>
                     </Button>
-                    <Button variant="outline" onClick={handleSaveAsImage}>
+                    <Button variant="outline" onClick={handleSaveAsImage} className="w-full sm:w-auto">
                         <ImageDown className="mr-2 h-4 w-4" />
                         Save as Image
                     </Button>

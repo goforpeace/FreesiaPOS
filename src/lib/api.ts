@@ -1,5 +1,6 @@
 
 
+
 import { db } from './firebase';
 import {
   collection,
@@ -17,7 +18,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 
-import type { Product, Sale, SaleItem, Review, Banner } from './types';
+import type { Product, Sale, SaleItem, Review, Banner, Customer, Coupon } from './types';
 import { ProductFormValues } from '@/components/products/ProductForm';
 import { InvoiceFormValues } from '@/components/sales/InvoiceForm';
 
@@ -286,4 +287,41 @@ export const createBanner = async (imageUrl: string) => {
 export const deleteBanner = async (id: string) => {
   const docRef = doc(db, 'banners', id);
   await deleteDoc(docRef);
+}
+
+
+// CUSTOMERS API
+const customersCollection = collection(db, 'customers');
+
+export const getCustomers = async (): Promise<Customer[]> => {
+    const q = query(customersCollection, orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer));
+};
+
+// COUPONS API
+const couponsCollection = collection(db, 'coupons');
+
+export const getCoupons = async (): Promise<Coupon[]> => {
+    const q = query(couponsCollection, orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Coupon));
+}
+
+export const createCoupon = async (data: Omit<Coupon, 'id' | 'createdAt' | 'timesUsed'>) => {
+    await addDoc(couponsCollection, {
+        ...data,
+        timesUsed: 0,
+        createdAt: new Date().toISOString(),
+    });
+}
+
+export const updateCoupon = async (id: string, data: Partial<Coupon>) => {
+    const docRef = doc(db, 'coupons', id);
+    await updateDoc(docRef, data);
+}
+
+export const deleteCoupon = async (id: string) => {
+    const docRef = doc(db, 'coupons', id);
+    await deleteDoc(docRef);
 }

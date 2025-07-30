@@ -1,5 +1,6 @@
 
 
+
 export const productTags = [
   "Hot Sale",
   "Unique",
@@ -39,8 +40,10 @@ export interface Product {
 export interface Customer {
   id: string;
   name: string;
-  phone?: string;
-  address?: string;
+  phone: string;
+  address: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SelectedVariant {
@@ -71,6 +74,7 @@ export interface Sale {
   total: number;
   date: string; // ISO 8601 format
   status: 'pending' | 'accepted' | 'cancelled';
+  couponCode?: string | null;
 }
 
 export interface CartItem extends Product {
@@ -88,6 +92,16 @@ export interface Banner {
   id:string;
   imageUrl: string;
   createdAt: string;
+}
+
+export interface Coupon {
+    id: string;
+    code: string;
+    discountPercentage: number;
+    usageLimit: number;
+    timesUsed: number;
+    isActive: boolean;
+    createdAt: string;
 }
 
     
