@@ -39,13 +39,15 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
             let couponRef = null;
             if (data.couponCode) {
                 const couponQuery = query(collection(db, 'coupons'), where('code', '==', data.couponCode.toUpperCase()), limit(1));
-                const couponSnapshot = await transaction.get(query(couponQuery));
+                const couponSnapshot = await getDocs(couponQuery);
                 if (couponSnapshot.empty) {
                     throw new Error('Invalid coupon code.');
                 }
                 const couponDoc = couponSnapshot.docs[0];
                 couponRef = couponDoc.ref;
-                couponData = { id: couponDoc.id, ...couponDoc.data() } as Coupon;
+                const couponDocSnap = await transaction.get(couponRef); // Get the doc within the transaction
+                couponData = { id: couponDocSnap.id, ...couponDocSnap.data() } as Coupon;
+
 
                 if (!couponData.isActive) {
                     throw new Error('This coupon is no longer active.');
@@ -75,7 +77,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
 
             // 3. Create or update customer
             const customersRef = collection(db, 'customers');
-            const customerQuery = query(customersRef, where('phone', '==', data.customerPhone));
+            const customerQuery = query(customersRef, where('phone', '==', data.customerPhone), limit(1));
             const customerSnapshot = await getDocs(customerQuery);
             const now = new Date().toISOString();
             
