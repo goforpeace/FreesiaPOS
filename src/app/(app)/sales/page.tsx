@@ -64,7 +64,8 @@ export default function SalesPage() {
     const matchesSearch =
       searchTerm === "" ||
       sale.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+      sale.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (sale.customerPhone && sale.customerPhone.includes(searchTerm));
 
     return inDateRange && matchesSearch;
   });
@@ -73,6 +74,7 @@ export default function SalesPage() {
     { label: "Invoice #", key: "id" },
     { label: "Date", key: "date" },
     { label: "Customer", key: "customerName" },
+    { label: "Phone", key: "customerPhone" },
     { label: "Status", key: "status" },
     { label: "Subtotal", key: "subtotal" },
     { label: "Shipping", key: "shippingCost" },
@@ -93,7 +95,7 @@ export default function SalesPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                     type="search"
-                    placeholder="Search by Invoice # or Customer..."
+                    placeholder="Search by Invoice, Customer, or Phone..."
                     className="pl-8 sm:w-[300px]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -161,6 +163,7 @@ export default function SalesPage() {
               <TableRow>
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Customer</TableHead>
+                <TableHead>Phone</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Date</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -175,6 +178,7 @@ export default function SalesPage() {
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                     <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
@@ -188,6 +192,7 @@ export default function SalesPage() {
                     <TableRow key={sale.id} className={status === 'pending' ? 'bg-muted/50' : ''}>
                       <TableCell className="font-medium">{sale.id}</TableCell>
                       <TableCell>{sale.customerName}</TableCell>
+                      <TableCell>{sale.customerPhone}</TableCell>
                       <TableCell>
                           <Badge variant={status === 'accepted' ? 'secondary' : status === 'cancelled' ? 'destructive' : 'outline'}>
                               {status.charAt(0).toUpperCase() + status.slice(1)}
