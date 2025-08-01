@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
@@ -89,9 +90,12 @@ const ProductSectionSlider = ({ products, buttonText }: { products: Product[], b
     { align: 'start', loop: true },
     [Autoplay({ delay: 5000, stopOnInteraction: true })]
   );
+  const isMobile = useIsMobile();
+
+  const chunkSize = isMobile ? 2 : 4;
 
   const chunkedProducts = products.reduce((resultArray, item, index) => {
-    const chunkIndex = Math.floor(index / 4)
+    const chunkIndex = Math.floor(index / chunkSize)
     if (!resultArray[chunkIndex]) {
       resultArray[chunkIndex] = []
     }
@@ -189,11 +193,13 @@ export function HomePageContent() {
 
   const filteredProducts = useMemo(() => {
     const query = searchParams.get('q') || '';
-    setSearchQuery(query); // Sync input with URL
+    if(searchQuery !== query) {
+        setSearchQuery(query);
+    }
     return products.filter(product => 
       product.name.toLowerCase().includes(query.toLowerCase())
     )
-  }, [products, searchParams]);
+  }, [products, searchParams, searchQuery]);
   
   const sortedProducts = useMemo(() => {
     let sorted = [...filteredProducts];
@@ -431,6 +437,8 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
 
     
 
