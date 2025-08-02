@@ -58,10 +58,10 @@ export default function WebHomePage() {
           href="https://www.facebook.com/freesia.finds"
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-1/2 translate-y-1/2 right-0 z-50 bg-blue-600/80 backdrop-blur-sm text-white p-2 rounded-l-lg shadow-lg flex flex-col items-center gap-1 transform transition-transform hover:scale-105 animate-bounce"
+          className="fixed bottom-6 right-6 z-50 bg-blue-600 text-white h-16 w-16 rounded-full shadow-lg flex items-center justify-center transform transition-transform hover:scale-110 animate-pulse"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"></path></svg>
-            <span className="text-xs">Visit Page</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"></path></svg>
+            <span className="sr-only">Visit Facebook Page</span>
         </Link>
       </ClientOnly>
        <footer className="bg-card text-card-foreground py-8 px-4 text-center">
