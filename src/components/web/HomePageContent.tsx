@@ -30,7 +30,7 @@ const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
 
   return (
-    <section className="relative h-[60vh] text-white flex items-center justify-center text-center overflow-hidden">
+    <section className="relative h-[60vh] text-white overflow-hidden">
       <div className="absolute inset-0" ref={emblaRef}>
         <div className="flex h-full">
           {banners.map((banner, index) => (
@@ -39,7 +39,7 @@ const BannerSlider = ({ banners }: { banners: Banner[] }) => {
                 src={banner.imageUrl}
                 alt="Hero banner"
                 fill
-                className="object-cover"
+                className="object-cover object-center md:object-top"
                 priority={index === 0}
                 data-ai-hint="fashion store interior"
               />
@@ -48,16 +48,18 @@ const BannerSlider = ({ banners }: { banners: Banner[] }) => {
         </div>
       </div>
       <div className="absolute inset-0 bg-black/40"></div>
-      <div className="relative z-10 p-4">
-        <h1 className="text-5xl md:text-7xl font-headline font-bold">Find Your Rare Beauty</h1>
-        <p className="mt-4 text-xl font-body max-w-2xl mx-auto">Discover exclusive collections and timeless pieces, because you deserve what's rare.</p>
-        <div className="mt-8 flex justify-center gap-4">
-          <Button className="bg-white text-primary hover:bg-white/90" size="lg" asChild>
-            <Link href="#all-products">Shop Now</Link>
-          </Button>
-          <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-primary" size="lg" asChild>
-              <Link href="/reviews">See Reviews</Link>
-          </Button>
+      <div className="container relative z-10 h-full flex items-center justify-center md:justify-end text-center md:text-right">
+        <div className="max-w-2xl p-4">
+            <h1 className="text-5xl md:text-7xl font-headline font-bold">Find Your Rare Beauty</h1>
+            <p className="mt-4 text-xl font-body">Discover exclusive collections and timeless pieces, because you deserve what's rare.</p>
+            <div className="mt-8 flex justify-center md:justify-end gap-4">
+            <Button className="bg-white text-primary hover:bg-white/90" size="lg" asChild>
+                <Link href="#all-products">Shop Now</Link>
+            </Button>
+            <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-primary" size="lg" asChild>
+                <Link href="/reviews">See Reviews</Link>
+            </Button>
+            </div>
         </div>
       </div>
     </section>
@@ -457,3 +459,4 @@ const ProductCardSkeleton = () => (
     
 
     
+
