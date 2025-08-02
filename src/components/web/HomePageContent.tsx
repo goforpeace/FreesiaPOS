@@ -51,9 +51,14 @@ const BannerSlider = ({ banners }: { banners: Banner[] }) => {
       <div className="relative z-10 p-4">
         <h1 className="text-5xl md:text-7xl font-headline font-bold">Find Your Rare Beauty</h1>
         <p className="mt-4 text-xl font-body max-w-2xl mx-auto">Discover exclusive collections and timeless pieces, because you deserve what's rare.</p>
-        <Button className="mt-8 bg-white text-primary hover:bg-white/90" size="lg" asChild>
-          <Link href="#all-products">Shop Now</Link>
-        </Button>
+        <div className="mt-8 flex justify-center gap-4">
+          <Button className="bg-white text-primary hover:bg-white/90" size="lg" asChild>
+            <Link href="#all-products">Shop Now</Link>
+          </Button>
+          <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-primary" size="lg" asChild>
+              <Link href="/reviews">See Reviews</Link>
+          </Button>
+        </div>
       </div>
     </section>
   );
@@ -256,9 +261,14 @@ export function HomePageContent() {
                <div className="relative z-10 p-4">
                   <h1 className="text-5xl md:text-7xl font-headline font-bold">Find Your Rare Beauty</h1>
                   <p className="mt-4 text-xl font-body max-w-2xl mx-auto">Discover exclusive collections and timeless pieces, because you deserve what's rare.</p>
-                  <Button className="mt-8 bg-white text-primary hover:bg-white/90" size="lg" asChild>
-                      <Link href="#all-products">Shop Now</Link>
-                  </Button>
+                  <div className="mt-8 flex justify-center gap-4">
+                    <Button className="bg-white text-primary hover:bg-white/90" size="lg" asChild>
+                        <Link href="#all-products">Shop Now</Link>
+                    </Button>
+                     <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-primary" size="lg" asChild>
+                        <Link href="/reviews">See Reviews</Link>
+                    </Button>
+                  </div>
               </div>
           </section>
       )}

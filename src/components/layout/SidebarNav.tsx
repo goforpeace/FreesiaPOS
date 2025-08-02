@@ -30,7 +30,7 @@ export function SidebarNav() {
 
   const isProductsActive = pathname.startsWith("/products");
   const isSalesActive = pathname.startsWith("/sales");
-  const isSettingsActive = pathname.startsWith("/coupons") || pathname.startsWith("/banners") || pathname.startsWith("/reviews");
+  const isSettingsActive = pathname.startsWith("/settings") || pathname.startsWith("/banners") || pathname.startsWith("/coupons");
 
   const handleLogout = async () => {
     try {
@@ -170,7 +170,7 @@ export function SidebarNav() {
               <CollapsibleContent asChild>
                 <SidebarMenuSub>
                     <SidebarMenuItem>
-                       <SidebarMenuSubButton href="/reviews" isActive={pathname === '/reviews'}>Reviews</SidebarMenuSubButton>
+                       <SidebarMenuSubButton href="/settings/reviews" isActive={pathname === '/settings/reviews'}>Reviews</SidebarMenuSubButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
                        <SidebarMenuSubButton href="/banners" isActive={pathname === '/banners'}>Banners</SidebarMenuSubButton>
