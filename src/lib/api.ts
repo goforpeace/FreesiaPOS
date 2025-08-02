@@ -325,7 +325,7 @@ export const createCoupon = async (data: Omit<Coupon, 'id' | 'createdAt' | 'time
     });
 }
 
-export const updateCoupon = async (id: string, data: Partial<Coupon>) => {
+export const updateCoupon = async (id: string, data: Partial<Omit<Coupon, 'id' | 'createdAt' | 'timesUsed'>>) => {
     const docRef = doc(db, 'coupons', id);
     await updateDoc(docRef, data);
 }

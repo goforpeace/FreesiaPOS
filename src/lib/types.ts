@@ -1,6 +1,5 @@
 
 
-
 export const productTags = [
   "Hot Sale",
   "Unique",
@@ -97,11 +96,10 @@ export interface Banner {
 export interface Coupon {
     id: string;
     code: string;
-    discountPercentage: number;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
     usageLimit: number;
     timesUsed: number;
     isActive: boolean;
     createdAt: string;
 }
-
-    

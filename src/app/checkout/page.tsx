@@ -80,7 +80,11 @@ export default function CheckoutPage() {
   const subtotal = totalPrice();
   const shippingCost = shippingOption ? SHIPPING_COSTS[shippingOption] : 0;
   
-  const discount = coupon ? (subtotal * coupon.discountPercentage) / 100 : 0;
+  const discount = coupon
+    ? coupon.discountType === 'percentage'
+      ? (subtotal * coupon.discountValue) / 100
+      : coupon.discountValue
+    : 0;
   
   const total = subtotal + shippingCost - discount;
 
@@ -97,7 +101,10 @@ export default function CheckoutPage() {
         setCouponError(result.error);
     } else if (result.data) {
         setCoupon(result.data);
-        toast({ title: "Coupon Applied!", description: `You got a ${result.data.discountPercentage}% discount.`});
+        const discountText = result.data.discountType === 'percentage'
+            ? `${result.data.discountValue}%`
+            : `${formatCurrency(result.data.discountValue)}`;
+        toast({ title: "Coupon Applied!", description: `You got a ${discountText} discount.`});
     }
     setIsCheckingCoupon(false);
   }

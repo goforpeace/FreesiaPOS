@@ -40,6 +40,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,13 +53,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils";
 
 
 const couponFormSchema = z.object({
     code: z.string().min(3, "Code must be at least 3 characters.").max(20).transform(v => v.toUpperCase()),
-    discountPercentage: z.coerce.number().min(1, "Discount must be at least 1%").max(100, "Discount cannot exceed 100%"),
+    discountType: z.enum(['percentage', 'fixed']),
+    discountValue: z.coerce.number().min(1, "Discount value must be at least 1."),
     usageLimit: z.coerce.number().int().min(1, "Usage limit must be at least 1."),
     isActive: z.boolean().default(true),
+}).refine(data => {
+    if (data.discountType === 'percentage' && data.discountValue > 100) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Percentage discount cannot exceed 100%",
+    path: ["discountValue"],
 });
 
 type CouponFormValues = z.infer<typeof couponFormSchema>;
@@ -76,11 +87,14 @@ const CouponForm = ({
         resolver: zodResolver(couponFormSchema),
         defaultValues: initialData || {
             code: "",
-            discountPercentage: 10,
+            discountType: 'percentage',
+            discountValue: 10,
             usageLimit: 1,
             isActive: true,
         },
     });
+    
+    const discountType = form.watch("discountType");
 
     const handleSubmit = (values: CouponFormValues) => {
         onSubmit(values);
@@ -104,13 +118,47 @@ const CouponForm = ({
                     )}
                 />
                  <FormField
+                  control={form.control}
+                  name="discountType"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Discount Type</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex space-x-4"
+                        >
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="percentage" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Percentage (%)
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="fixed" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Fixed Amount (BDT)
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
                     control={form.control}
-                    name="discountPercentage"
+                    name="discountValue"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Discount Percentage (%)</FormLabel>
+                            <FormLabel>Discount Value</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="10" {...field} />
+                                <Input type="number" placeholder={discountType === 'percentage' ? "10" : "500"} {...field} />
                             </FormControl>
                              <FormMessage />
                         </FormItem>
@@ -276,7 +324,12 @@ export default function CouponsPage() {
                 coupons.map((coupon) => (
                   <TableRow key={coupon.id}>
                     <TableCell className="font-medium">{coupon.code}</TableCell>
-                    <TableCell>{coupon.discountPercentage}%</TableCell>
+                    <TableCell>
+                        {coupon.discountType === 'percentage' 
+                            ? `${coupon.discountValue}%` 
+                            : formatCurrency(coupon.discountValue)
+                        }
+                    </TableCell>
                     <TableCell>{coupon.timesUsed} / {coupon.usageLimit}</TableCell>
                     <TableCell>
                       <Badge variant={coupon.isActive ? "secondary" : "outline"}>

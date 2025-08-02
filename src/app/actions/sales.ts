@@ -184,5 +184,3 @@ export async function checkCoupon(couponCode: string): Promise<{ data?: Coupon; 
         return { error: e.message };
     }
 }
-
-    
