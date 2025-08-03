@@ -11,9 +11,9 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/hooks/use-cart';
 
 const navLinks = [
-    { name: 'Flash Sales', href: '#flash-sales' },
-    { name: 'New Arrivals', href: '#new-arrivals' },
-    { name: 'All Products', href: '#all-products' },
+    { name: 'Flash Sales', href: '/#flash-sales' },
+    { name: 'New Arrivals', href: '/#new-arrivals' },
+    { name: 'All Products', href: '/#all-products' },
 ];
 
 export function Header() {

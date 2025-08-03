@@ -1,13 +1,42 @@
 
 "use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 import { Skeleton } from '@/components/ui/skeleton';
-import Link from 'next/link';
+import { Progress } from "@/components/ui/progress";
+
+function PageLoadingIndicator() {
+  const pathname = usePathname();
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    setProgress(0);
+    const timer = setTimeout(() => setProgress(90), 0); 
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (progress > 0) {
+        setProgress(100);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [progress]);
+
+  if (progress === 0 || progress === 100) return null;
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[9999]">
+      <Progress value={progress} className="h-1" />
+    </div>
+  );
+}
+
 
 export default function AppLayout({
   children,
@@ -39,6 +68,9 @@ export default function AppLayout({
 
   return (
     <SidebarProvider>
+      <Suspense fallback={null}>
+        <PageLoadingIndicator />
+      </Suspense>
       <SidebarNav />
       <SidebarInset>
         <main className="p-4 sm:p-6 lg:p-8" id="main-content">
