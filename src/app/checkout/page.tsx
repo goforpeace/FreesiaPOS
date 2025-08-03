@@ -26,6 +26,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { SelectedVariant } from "@/lib/types";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 
 const checkoutFormSchema = z.object({
   customerName: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -46,7 +47,7 @@ const SHIPPING_COSTS = {
 function SubmitButton({ isSubmitting }: { isSubmitting: boolean }) {
     return (
         <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-            {isSubmitting ? "Placing Order..." : "Place Order"}
+            Place Order
         </Button>
     )
 }
@@ -175,6 +176,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-background min-h-screen">
+      {isSubmitting && <LoadingOverlay text="Placing Your Order..." />}
       <Header />
       <main className="container mx-auto py-12 px-4">
         <Button variant="link" className="p-0 mb-4" asChild>
