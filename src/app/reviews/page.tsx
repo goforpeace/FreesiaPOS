@@ -12,6 +12,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+// A minimal, base64-encoded transparent GIF
+const BLUR_DATA_URL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
 export default function AllReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +67,8 @@ export default function AllReviewsPage() {
                     height={800}
                     src={review.imageUrl || 'https://placehold.co/400x800.png'}
                     width={600}
+                    placeholder="blur"
+                    blurDataURL={BLUR_DATA_URL}
                     />
                 </CardContent>
                 </Card>
@@ -82,4 +87,3 @@ export default function AllReviewsPage() {
     </div>
   );
 }
-

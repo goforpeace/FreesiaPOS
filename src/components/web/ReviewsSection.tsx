@@ -14,6 +14,9 @@ interface ReviewsSectionProps {
   reviews: Review[];
 }
 
+// A minimal, base64-encoded transparent GIF
+const BLUR_DATA_URL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
 export function ReviewsSection({ reviews }: ReviewsSectionProps) {
   const [emblaRef] = useEmblaCarousel({ loop: true, align: 'start' }, [Autoplay({
       delay: 3000,
@@ -42,6 +45,8 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
                   width={600}
                   height={600}
                   data-ai-hint="review screenshot"
+                  placeholder="blur"
+                  blurDataURL={BLUR_DATA_URL}
                 />
             </div>
           ))}
