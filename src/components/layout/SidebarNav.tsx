@@ -71,6 +71,7 @@ export function SidebarNav() {
           <SidebarMenuItem>
              <SidebarMenuButton
                 asChild
+                href="/control-panel"
                 isActive={pathname === "/control-panel"}
                 tooltip="Dashboard"
                 >
@@ -99,13 +100,19 @@ export function SidebarNav() {
               <CollapsibleContent asChild>
                 <SidebarMenuSub>
                     <SidebarMenuItem>
-                       <SidebarMenuSubButton href="/products" isActive={pathname === '/products'}>All Products</SidebarMenuSubButton>
+                       <SidebarMenuSubButton asChild href="/products" isActive={pathname === '/products'}>
+                         <Link href="/products">All Products</Link>
+                       </SidebarMenuSubButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                       <SidebarMenuSubButton href="/products/new" isActive={pathname === '/products/new'}>Add Product</SidebarMenuSubButton>
+                       <SidebarMenuSubButton asChild href="/products/new" isActive={pathname === '/products/new'}>
+                        <Link href="/products/new">Add Product</Link>
+                       </SidebarMenuSubButton>
                      </SidebarMenuItem>
                     <SidebarMenuItem>
-                       <SidebarMenuSubButton href="/products/rejected" isActive={pathname === '/products/rejected'}>Rejected Products</SidebarMenuSubButton>
+                       <SidebarMenuSubButton asChild href="/products/rejected" isActive={pathname === '/products/rejected'}>
+                        <Link href="/products/rejected">Rejected Products</Link>
+                       </SidebarMenuSubButton>
                     </SidebarMenuItem>
                 </SidebarMenuSub>
               </CollapsibleContent>
@@ -130,10 +137,14 @@ export function SidebarNav() {
               <CollapsibleContent asChild>
                 <SidebarMenuSub>
                     <SidebarMenuItem>
-                       <SidebarMenuSubButton href="/sales" isActive={pathname === '/sales'}>All Sales</SidebarMenuSubButton>
+                       <SidebarMenuSubButton asChild href="/sales" isActive={pathname === '/sales'}>
+                        <Link href="/sales">All Sales</Link>
+                       </SidebarMenuSubButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                       <SidebarMenuSubButton href="/sales/new" isActive={pathname === '/sales/new'}>New Sale</SidebarMenuSubButton>
+                       <SidebarMenuSubButton asChild href="/sales/new" isActive={pathname === '/sales/new'}>
+                        <Link href="/sales/new">New Sale</Link>
+                       </SidebarMenuSubButton>
                      </SidebarMenuItem>
                 </SidebarMenuSub>
               </CollapsibleContent>
@@ -142,6 +153,7 @@ export function SidebarNav() {
             <SidebarMenuItem>
                 <SidebarMenuButton
                     asChild
+                    href="/customers"
                     isActive={pathname === "/customers"}
                     tooltip="Customers"
                 >
@@ -170,13 +182,19 @@ export function SidebarNav() {
               <CollapsibleContent asChild>
                 <SidebarMenuSub>
                     <SidebarMenuItem>
-                       <SidebarMenuSubButton href="/settings/reviews" isActive={pathname === '/settings/reviews'}>Reviews</SidebarMenuSubButton>
+                       <SidebarMenuSubButton asChild href="/settings/reviews" isActive={pathname === '/settings/reviews'}>
+                        <Link href="/settings/reviews">Reviews</Link>
+                       </SidebarMenuSubButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                       <SidebarMenuSubButton href="/banners" isActive={pathname === '/banners'}>Banners</SidebarMenuSubButton>
+                       <SidebarMenuSubButton asChild href="/banners" isActive={pathname === '/banners'}>
+                        <Link href="/banners">Banners</Link>
+                       </SidebarMenuSubButton>
                      </SidebarMenuItem>
                     <SidebarMenuItem>
-                       <SidebarMenuSubButton href="/coupons" isActive={pathname === '/coupons'}>Coupons</SidebarMenuSubButton>
+                       <SidebarMenuSubButton asChild href="/coupons" isActive={pathname === '/coupons'}>
+                        <Link href="/coupons">Coupons</Link>
+                       </SidebarMenuSubButton>
                     </SidebarMenuItem>
                 </SidebarMenuSub>
               </CollapsibleContent>
