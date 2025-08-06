@@ -186,27 +186,36 @@ export function HomePageContent() {
     };
     fetchData();
   }, []);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchQuery) {
+        params.set('q', searchQuery);
+    } else {
+        params.delete('q');
+    }
+    // Using a timeout to debounce the search query
+    const timeoutId = setTimeout(() => {
+      router.replace(`/?${params.toString()}`, { scroll: false });
+    }, 300); // 300ms delay
 
-  const handleSearch = (e: React.FormEvent) => {
-      e.preventDefault();
-      const params = new URLSearchParams(searchParams.toString());
-      if (searchQuery) {
-          params.set('q', searchQuery);
-      } else {
-          params.delete('q');
-      }
-      router.replace(`/?${params.toString()}#all-products`, { scroll: false });
-  }
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, router, searchParams]);
+
+  useEffect(() => {
+    // Sync searchQuery state with URL params on initial load or when URL changes
+    const queryFromUrl = searchParams.get('q') || '';
+    if (searchQuery !== queryFromUrl) {
+      setSearchQuery(queryFromUrl);
+    }
+  }, [searchParams]);
 
   const filteredProducts = useMemo(() => {
-    const query = searchParams.get('q') || '';
-    if(searchQuery !== query) {
-        setSearchQuery(query);
-    }
+    const query = (searchParams.get('q') || '').toLowerCase();
     return products.filter(product => 
-      product.name.toLowerCase().includes(query.toLowerCase())
+      product.name.toLowerCase().includes(query)
     )
-  }, [products, searchParams, searchQuery]);
+  }, [products, searchParams]);
   
   const sortedProducts = useMemo(() => {
     let sorted = [...filteredProducts];
@@ -281,7 +290,7 @@ export function HomePageContent() {
        <div className="relative bg-background">
          {/* Search Bar */}
         <section className="py-8 px-4 md:px-8 bg-muted/50">
-          <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+          <form onSubmit={(e) => e.preventDefault()} className="max-w-2xl mx-auto">
             <div className="relative">
               <Input 
                 type="search" 
@@ -459,4 +468,5 @@ const ProductCardSkeleton = () => (
     
 
     
+
 
