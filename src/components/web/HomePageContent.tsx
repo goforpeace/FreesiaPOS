@@ -266,7 +266,7 @@ export function HomePageContent() {
         <section className="py-8 px-4 md:px-8 bg-muted/50">
           <div className="max-w-2xl mx-auto">
             <Popover open={searchQuery.length > 0}>
-                <PopoverAnchor asChild>
+                <PopoverAnchor>
                     <div className="relative">
                         <Input 
                             type="search" 
@@ -455,5 +455,7 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
 
     
