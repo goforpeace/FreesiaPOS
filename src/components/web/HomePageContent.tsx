@@ -185,45 +185,41 @@ export function HomePageContent() {
     fetchData();
   }, []);
   
-  const filteredProducts = useMemo(() => {
-    return products.filter(product => 
+  const sortedAndFilteredProducts = useMemo(() => {
+    let filtered = products.filter(product => 
       product.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [products, searchQuery]);
-  
-  const sortedProducts = useMemo(() => {
-    let sorted = [...filteredProducts];
-    if (sortOption) {
-      const [key, order] = sortOption.split("-");
-      sorted.sort((a, b) => {
-        let valA: string | number | undefined;
-        let valB: string | number | undefined;
 
-        const getPrice = (p: Product) => p.discountedPrice && p.discountedPrice > 0 ? p.discountedPrice : p.sellPrice;
+    const [key, order] = sortOption.split("-");
+    filtered.sort((a, b) => {
+      let valA: string | number | undefined;
+      let valB: string | number | undefined;
 
-        if (key === 'createdAt') {
-          valA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          valB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        } else if (key === 'name') {
-          valA = a.name.toLowerCase();
-          valB = b.name.toLowerCase();
-        } else if (key === 'price') {
-            valA = getPrice(a);
-            valB = getPrice(b);
-        }
+      const getPrice = (p: Product) => p.discountedPrice && p.discountedPrice > 0 ? p.discountedPrice : p.sellPrice;
 
-        if (valA === undefined || valB === undefined) return 0;
-        
-        if (valA < valB) return order === 'asc' ? -1 : 1;
-        if (valA > valB) return order === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-    return sorted;
-  }, [filteredProducts, sortOption]);
+      if (key === 'createdAt') {
+        valA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        valB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      } else if (key === 'name') {
+        valA = a.name.toLowerCase();
+        valB = b.name.toLowerCase();
+      } else if (key === 'price') {
+          valA = getPrice(a);
+          valB = getPrice(b);
+      }
 
-  const flashSaleProducts = products.filter(p => p.isFlashSale);
-  const newArrivalProducts = products.filter(p => p.isNewArrival);
+      if (valA === undefined || valB === undefined) return 0;
+      
+      if (valA < valB) return order === 'asc' ? -1 : 1;
+      if (valA > valB) return order === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [products, searchQuery, sortOption]);
+
+  const flashSaleProducts = sortedAndFilteredProducts.filter(p => p.isFlashSale);
+  const newArrivalProducts = sortedAndFilteredProducts.filter(p => p.isNewArrival);
 
   return (
     <main>
@@ -329,8 +325,8 @@ export function HomePageContent() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
                 {loading ? (
                     [...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)
-                ) : sortedProducts.length > 0 ? (
-                    sortedProducts.map(product => <ProductCard key={product.id} product={product} />)
+                ) : sortedAndFilteredProducts.length > 0 ? (
+                    sortedAndFilteredProducts.map(product => <ProductCard key={product.id} product={product} />)
                 ) : (
                   <p className="col-span-full text-center text-muted-foreground">No products found for your search.</p>
                 )}
