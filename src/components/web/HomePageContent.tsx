@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
 
 const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
@@ -218,8 +219,8 @@ export function HomePageContent() {
     return filtered;
   }, [products, searchQuery, sortOption]);
 
-  const flashSaleProducts = sortedAndFilteredProducts.filter(p => p.isFlashSale);
-  const newArrivalProducts = sortedAndFilteredProducts.filter(p => p.isNewArrival);
+  const flashSaleProducts = useMemo(() => products.filter(p => p.isFlashSale), [products]);
+  const newArrivalProducts = useMemo(() => products.filter(p => p.isNewArrival), [products]);
 
   return (
     <main>
@@ -261,18 +262,41 @@ export function HomePageContent() {
          {/* Search Bar */}
         <section className="py-8 px-4 md:px-8 bg-muted/50">
           <div className="max-w-2xl mx-auto">
-            <div className="relative">
-              <Input 
-                type="search" 
-                placeholder="Search by product name..."
-                className="w-full pr-12 h-12 text-lg"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center text-muted-foreground">
-                <Search className="h-6 w-6" />
-              </div>
-            </div>
+            <Popover open={searchQuery.length > 0}>
+                <PopoverTrigger asChild>
+                     <div className="relative">
+                        <Input 
+                            type="search" 
+                            placeholder="Search by product name..."
+                            className="w-full pr-12 h-12 text-lg"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center text-muted-foreground">
+                            <Search className="h-6 w-6" />
+                        </div>
+                    </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] max-h-[400px] overflow-y-auto p-2">
+                    <div className="space-y-2">
+                    {sortedAndFilteredProducts.length > 0 ? (
+                        sortedAndFilteredProducts.map(product => (
+                        <Link key={product.id} href={`/product/${product.id}`} className="block p-2 rounded-md hover:bg-muted">
+                            <div className="flex items-center gap-4">
+                                <Image src={product.imageUrls?.[0] || 'https://placehold.co/40x40.png'} alt={product.name} width={40} height={40} className="rounded-md object-cover"/>
+                                <div>
+                                    <p className="font-semibold text-sm">{product.name}</p>
+                                    <p className="text-xs text-muted-foreground">{formatCurrency(product.sellPrice)}</p>
+                                </div>
+                            </div>
+                        </Link>
+                        ))
+                    ) : (
+                        <p className="p-4 text-center text-sm text-muted-foreground">No products found.</p>
+                    )}
+                    </div>
+                </PopoverContent>
+            </Popover>
           </div>
         </section>
 
