@@ -221,6 +221,9 @@ export function HomePageContent() {
 
   const flashSaleProducts = useMemo(() => products.filter(p => p.isFlashSale), [products]);
   const newArrivalProducts = useMemo(() => products.filter(p => p.isNewArrival), [products]);
+  
+  const allProductsToShow = sortedAndFilteredProducts;
+
 
   return (
     <main>
@@ -263,8 +266,8 @@ export function HomePageContent() {
         <section className="py-8 px-4 md:px-8 bg-muted/50">
           <div className="max-w-2xl mx-auto">
             <Popover open={searchQuery.length > 0}>
-                <PopoverTrigger asChild>
-                     <div className="relative">
+                <PopoverAnchor asChild>
+                    <div className="relative">
                         <Input 
                             type="search" 
                             placeholder="Search by product name..."
@@ -276,8 +279,8 @@ export function HomePageContent() {
                             <Search className="h-6 w-6" />
                         </div>
                     </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-[var(--radix-popover-trigger-width)] max-h-[400px] overflow-y-auto p-2">
+                </PopoverAnchor>
+                <PopoverContent className="w-[var(--radix-popover-anchor-width)] max-h-[400px] overflow-y-auto p-2">
                     <div className="space-y-2">
                     {sortedAndFilteredProducts.length > 0 ? (
                         sortedAndFilteredProducts.map(product => (
@@ -349,10 +352,10 @@ export function HomePageContent() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 max-w-7xl mx-auto">
                 {loading ? (
                     [...Array(10)].map((_, i) => <ProductCardSkeleton key={i} />)
-                ) : sortedAndFilteredProducts.length > 0 ? (
-                    sortedAndFilteredProducts.map(product => <ProductCard key={product.id} product={product} />)
+                ) : allProductsToShow.length > 0 ? (
+                    allProductsToShow.map(product => <ProductCard key={product.id} product={product} />)
                 ) : (
-                  <p className="col-span-full text-center text-muted-foreground">No products found for your search.</p>
+                  <p className="col-span-full text-center text-muted-foreground">No products found for your search. Try clearing the search.</p>
                 )}
             </div>
         </section>
@@ -452,3 +455,5 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
+    
