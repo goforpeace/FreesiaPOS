@@ -161,9 +161,7 @@ export function HomePageContent() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const router = useRouter();
-  const searchParams = useSearchParams()
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState("createdAt-desc");
 
   useEffect(() => {
@@ -187,35 +185,11 @@ export function HomePageContent() {
     fetchData();
   }, []);
   
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (searchQuery) {
-        params.set('q', searchQuery);
-    } else {
-        params.delete('q');
-    }
-    // Using a timeout to debounce the search query
-    const timeoutId = setTimeout(() => {
-      router.replace(`/?${params.toString()}`, { scroll: false });
-    }, 300); // 300ms delay
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, router, searchParams]);
-
-  useEffect(() => {
-    // Sync searchQuery state with URL params on initial load or when URL changes
-    const queryFromUrl = searchParams.get('q') || '';
-    if (searchQuery !== queryFromUrl) {
-      setSearchQuery(queryFromUrl);
-    }
-  }, [searchParams]);
-
   const filteredProducts = useMemo(() => {
-    const query = (searchParams.get('q') || '').toLowerCase();
     return products.filter(product => 
-      product.name.toLowerCase().includes(query)
-    )
-  }, [products, searchParams]);
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [products, searchQuery]);
   
   const sortedProducts = useMemo(() => {
     let sorted = [...filteredProducts];
@@ -290,7 +264,7 @@ export function HomePageContent() {
        <div className="relative bg-background">
          {/* Search Bar */}
         <section className="py-8 px-4 md:px-8 bg-muted/50">
-          <form onSubmit={(e) => e.preventDefault()} className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto">
             <div className="relative">
               <Input 
                 type="search" 
@@ -299,11 +273,11 @@ export function HomePageContent() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <Button type="submit" variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground hover:text-primary">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center text-muted-foreground">
                 <Search className="h-6 w-6" />
-              </Button>
+              </div>
             </div>
-          </form>
+          </div>
         </section>
 
         {/* Flash Sale Section */}
@@ -458,15 +432,3 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
-
-    
-
-    
-
-    
-
-    
-
-    
-
-
