@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,7 +8,7 @@ import Image from "next/image";
 import { Header } from "@/components/web/Header";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Bolt, Truck, RefreshCw, MessageSquare } from "lucide-react";
+import { ShoppingCart, Bolt, Truck, RefreshCw, MessageSquare, Ban } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { Product, ProductVariant, SelectedVariant } from "@/lib/types";
 import * as fbp from '@/lib/fpixel';
@@ -43,8 +44,8 @@ export function ProductDetailsClient({ product }: { product: Product }) {
 
     useEffect(() => {
         if (product) {
-            // Set initial variant and images
-            const initialVariant = product.variants?.[0];
+            // Set initial variant and images, prefer one with stock
+            const initialVariant = product.variants?.find(v => v.quantity > 0) || product.variants?.[0];
             setSelectedVariant(initialVariant);
             setDisplayImages(initialVariant?.imageUrls || product.imageUrls || []);
 
@@ -72,21 +73,21 @@ export function ProductDetailsClient({ product }: { product: Product }) {
 
 
     const handleAddToCart = () => {
-        if (!product) return;
-        const variantToSave: SelectedVariant | undefined = selectedVariant ? {
+        if (!product || !selectedVariant) return;
+        const variantToSave: SelectedVariant = {
             color: selectedVariant.color,
             imageUrl: selectedVariant.imageUrls[0]
-        } : undefined;
-        addItem(product, variantToSave);
+        };
+        addItem(product, variantToSave, selectedVariant.quantity);
     }
     
     const handleOrderNow = () => {
-        if (!product) return;
-        const variantToSave: SelectedVariant | undefined = selectedVariant ? {
+        if (!product || !selectedVariant) return;
+        const variantToSave: SelectedVariant = {
             color: selectedVariant.color,
             imageUrl: selectedVariant.imageUrls[0]
-        } : undefined;
-        addItem(product, variantToSave);
+        };
+        addItem(product, variantToSave, selectedVariant.quantity);
         router.push('/checkout');
     }
     
@@ -97,6 +98,10 @@ export function ProductDetailsClient({ product }: { product: Product }) {
     const hasDiscount = product.discountedPrice && product.discountedPrice > 0;
     const displayPrice = hasDiscount ? product.discountedPrice : product.sellPrice;
     const originalPrice = product.sellPrice;
+
+    const isOutOfStock = selectedVariant ? selectedVariant.quantity <= 0 : product.quantity <= 0;
+    const hasVariants = product.variants && product.variants.length > 0;
+    const isActionDisabled = (hasVariants && !selectedVariant) || isOutOfStock;
 
     return (
         <div className="bg-background min-h-screen">
@@ -154,10 +159,11 @@ export function ProductDetailsClient({ product }: { product: Product }) {
                                          <button 
                                             key={variant.color} 
                                             onClick={() => setSelectedVariant(variant)} 
-                                            className={cn("h-10 w-10 rounded-full border-2 p-0.5", selectedVariant?.color === variant.color ? 'border-primary' : 'border-border')}
-                                            title={variant.color}
+                                            className={cn("h-10 w-10 rounded-full border-2 p-0.5 relative", selectedVariant?.color === variant.color ? 'border-primary' : 'border-border')}
+                                            title={`${variant.color} - ${variant.quantity} in stock`}
                                         >
                                             <Image src={variant.imageUrls[0]} alt={variant.color} width={36} height={36} className="rounded-full object-cover"/>
+                                            {variant.quantity <= 0 && <div className="absolute inset-0 bg-white/70 rounded-full flex items-center justify-center"><Ban className="h-5 w-5 text-destructive"/></div>}
                                         </button>
                                     ))}
                                 </div>
@@ -176,16 +182,33 @@ export function ProductDetailsClient({ product }: { product: Product }) {
                         </Card>
 
                         <div className="flex flex-col sm:flex-row items-center gap-4">
-                            <Button size="lg" className="w-full sm:w-auto" onClick={handleAddToCart} disabled={product.variants && product.variants.length > 0 && !selectedVariant}>
-                                <ShoppingCart className="mr-2 h-5 w-5" />
-                                Add to Cart
-                            </Button>
-                            <Button size="lg" variant="secondary" className="w-full sm:w-auto" onClick={handleOrderNow} disabled={product.variants && product.variants.length > 0 && !selectedVariant}>
-                                <Bolt className="mr-2 h-5 w-5" />
-                                Order Now
-                            </Button>
+                             {isOutOfStock ? (
+                                <Button size="lg" className="w-full sm:w-auto" disabled>
+                                    <Ban className="mr-2 h-5 w-5" />
+                                    Out of Stock
+                                </Button>
+                            ) : (
+                                <>
+                                    <Button size="lg" className="w-full sm:w-auto" onClick={handleAddToCart} disabled={isActionDisabled}>
+                                        <ShoppingCart className="mr-2 h-5 w-5" />
+                                        Add to Cart
+                                    </Button>
+                                    <Button size="lg" variant="secondary" className="w-full sm:w-auto" onClick={handleOrderNow} disabled={isActionDisabled}>
+                                        <Bolt className="mr-2 h-5 w-5" />
+                                        Order Now
+                                    </Button>
+                                </>
+                            )}
                         </div>
-                         <p className="text-sm font-medium text-primary mt-4">{product.quantity} units available</p>
+                        
+                        {!isOutOfStock && (
+                            <p className="text-sm font-medium text-primary mt-4">
+                                {hasVariants 
+                                    ? `${selectedVariant?.quantity || 'Select a variant'} units available`
+                                    : `${product.quantity} units available`}
+                            </p>
+                        )}
+
 
                          <Card className="mt-8 bg-secondary/30">
                             <CardContent className="p-6 space-y-4">

@@ -1,4 +1,5 @@
 
+
 import { getProduct } from "@/lib/api";
 import { notFound } from "next/navigation";
 import { ProductDetailsClient } from "@/components/web/ProductDetailsClient";
@@ -52,9 +53,20 @@ export async function generateMetadata(
 export default async function PublicProductDetailsPage({ params }: Props) {
     const product = await getProduct(params.id);
 
-    if (!product || product.isRejected || product.quantity <= 0) {
+    if (!product || product.isRejected) {
         notFound();
     }
+
+    // A product is available if it has no variants and quantity > 0 OR it has at least one variant with quantity > 0
+    const isAvailable = 
+        (!product.variants || product.variants.length === 0) 
+        ? product.quantity > 0 
+        : product.variants.some(v => v.quantity > 0);
+
+    if (!isAvailable) {
+        notFound();
+    }
+
 
     return <ProductDetailsClient product={product} />;
 }

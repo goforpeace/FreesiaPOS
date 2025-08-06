@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +37,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 const variantSchema = z.object({
   color: z.string().min(1, "Color is required."),
   imageUrls: z.array(z.object({ value: z.string().url("Please enter a valid URL.") })).min(1, "At least one image URL is required per variant."),
+  quantity: z.coerce.number().int().min(0, "Quantity cannot be negative."),
 });
 
 const productFormSchema = z.object({
@@ -53,7 +55,7 @@ const productFormSchema = z.object({
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema> & {
-    variants: Array<{ color: string; imageUrls: string[] }>;
+    variants: Array<{ color: string; imageUrls: string[]; quantity: number; }>;
 };
 
 interface ProductFormProps {
@@ -72,7 +74,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         description: initialData?.description || "",
         variants: initialData?.variants?.length 
             ? initialData.variants.map(v => ({...v, imageUrls: v.imageUrls.map(url => ({value: url}))}))
-            : [{ color: "", imageUrls: [{ value: "" }] }],
+            : [{ color: "", imageUrls: [{ value: "" }], quantity: 0 }],
         quantity: initialData?.quantity || 0,
         costPrice: initialData?.costPrice || 0,
         sellPrice: initialData?.sellPrice || 0,
@@ -88,6 +90,17 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
     control: form.control,
     name: "variants"
   });
+
+  const watchedVariants = useWatch({
+    control: form.control,
+    name: 'variants',
+  });
+
+  useEffect(() => {
+    const totalQuantity = watchedVariants.reduce((sum, variant) => sum + (Number(variant.quantity) || 0), 0);
+    form.setValue('quantity', totalQuantity, { shouldValidate: true });
+  }, [watchedVariants, form]);
+
 
   const onSubmit = (values: z.infer<typeof productFormSchema>) => {
     const transformedValues = {
@@ -199,10 +212,11 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                   name="quantity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Quantity</FormLabel>
+                      <FormLabel>Total Quantity</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="25" {...field} />
+                        <Input type="number" placeholder="25" {...field} readOnly className="bg-muted"/>
                       </FormControl>
+                       <FormDescription>Calculated from variants.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -293,7 +307,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
               <CardHeader>
                 <CardTitle>Product Variants</CardTitle>
                  <CardDescription>
-                  Add one or more product variants. Each variant needs a color and at least one image.
+                  Add one or more product variants. Each variant needs a color, quantity and at least one image.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -309,7 +323,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                     variant="outline"
                     size="sm"
                     className="w-full mt-6"
-                    onClick={() => append({ color: "", imageUrls: [{value: ""}] })}
+                    onClick={() => append({ color: "", imageUrls: [{value: ""}], quantity: 0 })}
                   >
                     <PlusCircle className="mr-2 h-4 w-4"/>
                     Add another variant
@@ -393,19 +407,34 @@ function VariantField({ form, variantIndex, removeVariant }: { form: any, varian
                 <Trash2 className="h-4 w-4 text-destructive" />
                 <span className="sr-only">Remove Variant</span>
             </Button>
-            <FormField
-                control={form.control}
-                name={`variants.${variantIndex}.color`}
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Variant Color</FormLabel>
-                    <FormControl>
-                    <Input placeholder="e.g. Cherry Red" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
+             <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name={`variants.${variantIndex}.color`}
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Variant Color</FormLabel>
+                        <FormControl>
+                        <Input placeholder="e.g. Cherry Red" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name={`variants.${variantIndex}.quantity`}
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Quantity</FormLabel>
+                        <FormControl>
+                        <Input type="number" placeholder="10" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+            </div>
             
             <div className="space-y-2">
                 <FormLabel>Variant Images</FormLabel>

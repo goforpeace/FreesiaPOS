@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { create } from 'zustand';
@@ -10,11 +11,12 @@ import { toast } from './use-toast';
 export interface CartItem extends Product {
     orderQuantity: number;
     selectedVariant?: SelectedVariant;
+    variantQuantity?: number; // Stock of the selected variant
 }
 
 interface CartState {
     items: CartItem[];
-    addItem: (product: Product, selectedVariant?: SelectedVariant) => void;
+    addItem: (product: Product, selectedVariant?: SelectedVariant, variantQuantity?: number) => void;
     removeItem: (productId: string, variantColor?: string) => void;
     updateQuantity: (productId: string, quantity: number, variantColor?: string) => void;
     clearCart: () => void;
@@ -26,9 +28,8 @@ export const useCart = create<CartState>()(
     persist(
         (set, get) => ({
             items: [],
-            addItem: (product, selectedVariant) => {
+            addItem: (product, selectedVariant, variantQuantity) => {
                 const currentItems = get().items;
-                // An item is unique by its ID and its selected variant color
                 const existingItem = currentItems.find((item) => 
                     item.id === product.id && item.selectedVariant?.color === selectedVariant?.color
                 );
@@ -46,9 +47,11 @@ export const useCart = create<CartState>()(
                         currency: 'BDT',
                     });
                 };
+                
+                const stock = variantQuantity ?? product.quantity;
 
                 if (existingItem) {
-                    if (existingItem.orderQuantity < product.quantity) {
+                    if (existingItem.orderQuantity < stock) {
                         set({
                             items: currentItems.map((item) =>
                                 (item.id === product.id && item.selectedVariant?.color === selectedVariant?.color)
@@ -62,11 +65,12 @@ export const useCart = create<CartState>()(
                          toast({ title: "Stock limit reached", description: `No more stock available for ${itemIdentifier}.`, variant: "destructive" });
                     }
                 } else {
-                    if (product.quantity > 0) {
+                    if (stock > 0) {
                         const newCartItem: CartItem = { 
                             ...product, 
                             orderQuantity: 1, 
-                            ...(selectedVariant && { selectedVariant })
+                            ...(selectedVariant && { selectedVariant }),
+                            variantQuantity: stock,
                         };
                         set({ items: [...currentItems, newCartItem] });
                         toast({ title: "Added to cart", description: `${itemIdentifier} has been added to your cart.` });
@@ -91,19 +95,21 @@ export const useCart = create<CartState>()(
                 });
             },
             updateQuantity: (productId, quantity, variantColor) => {
-                const product = get().items.find(item => item.id === productId && item.selectedVariant?.color === variantColor);
-                if (!product) return;
+                const productInCart = get().items.find(item => item.id === productId && item.selectedVariant?.color === variantColor);
+                if (!productInCart) return;
+
+                const stock = productInCart.variantQuantity ?? productInCart.quantity;
                 
-                const newQuantity = Math.max(1, Math.min(quantity, product.quantity));
+                const newQuantity = Math.max(1, Math.min(quantity, stock));
 
-                 const itemIdentifier = product.selectedVariant
-                    ? `"${product.name}" (${product.selectedVariant.color})`
-                    : `"${product.name}"`;
+                 const itemIdentifier = productInCart.selectedVariant
+                    ? `"${productInCart.name}" (${productInCart.selectedVariant.color})`
+                    : `"${productInCart.name}"`;
 
-                if (quantity > product.quantity) {
+                if (quantity > stock) {
                      toast({
                         title: "Stock limit reached",
-                        description: `Only ${product.quantity} units of ${itemIdentifier} available.`,
+                        description: `Only ${stock} units of ${itemIdentifier} available.`,
                         variant: "destructive"
                     })
                 }

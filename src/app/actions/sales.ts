@@ -1,9 +1,10 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
-import { doc, runTransaction, collection, getDoc, query, where, getDocs, limit, setDoc } from 'firebase/firestore';
-import type { Sale, Product, Customer, Coupon } from '@/lib/types';
+import { doc, runTransaction, collection, getDoc, query, where, getDocs, limit, setDoc, updateDoc } from 'firebase/firestore';
+import type { Sale, Product, Customer, Coupon, ProductVariant } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
 // Define the shape of the data expected from the form
@@ -66,13 +67,35 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
                     throw new Error(`Product with ID ${item.productId} not found.`);
                 }
                 const productData = productSnap.data() as Product;
-                const currentQuantity = productData.quantity;
+                
+                if (item.variantColor && productData.variants) {
+                    // Variant-based stock check
+                    const variantIndex = productData.variants.findIndex(v => v.color === item.variantColor);
+                    if (variantIndex === -1) {
+                         throw new Error(`Variant "${item.variantColor}" for product "${productData.name}" not found.`);
+                    }
+                    const variant = productData.variants[variantIndex];
+                    if (variant.quantity < item.quantity) {
+                         throw new Error(`Not enough stock for ${productData.name} (${item.variantColor}). Only ${variant.quantity} left.`);
+                    }
+                    
+                    const newVariantQuantity = variant.quantity - item.quantity;
+                    const newTotalQuantity = productData.quantity - item.quantity;
+                    
+                    const newVariants = [...productData.variants];
+                    newVariants[variantIndex] = { ...variant, quantity: newVariantQuantity };
+                    
+                    transaction.update(productRef, { variants: newVariants, quantity: newTotalQuantity });
 
-                if (currentQuantity < item.quantity) {
-                    throw new Error(`Not enough stock for ${productData.name}. Only ${currentQuantity} left.`);
+                } else {
+                    // Non-variant stock check
+                    const currentQuantity = productData.quantity;
+                    if (currentQuantity < item.quantity) {
+                        throw new Error(`Not enough stock for ${productData.name}. Only ${currentQuantity} left.`);
+                    }
+                    const newQuantity = currentQuantity - item.quantity;
+                    transaction.update(productRef, { quantity: newQuantity });
                 }
-                const newQuantity = currentQuantity - item.quantity;
-                transaction.update(productRef, { quantity: newQuantity });
             }
 
             // 3. Create or update customer

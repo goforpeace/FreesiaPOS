@@ -17,6 +17,7 @@ export type ProductTag = typeof productTags[number];
 export interface ProductVariant {
   color: string;
   imageUrls: string[];
+  quantity: number;
 }
 
 export interface Product {
@@ -79,6 +80,7 @@ export interface Sale {
 export interface CartItem extends Product {
     orderQuantity: number;
     selectedVariant?: SelectedVariant;
+    variantQuantity?: number;
 }
 
 export interface Review {
