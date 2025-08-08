@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { PlusCircle, Search, Calendar as CalendarIcon, Download } from "lucide-react";
 import { format } from "date-fns";
@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { getSales } from "@/lib/api";
 import { SalesActions } from "@/components/sales/SalesActions";
@@ -35,6 +36,7 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [selectedSaleIds, setSelectedSaleIds] = useState<string[]>([]);
 
   const refreshSales = async () => {
     setLoading(true);
@@ -52,14 +54,13 @@ export default function SalesPage() {
     refreshSales();
   }, []);
 
-  const filteredSales = sales.filter(sale => {
+  const filteredSales = useMemo(() => sales.filter(sale => {
     const saleDate = new Date(sale.date);
     const inDateRange =
       !dateRange ||
-      (dateRange.from &&
-        dateRange.to &&
-        saleDate >= dateRange.from &&
-        saleDate <= dateRange.to);
+      !dateRange.from ||
+      !dateRange.to ||
+      (saleDate >= dateRange.from && saleDate <= dateRange.to);
 
     const matchesSearch =
       searchTerm === "" ||
@@ -68,7 +69,25 @@ export default function SalesPage() {
       (sale.customerPhone && sale.customerPhone.includes(searchTerm));
 
     return inDateRange && matchesSearch;
-  });
+  }), [sales, searchTerm, dateRange]);
+  
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedSaleIds(filteredSales.map(s => s.id));
+    } else {
+      setSelectedSaleIds([]);
+    }
+  }
+
+  const handleSelectRow = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedSaleIds(prev => [...prev, id]);
+    } else {
+      setSelectedSaleIds(prev => prev.filter(saleId => saleId !== id));
+    }
+  }
+
+  const isAllSelected = filteredSales.length > 0 && selectedSaleIds.length === filteredSales.length;
 
   const csvHeaders = [
     { label: "Invoice #", key: "id" },
@@ -82,7 +101,14 @@ export default function SalesPage() {
     { label: "Total", key: "total" },
   ];
 
-  const csvData = filteredSales.map(sale => ({
+  const allSalesCsvData = filteredSales.map(sale => ({
+      ...sale,
+      date: format(new Date(sale.date), "yyyy-MM-dd")
+  }));
+
+  const selectedSalesData = sales
+    .filter(sale => selectedSaleIds.includes(sale.id))
+    .map(sale => ({
       ...sale,
       date: format(new Date(sale.date), "yyyy-MM-dd")
   }));
@@ -137,17 +163,30 @@ export default function SalesPage() {
                 />
                 </PopoverContent>
             </Popover>
-            <Button variant="outline" asChild>
+             <Button variant="outline" asChild>
                 <CSVLink
-                    data={csvData}
+                    data={allSalesCsvData}
                     headers={csvHeaders}
-                    filename={"sales-report.csv"}
+                    filename={"all-sales-report.csv"}
                     className="flex items-center gap-2"
                 >
                     <Download className="h-4 w-4" />
-                    <span>Download CSV</span>
+                    <span>Export All</span>
                 </CSVLink>
             </Button>
+            {selectedSaleIds.length > 0 && (
+                 <Button variant="secondary" asChild>
+                    <CSVLink
+                        data={selectedSalesData}
+                        headers={csvHeaders}
+                        filename={"selected-sales-report.csv"}
+                        className="flex items-center gap-2"
+                    >
+                        <Download className="h-4 w-4" />
+                        <span>Export Selected ({selectedSaleIds.length})</span>
+                    </CSVLink>
+                </Button>
+            )}
             <Button asChild>
                 <Link href="/sales/new">
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -161,6 +200,13 @@ export default function SalesPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Checkbox 
+                    checked={isAllSelected}
+                    onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                    aria-label="Select all"
+                  />
+                </TableHead>
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Phone</TableHead>
@@ -176,6 +222,7 @@ export default function SalesPage() {
               {loading ? (
                  [...Array(5)].map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-5" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-28" /></TableCell>
@@ -188,8 +235,16 @@ export default function SalesPage() {
               ) : (
                 filteredSales.map((sale) => {
                   const status = sale.status || 'pending';
+                  const isSelected = selectedSaleIds.includes(sale.id);
                   return (
-                    <TableRow key={sale.id} className={status === 'pending' ? 'bg-muted/50' : ''}>
+                    <TableRow key={sale.id} className={status === 'pending' ? 'bg-muted/50' : ''} data-state={isSelected ? "selected" : ""}>
+                      <TableCell>
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={(checked) => handleSelectRow(sale.id, Boolean(checked))}
+                            aria-label={`Select sale ${sale.id}`}
+                           />
+                      </TableCell>
                       <TableCell className="font-medium">{sale.id}</TableCell>
                       <TableCell>{sale.customerName}</TableCell>
                       <TableCell>{sale.customerPhone}</TableCell>
