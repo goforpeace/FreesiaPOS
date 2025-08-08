@@ -389,10 +389,9 @@ const ProductCard = ({ product }: { product: Product }) => {
     const handleOrderNow = () => {
         const defaultVariant = product.variants?.find(v => v.quantity > 0) || product.variants?.[0];
         if (product.variants && !defaultVariant) {
-             // Handle case where all variants are out of stock
             return;
         }
-        addItem(product, defaultVariant, defaultVariant?.quantity);
+        addItem(product, defaultVariant, defaultVariant?.quantity, false);
         router.push('/checkout');
     }
 
@@ -401,7 +400,7 @@ const ProductCard = ({ product }: { product: Product }) => {
         if (product.variants && !defaultVariant) {
             return;
         }
-        addItem(product, defaultVariant, defaultVariant?.quantity);
+        addItem(product, defaultVariant, defaultVariant?.quantity, true);
     }
     
     const hasDiscount = product.discountedPrice && product.discountedPrice > 0;
@@ -409,7 +408,6 @@ const ProductCard = ({ product }: { product: Product }) => {
     const originalPrice = product.sellPrice;
     const TagIcon = product.tag ? tagIconMap[product.tag] : null;
 
-    // A minimal, base64-encoded transparent GIF
     const BLUR_DATA_URL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
     const isOutOfStock = product.quantity <= 0;
@@ -482,3 +480,4 @@ const ProductCardSkeleton = () => (
     
 
     
+

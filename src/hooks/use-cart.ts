@@ -17,7 +17,8 @@ interface CartState {
     items: CartItem[];
     isCartOpen: boolean;
     setIsCartOpen: (isOpen: boolean) => void;
-    addItem: (product: Product, selectedVariant?: SelectedVariant, variantQuantity?: number) => void;
+    openCart: () => void;
+    addItem: (product: Product, selectedVariant?: SelectedVariant, variantQuantity?: number, openDrawer?: boolean) => void;
     removeItem: (productId: string, variantColor?: string) => void;
     updateQuantity: (productId: string, quantity: number, variantColor?: string) => void;
     clearCart: () => void;
@@ -31,7 +32,8 @@ export const useCart = create<CartState>()(
             items: [],
             isCartOpen: false,
             setIsCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
-            addItem: (product, selectedVariant, variantQuantity) => {
+            openCart: () => set({ isCartOpen: true }),
+            addItem: (product, selectedVariant, variantQuantity, openDrawer = true) => {
                 const currentItems = get().items;
                 const existingItem = currentItems.find((item) => 
                     item.id === product.id && item.selectedVariant?.color === selectedVariant?.color
@@ -82,8 +84,9 @@ export const useCart = create<CartState>()(
                         toast({ title: "Out of stock", description: `${itemIdentifier} is currently out of stock.`, variant: "destructive" });
                     }
                 }
-                // Open the cart after adding an item
-                get().setIsCartOpen(true);
+                if (openDrawer) {
+                    get().setIsCartOpen(true);
+                }
             },
             removeItem: (productId, variantColor) => {
                  const itemToRemove = get().items.find(item => item.id === productId && item.selectedVariant?.color === variantColor);

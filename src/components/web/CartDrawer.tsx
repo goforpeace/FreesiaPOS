@@ -29,13 +29,19 @@ export function CartDrawer() {
 
   return (
     <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-      <SheetContent className="flex w-full flex-col pr-0 sm:max-w-lg">
-        <SheetHeader className="space-y-2.5 pr-6">
+      <SheetContent className="flex w-full flex-col p-0 sm:max-w-lg">
+        <SheetHeader className="p-6 pb-4 flex flex-row items-center justify-between space-y-0">
           <SheetTitle>Cart ({totalItems()})</SheetTitle>
+           <SheetClose asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <X className="h-5 w-5" />
+                <span className="sr-only">Close</span>
+              </Button>
+            </SheetClose>
         </SheetHeader>
         {items.length > 0 ? (
             <>
-                <ScrollArea className="flex-1 pr-6">
+                <ScrollArea className="flex-1 px-6">
                      <div className="space-y-4">
                       {items.map(item => {
                          const price = item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice;
@@ -74,7 +80,7 @@ export function CartDrawer() {
                         })}
                     </div>
                 </ScrollArea>
-                <div className="space-y-4 pr-6">
+                <div className="space-y-4 p-6 border-t">
                     <Separator />
                     <div className="space-y-1.5 text-sm">
                         <div className="flex">
@@ -94,7 +100,7 @@ export function CartDrawer() {
                 </div>
             </>
         ) : (
-             <div className="flex h-full flex-col items-center justify-center space-y-1">
+             <div className="flex h-full flex-col items-center justify-center space-y-1 px-6">
                 <div
                     aria-hidden="true"
                     className="relative mb-4 h-40 w-40 text-muted-foreground"

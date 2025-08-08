@@ -78,7 +78,7 @@ export function ProductDetailsClient({ product }: { product: Product }) {
             color: selectedVariant.color,
             imageUrl: selectedVariant.imageUrls[0]
         };
-        addItem(product, variantToSave, selectedVariant.quantity);
+        addItem(product, variantToSave, selectedVariant.quantity, true);
     }
     
     const handleOrderNow = () => {
@@ -87,7 +87,7 @@ export function ProductDetailsClient({ product }: { product: Product }) {
             color: selectedVariant.color,
             imageUrl: selectedVariant.imageUrls[0]
         };
-        addItem(product, variantToSave, selectedVariant.quantity);
+        addItem(product, variantToSave, selectedVariant.quantity, false);
         router.push('/checkout');
     }
     
