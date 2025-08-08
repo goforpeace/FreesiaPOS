@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { create } from 'zustand';
@@ -16,6 +15,9 @@ export interface CartItem extends Product {
 
 interface CartState {
     items: CartItem[];
+    isCartOpen: boolean;
+    openCart: () => void;
+    closeCart: () => void;
     addItem: (product: Product, selectedVariant?: SelectedVariant, variantQuantity?: number) => void;
     removeItem: (productId: string, variantColor?: string) => void;
     updateQuantity: (productId: string, quantity: number, variantColor?: string) => void;
@@ -28,6 +30,9 @@ export const useCart = create<CartState>()(
     persist(
         (set, get) => ({
             items: [],
+            isCartOpen: false,
+            openCart: () => set({ isCartOpen: true }),
+            closeCart: () => set({ isCartOpen: false }),
             addItem: (product, selectedVariant, variantQuantity) => {
                 const currentItems = get().items;
                 const existingItem = currentItems.find((item) => 
@@ -48,10 +53,10 @@ export const useCart = create<CartState>()(
                     });
                 };
                 
-                const stock = variantQuantity ?? product.quantity;
+                const stock = selectedVariant ? variantQuantity : product.quantity;
 
                 if (existingItem) {
-                    if (existingItem.orderQuantity < stock) {
+                    if (stock && existingItem.orderQuantity < stock) {
                         set({
                             items: currentItems.map((item) =>
                                 (item.id === product.id && item.selectedVariant?.color === selectedVariant?.color)
@@ -65,7 +70,7 @@ export const useCart = create<CartState>()(
                          toast({ title: "Stock limit reached", description: `No more stock available for ${itemIdentifier}.`, variant: "destructive" });
                     }
                 } else {
-                    if (stock > 0) {
+                    if (stock && stock > 0) {
                         const newCartItem: CartItem = { 
                             ...product, 
                             orderQuantity: 1, 
@@ -79,6 +84,8 @@ export const useCart = create<CartState>()(
                         toast({ title: "Out of stock", description: `${itemIdentifier} is currently out of stock.`, variant: "destructive" });
                     }
                 }
+                // Open the cart after adding an item
+                get().openCart();
             },
             removeItem: (productId, variantColor) => {
                  const itemToRemove = get().items.find(item => item.id === productId && item.selectedVariant?.color === variantColor);

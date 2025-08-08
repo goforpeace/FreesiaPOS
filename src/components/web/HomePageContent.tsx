@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -219,8 +220,8 @@ export function HomePageContent() {
     return filtered;
   }, [products, searchQuery, sortOption]);
 
-  const flashSaleProducts = useMemo(() => products.filter(p => p.isFlashSale), [products]);
-  const newArrivalProducts = useMemo(() => products.filter(p => p.isNewArrival), [products]);
+  const flashSaleProducts = useMemo(() => sortedAndFilteredProducts.filter(p => p.isFlashSale), [sortedAndFilteredProducts]);
+  const newArrivalProducts = useMemo(() => sortedAndFilteredProducts.filter(p => p.isNewArrival), [sortedAndFilteredProducts]);
   
   const allProductsToShow = sortedAndFilteredProducts;
 
@@ -265,41 +266,43 @@ export function HomePageContent() {
          {/* Search Bar */}
         <section className="py-8 px-4 md:px-8 bg-muted/50">
           <div className="max-w-2xl mx-auto">
-            <Popover open={searchQuery.length > 0}>
-                <PopoverAnchor>
-                    <div className="relative">
-                        <Input 
-                            type="search" 
-                            placeholder="Search by product name..."
-                            className="w-full pr-12 h-12 text-lg"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center text-muted-foreground">
-                            <Search className="h-6 w-6" />
-                        </div>
-                    </div>
-                </PopoverAnchor>
-                <PopoverContent className="w-[var(--radix-popover-anchor-width)] max-h-[400px] overflow-y-auto p-2">
-                    <div className="space-y-2">
-                    {sortedAndFilteredProducts.length > 0 ? (
-                        sortedAndFilteredProducts.map(product => (
-                        <Link key={product.id} href={`/product/${product.id}`} className="block p-2 rounded-md hover:bg-muted">
-                            <div className="flex items-center gap-4">
-                                <Image src={product.imageUrls?.[0] || 'https://placehold.co/40x40.png'} alt={product.name} width={40} height={40} className="rounded-md object-cover"/>
-                                <div>
-                                    <p className="font-semibold text-sm">{product.name}</p>
-                                    <p className="text-xs text-muted-foreground">{formatCurrency(product.sellPrice)}</p>
-                                </div>
+             <div className="relative">
+                <Popover open={searchQuery.length > 0}>
+                    <PopoverAnchor asChild>
+                        <div className="relative">
+                            <Input 
+                                type="search" 
+                                placeholder="Search by product name..."
+                                className="w-full pr-12 h-12 text-lg"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                             <div className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center text-muted-foreground">
+                                <Search className="h-6 w-6" />
                             </div>
-                        </Link>
-                        ))
-                    ) : (
-                        <p className="p-4 text-center text-sm text-muted-foreground">No products found.</p>
-                    )}
-                    </div>
-                </PopoverContent>
-            </Popover>
+                        </div>
+                    </PopoverAnchor>
+                    <PopoverContent className="w-[var(--radix-popover-anchor-width)] max-h-[400px] overflow-y-auto p-2">
+                        <div className="space-y-2">
+                        {sortedAndFilteredProducts.length > 0 ? (
+                            sortedAndFilteredProducts.map(product => (
+                            <Link key={product.id} href={`/product/${product.id}`} className="block p-2 rounded-md hover:bg-muted">
+                                <div className="flex items-center gap-4">
+                                    <Image src={product.imageUrls?.[0] || 'https://placehold.co/40x40.png'} alt={product.name} width={40} height={40} className="rounded-md object-cover"/>
+                                    <div>
+                                        <p className="font-semibold text-sm">{product.name}</p>
+                                        <p className="text-xs text-muted-foreground">{formatCurrency(product.sellPrice)}</p>
+                                    </div>
+                                </div>
+                            </Link>
+                            ))
+                        ) : (
+                            <p className="p-4 text-center text-sm text-muted-foreground">No products found.</p>
+                        )}
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </div>
           </div>
         </section>
 
@@ -380,12 +383,25 @@ const tagIconMap: Record<ProductTag, React.ElementType> = {
 };
 
 const ProductCard = ({ product }: { product: Product }) => {
-    const { addItem } = useCart();
+    const { addItem, openCart } = useCart();
     const router = useRouter();
 
     const handleOrderNow = () => {
-        addItem(product);
+        const defaultVariant = product.variants?.find(v => v.quantity > 0) || product.variants?.[0];
+        if (product.variants && !defaultVariant) {
+             // Handle case where all variants are out of stock
+            return;
+        }
+        addItem(product, defaultVariant, defaultVariant?.quantity);
         router.push('/checkout');
+    }
+
+    const handleAddToCart = () => {
+        const defaultVariant = product.variants?.find(v => v.quantity > 0) || product.variants?.[0];
+        if (product.variants && !defaultVariant) {
+            return;
+        }
+        addItem(product, defaultVariant, defaultVariant?.quantity);
     }
     
     const hasDiscount = product.discountedPrice && product.discountedPrice > 0;
@@ -395,6 +411,8 @@ const ProductCard = ({ product }: { product: Product }) => {
 
     // A minimal, base64-encoded transparent GIF
     const BLUR_DATA_URL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+    const isOutOfStock = product.quantity <= 0;
 
     return (
         <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)] h-full relative">
@@ -416,6 +434,11 @@ const ProductCard = ({ product }: { product: Product }) => {
                             placeholder="blur"
                             blurDataURL={BLUR_DATA_URL}
                         />
+                         {isOutOfStock && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                <span className="text-white font-bold text-lg">Out of Stock</span>
+                            </div>
+                        )}
                     </div>
                     <div className="p-2 md:p-3 border-t border-border">
                         <h3 className="text-xs md:text-sm font-headline font-semibold text-card-foreground truncate">{product.name}</h3>
@@ -428,11 +451,11 @@ const ProductCard = ({ product }: { product: Product }) => {
                     </div>
                 </CardContent>
                 <CardFooter className="p-2 md:p-3 pt-0 mt-auto flex-col gap-1.5 md:gap-2">
-                     <Button className="w-full h-8 md:h-9 text-xs md:text-sm" variant="secondary" onClick={(e) => { e.preventDefault(); addItem(product); }}>
+                     <Button className="w-full h-8 md:h-9 text-xs md:text-sm" variant="secondary" onClick={(e) => { e.preventDefault(); handleAddToCart(); }} disabled={isOutOfStock}>
                         <ShoppingCart className="mr-2 h-4 w-4" />
                         Add to Cart
                     </Button>
-                    <Button className="w-full h-8 md:h-9 text-xs md:text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={(e) => { e.preventDefault(); handleOrderNow(); }}>
+                    <Button className="w-full h-8 md:h-9 text-xs md:text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={(e) => { e.preventDefault(); handleOrderNow(); }} disabled={isOutOfStock}>
                         <Bolt className="mr-2 h-4 w-4" />
                         Order Now
                     </Button>

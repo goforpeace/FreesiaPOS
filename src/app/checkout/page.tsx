@@ -227,6 +227,7 @@ export default function CheckoutPage() {
                       {items.map(item => {
                          const price = item.discountedPrice && item.discountedPrice > 0 ? item.discountedPrice : item.sellPrice;
                          const imageUrl = item.selectedVariant?.imageUrl || item.imageUrls?.[0] || 'https://placehold.co/64x64.png';
+                         const stock = item.variantQuantity ?? item.quantity;
                         
                          return (
                             <div key={`${item.id}-${item.selectedVariant?.color}`} className="flex items-center gap-4">
@@ -249,7 +250,7 @@ export default function CheckoutPage() {
                                     onChange={(e) => handleUpdateQuantity(item, parseInt(e.target.value))}
                                     className="w-16 h-8 text-center"
                                     min="1"
-                                    max={item.quantity}
+                                    max={stock}
                                 />
                             </div>
                             <p className="font-semibold w-24 text-right">{formatCurrency(price * item.orderQuantity)}</p>

@@ -161,6 +161,7 @@ export function ProductDetailsClient({ product }: { product: Product }) {
                                             onClick={() => setSelectedVariant(variant)} 
                                             className={cn("h-10 w-10 rounded-full border-2 p-0.5 relative", selectedVariant?.color === variant.color ? 'border-primary' : 'border-border')}
                                             title={`${variant.color} - ${variant.quantity} in stock`}
+                                            disabled={variant.quantity <= 0}
                                         >
                                             <Image src={variant.imageUrls[0]} alt={variant.color} width={36} height={36} className="rounded-full object-cover"/>
                                             {variant.quantity <= 0 && <div className="absolute inset-0 bg-white/70 rounded-full flex items-center justify-center"><Ban className="h-5 w-5 text-destructive"/></div>}
