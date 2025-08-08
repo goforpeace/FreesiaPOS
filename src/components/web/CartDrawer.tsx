@@ -7,13 +7,13 @@ import { X, Trash2, ShoppingCart } from "lucide-react";
 import { useCart, CartItem } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/utils";
 
 export function CartDrawer() {
-  const { items, removeItem, updateQuantity, totalPrice, totalItems, isCartOpen, closeCart } = useCart();
+  const { items, removeItem, updateQuantity, totalPrice, totalItems, isCartOpen, setIsCartOpen } = useCart();
 
   const handleUpdateQuantity = (item: CartItem, quantity: number) => {
     updateQuantity(item.id, quantity, item.selectedVariant?.color);
@@ -24,11 +24,11 @@ export function CartDrawer() {
   };
   
   const handleCheckout = () => {
-    closeCart();
+    setIsCartOpen(false);
   }
 
   return (
-    <Sheet open={isCartOpen} onOpenChange={closeCart}>
+    <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
       <SheetContent className="flex w-full flex-col pr-0 sm:max-w-lg">
         <SheetHeader className="space-y-2.5 pr-6">
           <SheetTitle>Cart ({totalItems()})</SheetTitle>
@@ -107,9 +107,14 @@ export function CartDrawer() {
                     />
                 </div>
                 <div className="text-xl font-semibold">Your cart is empty</div>
-                <div className="text-sm text-center text-muted-foreground">
-                   Looks like you haven&apos;t added anything to your cart yet.
+                 <div className="text-sm text-center text-muted-foreground max-w-xs">
+                   Looks like you haven&apos;t added anything. Let&apos;s get you started!
                 </div>
+                 <SheetClose asChild>
+                    <Button asChild className="mt-6">
+                        <Link href="#all-products">Continue Shopping</Link>
+                    </Button>
+                 </SheetClose>
              </div>
         )}
       </SheetContent>

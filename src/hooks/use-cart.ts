@@ -16,8 +16,7 @@ export interface CartItem extends Product {
 interface CartState {
     items: CartItem[];
     isCartOpen: boolean;
-    openCart: () => void;
-    closeCart: () => void;
+    setIsCartOpen: (isOpen: boolean) => void;
     addItem: (product: Product, selectedVariant?: SelectedVariant, variantQuantity?: number) => void;
     removeItem: (productId: string, variantColor?: string) => void;
     updateQuantity: (productId: string, quantity: number, variantColor?: string) => void;
@@ -31,8 +30,7 @@ export const useCart = create<CartState>()(
         (set, get) => ({
             items: [],
             isCartOpen: false,
-            openCart: () => set({ isCartOpen: true }),
-            closeCart: () => set({ isCartOpen: false }),
+            setIsCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
             addItem: (product, selectedVariant, variantQuantity) => {
                 const currentItems = get().items;
                 const existingItem = currentItems.find((item) => 
@@ -85,7 +83,7 @@ export const useCart = create<CartState>()(
                     }
                 }
                 // Open the cart after adding an item
-                get().openCart();
+                get().setIsCartOpen(true);
             },
             removeItem: (productId, variantColor) => {
                  const itemToRemove = get().items.find(item => item.id === productId && item.selectedVariant?.color === variantColor);

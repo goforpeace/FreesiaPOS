@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -9,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useState, useEffect } from 'react';
 import { useCart } from '@/hooks/use-cart';
+import { ClientOnly } from '@/components/ui/client-only';
 
 const navLinks = [
     { name: 'Flash Sales', href: '/#flash-sales' },
@@ -18,13 +18,8 @@ const navLinks = [
 
 export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const { totalItems, openCart } = useCart();
-    const [isClient, setIsClient] = useState(false);
+    const { totalItems, setIsCartOpen } = useCart();
     
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
     const cartCount = totalItems();
 
     return (
@@ -49,14 +44,16 @@ export function Header() {
                 </nav>
 
                 <div className="flex items-center gap-2 sm:gap-4">
-                     <Button variant="ghost" size="icon" onClick={openCart}>
+                     <Button variant="ghost" size="icon" onClick={() => setIsCartOpen(true)}>
                         <div className="relative">
                             <ShoppingBag className="h-6 w-6" />
-                            {isClient && cartCount > 0 && (
-                                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                                    {cartCount}
-                                </span>
-                            )}
+                            <ClientOnly>
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </ClientOnly>
                         </div>
                         <span className="sr-only">Shopping Cart</span>
                     </Button>
@@ -103,5 +100,3 @@ export function Header() {
         </header>
     );
 }
-
-    
