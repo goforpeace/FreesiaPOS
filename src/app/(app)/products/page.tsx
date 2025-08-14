@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { PlusCircle, Search } from "lucide-react";
+import { PlusCircle, Search, ClipboardCopy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import {
@@ -30,12 +30,14 @@ import { ProductActions } from "@/components/products/ProductActions";
 import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("createdAt-desc");
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const refreshProducts = useCallback(async () => {
     try {
@@ -85,6 +87,15 @@ export default function ProductsPage() {
   const filteredProducts = sortedProducts.filter(product =>
     !product.isRejected && product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const copyProductLink = (productId: string) => {
+    const url = `${window.location.origin}/product/${productId}`;
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "Link Copied!",
+      description: "The product link has been copied to your clipboard.",
+    });
+  }
 
   return (
     <>
@@ -133,10 +144,9 @@ export default function ProductsPage() {
                 </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Link</TableHead>
                 <TableHead className="hidden md:table-cell text-right">Quantity</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Cost Price</TableHead>
                 <TableHead className="hidden md:table-cell text-right">Sales Price</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Discount Price</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -151,9 +161,8 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell><Skeleton className="h-5 w-3/4" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-1/2" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-24" /></TableCell>
                     <TableCell className="hidden md:table-cell text-right"><Skeleton className="h-5 w-10 ml-auto" /></TableCell>
-                    <TableCell className="hidden md:table-cell text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
-                    <TableCell className="hidden md:table-cell text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
                     <TableCell className="hidden md:table-cell text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                   </TableRow>
@@ -184,12 +193,14 @@ export default function ProductsPage() {
                         <Badge variant="outline">Out of Stock</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell text-right">{product.quantity}</TableCell>
-                    <TableCell className="hidden md:table-cell text-right">{formatCurrency(product.costPrice)}</TableCell>
-                    <TableCell className="hidden md:table-cell text-right">{formatCurrency(product.sellPrice)}</TableCell>
-                    <TableCell className="hidden md:table-cell text-right font-semibold text-destructive">
-                        {product.discountedPrice && product.discountedPrice > 0 ? formatCurrency(product.discountedPrice) : ''}
+                    <TableCell>
+                      <Button variant="outline" size="sm" onClick={() => copyProductLink(product.id)}>
+                          <ClipboardCopy className="mr-2 h-3 w-3" />
+                          Copy Link
+                      </Button>
                     </TableCell>
+                    <TableCell className="hidden md:table-cell text-right">{product.quantity}</TableCell>
+                    <TableCell className="hidden md:table-cell text-right">{formatCurrency(product.sellPrice)}</TableCell>
                     <TableCell>
                       <ProductActions product={product} onProductUpdate={refreshProducts} />
                     </TableCell>
@@ -203,3 +214,4 @@ export default function ProductsPage() {
     </>
   );
 }
+

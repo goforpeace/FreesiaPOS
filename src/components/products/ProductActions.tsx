@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MoreHorizontal, Pencil, Trash2, XCircle, Eye } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, XCircle, Eye, ClipboardCopy } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
