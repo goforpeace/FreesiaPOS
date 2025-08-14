@@ -98,6 +98,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
   const { shippingCost, discount } = form.watch()
   
   const handleSelectProduct = (productId: string) => {
+    if (!productId) return;
     const product = allProducts.find(p => p.id === productId);
     if (!product) return;
 
@@ -251,7 +252,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
             <Card>
               <CardHeader><CardTitle>Products</CardTitle></CardHeader>
               <CardContent>
-                <div className="flex gap-2 mb-4">
+                <div className="flex flex-col md:flex-row gap-2 mb-4">
                    <div className="relative flex-grow">
                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                      <Input 
@@ -262,11 +263,20 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
                      />
                    </div>
                   <Select value={selectedProduct} onValueChange={handleSelectProduct}>
-                    <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select product" /></SelectTrigger>
+                    <SelectTrigger className="w-full md:w-1/2"><SelectValue placeholder="Select product" /></SelectTrigger>
                     <SelectContent>
                       {filteredProducts.map(p => (
                         <SelectItem key={p.id} value={p.id}>
-                          {p.name}
+                          <div className="flex items-center gap-3">
+                            <Image 
+                              src={p.imageUrls?.[0] || 'https://placehold.co/40x40.png'}
+                              alt={p.name}
+                              width={40}
+                              height={40}
+                              className="rounded-md object-cover"
+                            />
+                            <span>{p.name}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
