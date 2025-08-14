@@ -1,17 +1,18 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { PlusCircle, X } from "lucide-react"
+import { PlusCircle, X, Search } from "lucide-react"
 import Image from "next/image"
 
-import type { Product, Sale, SaleItem } from "@/lib/types"
+import type { Product, Sale, SaleItem, ProductVariant, SelectedVariant } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -35,6 +36,13 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 
 const invoiceFormSchema = z.object({
@@ -62,6 +70,10 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
 
   const [items, setItems] = useState<SaleItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<string>("")
+  const [productSearch, setProductSearch] = useState("");
+  const [variantModalOpen, setVariantModalOpen] = useState(false);
+  const [productForVariantSelection, setProductForVariantSelection] = useState<Product | null>(null);
+
   const [originalItems, setOriginalItems] = useState<SaleItem[]>([])
 
   const form = useForm<InvoiceFormValues>({
@@ -84,54 +96,103 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
   }, [initialData, form]);
 
   const { shippingCost, discount } = form.watch()
+  
+  const handleSelectProduct = (productId: string) => {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
 
-  const handleAddProduct = () => {
-    const product = allProducts.find(p => p.id === selectedProduct)
-    if (product && !items.find(item => item.productId === product.id)) {
-      setItems([...items, {
-        productId: product.id,
-        productName: product.name,
-        productDescription: product.description,
-        quantity: 1,
-        unitPrice: product.sellPrice,
-        imageUrl: product.imageUrls?.[0],
-      }])
-      setSelectedProduct("")
+    if (product.variants && product.variants.length > 0) {
+      setProductForVariantSelection(product);
+      setVariantModalOpen(true);
+    } else {
+      handleAddProduct(product);
     }
+    setSelectedProduct("");
+  };
+
+  const handleAddProduct = (product: Product, variant?: ProductVariant) => {
+    const isAlreadyInCart = items.some(item => 
+      item.productId === product.id && item.variant?.color === variant?.color
+    );
+
+    if (isAlreadyInCart) {
+      toast({
+        title: "Product already added",
+        description: variant 
+          ? `${product.name} (${variant.color}) is already in the invoice.`
+          : `${product.name} is already in the invoice.`,
+        variant: "destructive",
+      })
+      return;
+    }
+
+    setItems([...items, {
+      productId: product.id,
+      productName: product.name,
+      productDescription: product.description,
+      quantity: 1,
+      unitPrice: product.discountedPrice && product.discountedPrice > 0 ? product.discountedPrice : product.sellPrice,
+      imageUrl: variant?.imageUrls?.[0] || product.imageUrls?.[0],
+      variant: variant ? { color: variant.color, imageUrl: variant.imageUrls[0] } : undefined,
+    }]);
+
+    setVariantModalOpen(false);
+    setProductForVariantSelection(null);
   }
 
-  const handleRemoveItem = (productId: string) => {
-    setItems(items.filter(item => item.productId !== productId))
+  const handleRemoveItem = (productId: string, variantColor?: string) => {
+    setItems(items.filter(item => !(item.productId === productId && item.variant?.color === variantColor)));
   }
   
-  const handleItemChange = (productId: string, field: keyof SaleItem, value: string | number) => {
-    setItems(items.map(item => item.productId === productId ? { ...item, [field]: value } : item));
+  const handleItemChange = (productId: string, variantColor: string | undefined, field: keyof SaleItem, value: string | number) => {
+    setItems(items.map(item => 
+      (item.productId === productId && item.variant?.color === variantColor) 
+      ? { ...item, [field]: value } 
+      : item
+    ));
   };
 
 
-  const handleQuantityChange = (productId: string, quantity: number) => {
+  const handleQuantityChange = (productId: string, variantColor: string | undefined, quantity: number) => {
     const product = allProducts.find(p => p.id === productId)
     if (!product) return
 
-    const originalItem = originalItems.find(i => i.productId === productId);
+    const originalItem = originalItems.find(i => i.productId === productId && i.variant?.color === variantColor);
     const originalQuantity = originalItem ? originalItem.quantity : 0;
     
-    const availableQuantity = (product.quantity || 0) + originalQuantity;
+    let availableQuantity: number;
+    if (variantColor && product.variants) {
+        const variant = product.variants.find(v => v.color === variantColor);
+        availableQuantity = (variant?.quantity || 0) + originalQuantity;
+    } else {
+        availableQuantity = (product.quantity || 0) + originalQuantity;
+    }
+    
     const newQuantity = Math.max(1, Math.min(quantity, availableQuantity))
     
     if (quantity > availableQuantity) {
         toast({
             title: "Stock limit reached",
-            description: `Only ${availableQuantity} units of ${product.name} available.`,
+            description: `Only ${availableQuantity} units of ${product.name} ${variantColor ? `(${variantColor})` : ''} available.`,
             variant: "destructive"
         })
     }
     
-    setItems(items.map(item => item.productId === productId ? { ...item, quantity: newQuantity } : item))
+    setItems(items.map(item => 
+      (item.productId === productId && item.variant?.color === variantColor) 
+      ? { ...item, quantity: newQuantity } 
+      : item
+    ));
   }
 
   const subtotal = items.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0)
   const total = subtotal + Number(shippingCost || 0) - Number(discount || 0);
+
+  const filteredProducts = useMemo(() => {
+    return availableProducts.filter(p => 
+      p.name.toLowerCase().includes(productSearch.toLowerCase())
+    );
+  }, [availableProducts, productSearch]);
 
   async function handleFormSubmit(data: InvoiceFormValues) {
     if(items.length === 0) {
@@ -182,6 +243,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
   }
 
   return (
+    <Dialog open={variantModalOpen} onOpenChange={setVariantModalOpen}>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -190,30 +252,25 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
               <CardHeader><CardTitle>Products</CardTitle></CardHeader>
               <CardContent>
                 <div className="flex gap-2 mb-4">
-                  <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                    <SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger>
+                   <div className="relative flex-grow">
+                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                     <Input 
+                        placeholder="Search products..."
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        className="pl-8"
+                     />
+                   </div>
+                  <Select value={selectedProduct} onValueChange={handleSelectProduct}>
+                    <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select product" /></SelectTrigger>
                     <SelectContent>
-                      {availableProducts.map(p => (
-                        <SelectItem key={p.id} value={p.id} disabled={!!items.find(item => item.productId === p.id)}>
-                          <div className="flex items-center gap-3">
-                            <Image 
-                                src={p.imageUrls?.[0] || 'https://placehold.co/40x40.png'} 
-                                alt={p.name} 
-                                width={40} 
-                                height={40} 
-                                className="rounded-md object-cover"
-                                data-ai-hint="product image"
-                            />
-                            <div>
-                                <p>{p.name}</p>
-                                <p className="text-xs text-muted-foreground">{formatCurrency(p.sellPrice)} - {p.quantity} left</p>
-                            </div>
-                          </div>
+                      {filteredProducts.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button type="button" onClick={handleAddProduct} disabled={!selectedProduct}><PlusCircle className="mr-2 h-4 w-4" /> Add</Button>
                 </div>
                 <Table>
                   <TableHeader>
@@ -227,7 +284,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
                   </TableHeader>
                   <TableBody>
                     {items.length > 0 ? items.map(item => (
-                      <TableRow key={item.productId}>
+                      <TableRow key={`${item.productId}-${item.variant?.color}`}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                              <Image 
@@ -241,22 +298,22 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
                              <div className="flex-grow">
                                 <Input 
                                   value={item.productName} 
-                                  onChange={(e) => handleItemChange(item.productId, 'productName', e.target.value)}
+                                  onChange={(e) => handleItemChange(item.productId, item.variant?.color, 'productName', e.target.value)}
                                   className="h-8 font-medium"
                                 />
-                                {item.productDescription && (
-                                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">{item.productDescription}</p>
-                                )}
+                                 {item.variant && (
+                                     <span className="text-xs text-muted-foreground">Color: {item.variant.color}</span>
+                                 )}
                               </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Input type="number" value={item.quantity} onChange={(e) => handleQuantityChange(item.productId, parseInt(e.target.value))} className="h-8" min="1" />
+                          <Input type="number" value={item.quantity} onChange={(e) => handleQuantityChange(item.productId, item.variant?.color, parseInt(e.target.value))} className="h-8" min="1" />
                         </TableCell>
                         <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(item.unitPrice * item.quantity)}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRemoveItem(item.productId)}><X className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRemoveItem(item.productId, item.variant?.color)}><X className="h-4 w-4" /></Button>
                         </TableCell>
                       </TableRow>
                     )) : (
@@ -305,5 +362,33 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
         </div>
       </form>
     </Form>
+     <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Select a Variant for {productForVariantSelection?.name}</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <div className="grid grid-cols-3 gap-4">
+            {productForVariantSelection?.variants?.map(variant => (
+              <button
+                key={variant.color}
+                onClick={() => handleAddProduct(productForVariantSelection, variant)}
+                disabled={variant.quantity <= 0}
+                className="border rounded-lg p-2 text-center disabled:opacity-50 disabled:cursor-not-allowed hover:border-primary transition-colors"
+              >
+                <Image
+                  src={variant.imageUrls[0] || 'https://placehold.co/100x100.png'}
+                  alt={variant.color}
+                  width={100}
+                  height={100}
+                  className="rounded-md object-cover mx-auto"
+                />
+                <p className="font-medium mt-2">{variant.color}</p>
+                <p className="text-sm text-muted-foreground">{variant.quantity} in stock</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

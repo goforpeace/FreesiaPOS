@@ -58,7 +58,7 @@ export interface SaleItem {
   quantity: number;
   unitPrice: number; // sellPrice at time of sale
   imageUrl?: string | null;
-  variant?: SelectedVariant | null;
+  variant?: { color: string; imageUrl: string | null };
 }
 
 export interface Sale {

@@ -115,9 +115,6 @@ export function SaleDetails({ initialSale }: { initialSale: Sale }) {
                                             <div>
                                                 <div className="font-medium">{item.productName}</div>
                                                 {item.variant && <div className="text-xs text-muted-foreground">Color: {item.variant.color}</div>}
-                                                {item.productDescription && (
-                                                    <div className="text-xs text-muted-foreground whitespace-pre-wrap">{item.productDescription}</div>
-                                                )}
                                             </div>
                                            </div>
                                         </TableCell>
