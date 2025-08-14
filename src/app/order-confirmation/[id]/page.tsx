@@ -116,6 +116,7 @@ export default function OrderConfirmationPage() {
                                         <div className="flex-grow">
                                             <p className="font-medium">{item.productName}</p>
                                             {item.variant && <p className="text-xs text-muted-foreground">Color: {item.variant.color}</p>}
+                                            {item.productDescription && <p className="text-xs text-muted-foreground whitespace-pre-line truncate w-64">{item.productDescription}</p>}
                                             <p className="text-muted-foreground">Qty: {item.quantity}</p>
                                         </div>
                                         <p className="font-medium">{formatCurrency(item.unitPrice * item.quantity)}</p>
