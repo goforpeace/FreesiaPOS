@@ -115,6 +115,7 @@ export default function OrderConfirmationPage() {
                                         <Image src={item.imageUrl || 'https://placehold.co/64x64.png'} alt={item.productName} width={48} height={48} className="rounded-md" />
                                         <div className="flex-grow">
                                             <p className="font-medium">{item.productName}</p>
+                                            {item.variant && <p className="text-xs text-muted-foreground">Color: {item.variant.color}</p>}
                                             <p className="text-muted-foreground">Qty: {item.quantity}</p>
                                         </div>
                                         <p className="font-medium">{formatCurrency(item.unitPrice * item.quantity)}</p>
@@ -173,4 +174,3 @@ export default function OrderConfirmationPage() {
         </div>
     );
 }
-
