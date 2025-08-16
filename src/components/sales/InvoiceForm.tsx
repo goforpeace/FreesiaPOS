@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import { PlusCircle, X, Search } from "lucide-react"
 import Image from "next/image"
@@ -91,26 +91,33 @@ export function InvoiceForm({ availableProducts, allProducts, allCustomers, init
       advancePayment: 0,
     },
   })
+
+  const { shippingCost, discount, advancePayment } = form.watch()
+  const customerPhone = useWatch({ control: form.control, name: 'customerPhone' });
+  
+  useEffect(() => {
+    if (customerPhone && allCustomers?.length > 0) {
+      const foundCustomer = allCustomers.find(c => c.phone === customerPhone);
+      if (foundCustomer) {
+        form.setValue("customerName", foundCustomer.name, { shouldValidate: true });
+        form.setValue("customerAddress", foundCustomer.address, { shouldValidate: true });
+      }
+    }
+  }, [customerPhone, allCustomers, form]);
   
   useEffect(() => {
     if (initialData) {
-      form.reset(initialData);
+      form.reset({
+        ...initialData,
+        customerAddress: initialData.customerAddress ?? '',
+        customerPhone: initialData.customerPhone ?? '',
+        notes: initialData.notes ?? '',
+        advancePayment: initialData.advancePayment ?? 0,
+      });
       setItems(initialData.items || []);
       setOriginalItems(initialData.items || []);
     }
   }, [initialData, form]);
-
-  const { shippingCost, discount, advancePayment, customerPhone } = form.watch()
-  
-  useEffect(() => {
-    if(customerPhone && allCustomers.length > 0) {
-      const foundCustomer = allCustomers.find(c => c.phone === customerPhone);
-      if(foundCustomer) {
-        form.setValue("customerName", foundCustomer.name);
-        form.setValue("customerAddress", foundCustomer.address);
-      }
-    }
-  }, [customerPhone, allCustomers, form]);
 
 
   const handleSelectProduct = (productId: string) => {
