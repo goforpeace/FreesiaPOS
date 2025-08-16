@@ -1,5 +1,4 @@
 
-
 import { db } from './firebase';
 import {
   collection,
@@ -20,6 +19,7 @@ import {
 import type { Product, Sale, SaleItem, Review, Banner, Customer, Coupon } from './types';
 import { ProductFormValues } from '@/components/products/ProductForm';
 import { InvoiceFormValues } from '@/components/sales/InvoiceForm';
+import { CustomerFormValues } from '@/components/customers/CustomerForm';
 
 
 // PRODUCTS API
@@ -297,6 +297,24 @@ export const getCustomers = async (): Promise<Customer[]> => {
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer));
 };
+
+export const createCustomer = async (data: CustomerFormValues) => {
+    const now = new Date().toISOString();
+    await addDoc(customersCollection, {
+        ...data,
+        createdAt: now,
+        updatedAt: now,
+    });
+};
+
+export const updateCustomer = async (id: string, data: CustomerFormValues) => {
+    const docRef = doc(db, 'customers', id);
+    await updateDoc(docRef, {
+        ...data,
+        updatedAt: new Date().toISOString(),
+    });
+};
+
 
 export const deleteCustomer = async (id: string) => {
     const docRef = doc(db, 'customers', id);

@@ -1,10 +1,9 @@
 
-
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
-import { Search, Download, MoreHorizontal, Trash2 } from "lucide-react";
+import { Search, Download, MoreHorizontal, Trash2, PlusCircle, Pencil } from "lucide-react";
 import { CSVLink } from "react-csv";
 
 import { Header } from "@/components/layout/Header";
@@ -36,15 +35,27 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { getCustomers, deleteCustomer } from "@/lib/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { getCustomers, deleteCustomer, createCustomer, updateCustomer } from "@/lib/api";
 import type { Customer } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { CustomerForm, CustomerFormValues } from "@/components/customers/CustomerForm";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | undefined>(undefined);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const fetchCustomers = useCallback(async () => {
@@ -54,7 +65,7 @@ export default function CustomersPage() {
       setCustomers(fetchedCustomers);
     } catch (error) {
       console.error("Failed to fetch customers:", error);
-       toast({ title: "Error", description: "Failed to load customers.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to load customers.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -64,17 +75,50 @@ export default function CustomersPage() {
     fetchCustomers();
   }, [fetchCustomers]);
 
-  const handleDeleteCustomer = async (customerId: string) => {
+  const handleFormSubmit = async (values: CustomerFormValues) => {
+    setIsSubmitting(true);
     try {
-        await deleteCustomer(customerId);
-        toast({ title: "Customer Deleted", description: "The customer has been successfully deleted." });
-        await fetchCustomers();
+      if (editingCustomer) {
+        await updateCustomer(editingCustomer.id, values);
+        toast({ title: "Customer Updated", description: "The customer has been successfully updated." });
+      } else {
+        await createCustomer(values);
+        toast({ title: "Customer Created", description: "The new customer has been successfully added." });
+      }
+      await fetchCustomers();
+      setIsFormOpen(false);
+      setEditingCustomer(undefined);
     } catch (error) {
-        console.error("Failed to delete customer:", error);
-        toast({ title: "Error", description: "Failed to delete the customer.", variant: "destructive" });
+      console.error("Failed to save customer:", error);
+      toast({ title: "Error", description: "Failed to save the customer.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  
+
+  const handleDeleteCustomer = async (customerId: string) => {
+    try {
+      await deleteCustomer(customerId);
+      toast({ title: "Customer Deleted", description: "The customer has been successfully deleted." });
+      await fetchCustomers();
+    } catch (error) {
+      console.error("Failed to delete customer:", error);
+      toast({ title: "Error", description: "Failed to delete the customer.", variant: "destructive" });
+    }
+  };
+
+  const handleEditClick = (customer: Customer) => {
+    setEditingCustomer(customer);
+    setIsFormOpen(true);
+  };
+
+  const handleFormOpenChange = (open: boolean) => {
+    setIsFormOpen(open);
+    if (!open) {
+      setEditingCustomer(undefined);
+    }
+  };
+
   const filteredCustomers = useMemo(() => {
     return customers.filter(customer =>
       customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,40 +130,60 @@ export default function CustomersPage() {
     { label: "Name", key: "name" },
     { label: "Phone", key: "phone" },
     { label: "Address", key: "address" },
+    { label: "Status", key: "status" },
+    { label: "Notes", key: "notes" },
     { label: "Last Updated", key: "updatedAt" },
   ];
 
   const csvData = filteredCustomers.map(c => ({
-      ...c,
-      updatedAt: format(new Date(c.updatedAt), "yyyy-MM-dd hh:mm a")
+    ...c,
+    updatedAt: format(new Date(c.updatedAt), "yyyy-MM-dd hh:mm a")
   }));
-
 
   return (
     <>
       <Header title="All Customers">
         <div className="flex items-center gap-2">
-            <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                    type="search"
-                    placeholder="Search by name or phone..."
-                    className="pl-8 sm:w-[300px]"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-             <Button variant="outline" asChild>
-                <CSVLink
-                    data={csvData}
-                    headers={csvHeaders}
-                    filename={"customers-export.csv"}
-                    className="flex items-center gap-2"
-                >
-                    <Download className="h-4 w-4" />
-                    <span>Export CSV</span>
-                </CSVLink>
-            </Button>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search by name or phone..."
+              className="pl-8 sm:w-[300px]"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Button variant="outline" asChild>
+            <CSVLink
+              data={csvData}
+              headers={csvHeaders}
+              filename={"customers-export.csv"}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              <span>Export CSV</span>
+            </CSVLink>
+          </Button>
+          <Dialog open={isFormOpen} onOpenChange={handleFormOpenChange}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Customer
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingCustomer ? "Edit Customer" : "Add New Customer"}</DialogTitle>
+              </DialogHeader>
+              <CustomerForm
+                initialData={editingCustomer}
+                onSubmit={handleFormSubmit}
+                onClose={() => handleFormOpenChange(false)}
+                isSubmitting={isSubmitting}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       </Header>
       <Card>
@@ -129,9 +193,10 @@ export default function CustomersPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Phone</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Address</TableHead>
                 <TableHead className="hidden md:table-cell">Last Updated</TableHead>
-                 <TableHead>
+                <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
               </TableRow>
@@ -142,6 +207,7 @@ export default function CustomersPage() {
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                     <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-48" /></TableCell>
                     <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
@@ -153,41 +219,51 @@ export default function CustomersPage() {
                     <TableCell className="font-medium">
                       {customer.name}
                     </TableCell>
-                     <TableCell>{customer.phone}</TableCell>
+                    <TableCell>{customer.phone}</TableCell>
+                    <TableCell>
+                      {customer.status && (
+                        <Badge variant={customer.status === 'fraud' ? 'destructive' : 'secondary'}>
+                          {customer.status.replace('-', ' ')}
+                        </Badge>
+                      )}
+                    </TableCell>
                     <TableCell className="hidden md:table-cell">{customer.address}</TableCell>
                     <TableCell className="hidden md:table-cell">{format(new Date(customer.updatedAt), "dd MMM yyyy, hh:mm a")}</TableCell>
                     <TableCell className="text-right">
-                       <AlertDialog>
-                          <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" className="h-8 w-8 p-0">
-                                      <span className="sr-only">Open menu</span>
-                                      <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                  <AlertDialogTrigger asChild>
-                                      <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                      </DropdownMenuItem>
-                                  </AlertDialogTrigger>
-                              </DropdownMenuContent>
-                          </DropdownMenu>
-                          <AlertDialogContent>
-                              <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete this customer's data.
-                                  </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteCustomer(customer.id)}>
-                                  Delete
-                                  </AlertDialogAction>
-                              </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditClick(customer)}>
+                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete this customer's data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteCustomer(customer.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))

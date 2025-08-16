@@ -1,5 +1,4 @@
 
-
 export const productTags = [
   "Hot Sale",
   "Unique",
@@ -44,6 +43,8 @@ export interface Customer {
   address: string;
   createdAt: string;
   updatedAt: string;
+  status?: 'follow-up' | 'fraud' | null;
+  notes?: string | null;
 }
 
 export interface SelectedVariant {
