@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { PlusCircle, Search, ClipboardCopy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ export default function ProductsPage() {
   const [sortOption, setSortOption] = useState("createdAt-desc");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const router = useRouter();
 
   const refreshProducts = useCallback(async () => {
     try {
@@ -88,7 +89,8 @@ export default function ProductsPage() {
     !product.isRejected && product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  const copyProductLink = (productId: string) => {
+  const copyProductLink = (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation(); // Prevent row click from firing
     const url = `${window.location.origin}/product/${productId}`;
     navigator.clipboard.writeText(url);
     toast({
@@ -96,6 +98,10 @@ export default function ProductsPage() {
       description: "The product link has been copied to your clipboard.",
     });
   }
+
+  const handleRowClick = (productId: string) => {
+    router.push(`/products/${productId}/edit`);
+  };
 
   return (
     <>
@@ -126,11 +132,9 @@ export default function ProductsPage() {
                 <SelectItem value="sellPrice-asc">Price (Low-High)</SelectItem>
               </SelectContent>
             </Select>
-            <Button asChild>
-                <Link href="/products/new">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Product
-                </Link>
+            <Button onClick={() => router.push('/products/new')}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Product
             </Button>
         </div>
       </Header>
@@ -173,7 +177,7 @@ export default function ProductsPage() {
                 ))
               ) : (
                 filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
+                  <TableRow key={product.id} onClick={() => handleRowClick(product.id)} className="cursor-pointer">
                     <TableCell className="hidden sm:table-cell">
                       <Image
                         alt={product.name}
@@ -196,8 +200,8 @@ export default function ProductsPage() {
                         <Badge variant="outline">Out of Stock</Badge>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm" onClick={() => copyProductLink(product.id)}>
+                    <TableCell onClick={(e) => copyProductLink(e, product.id)}>
+                      <Button variant="outline" size="sm">
                           <ClipboardCopy className="mr-2 h-3 w-3" />
                           Copy Link
                       </Button>
@@ -208,7 +212,7 @@ export default function ProductsPage() {
                      <TableCell className="text-right">
                         {product.discountedPrice && product.discountedPrice > 0 ? formatCurrency(product.discountedPrice) : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <ProductActions product={product} onProductUpdate={refreshProducts} />
                     </TableCell>
                   </TableRow>

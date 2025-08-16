@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { Search, Download, MoreHorizontal, Trash2, PlusCircle, Pencil } from "lucide-react";
 import { CSVLink } from "react-csv";
+import { useRouter } from "next/navigation";
 
 import { Header } from "@/components/layout/Header";
 import {
@@ -57,6 +58,7 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const fetchCustomers = useCallback(async () => {
     try {
@@ -215,7 +217,7 @@ export default function CustomersPage() {
                 ))
               ) : (
                 filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
+                  <TableRow key={customer.id} onClick={() => handleEditClick(customer)} className="cursor-pointer">
                     <TableCell className="font-medium">
                       {customer.name}
                     </TableCell>
@@ -229,7 +231,7 @@ export default function CustomersPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{customer.address}</TableCell>
                     <TableCell className="hidden md:table-cell">{format(new Date(customer.updatedAt), "dd MMM yyyy, hh:mm a")}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <AlertDialog>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

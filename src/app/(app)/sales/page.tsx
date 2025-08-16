@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PlusCircle, Search, Calendar as CalendarIcon, Download } from "lucide-react";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
@@ -37,6 +37,7 @@ export default function SalesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [selectedSaleIds, setSelectedSaleIds] = useState<string[]>([]);
+  const router = useRouter();
 
   const refreshSales = async () => {
     setLoading(true);
@@ -85,6 +86,10 @@ export default function SalesPage() {
     } else {
       setSelectedSaleIds(prev => prev.filter(saleId => saleId !== id));
     }
+  }
+
+  const handleRowClick = (saleId: string) => {
+    router.push(`/sales/${saleId}`);
   }
 
   const isAllSelected = filteredSales.length > 0 && selectedSaleIds.length === filteredSales.length;
@@ -187,11 +192,9 @@ export default function SalesPage() {
                     </CSVLink>
                 </Button>
             )}
-            <Button asChild>
-                <Link href="/sales/new">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Sale
-                </Link>
+            <Button onClick={() => router.push('/sales/new')}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                New Sale
             </Button>
         </div>
       </Header>
@@ -237,8 +240,13 @@ export default function SalesPage() {
                   const status = sale.status || 'pending';
                   const isSelected = selectedSaleIds.includes(sale.id);
                   return (
-                    <TableRow key={sale.id} className={status === 'pending' ? 'bg-muted/50' : ''} data-state={isSelected ? "selected" : ""}>
-                      <TableCell>
+                    <TableRow 
+                      key={sale.id} 
+                      className={cn("cursor-pointer", status === 'pending' ? 'bg-muted/50' : '')} 
+                      data-state={isSelected ? "selected" : ""}
+                      onClick={() => handleRowClick(sale.id)}
+                    >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={(checked) => handleSelectRow(sale.id, Boolean(checked))}
@@ -255,7 +263,7 @@ export default function SalesPage() {
                       </TableCell>
                       <TableCell className="hidden md:table-cell">{format(new Date(sale.date), "dd MMM, yyyy")}</TableCell>
                       <TableCell className="text-right">{formatCurrency(sale.total)}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <SalesActions sale={sale} onSaleUpdate={refreshSales} />
                       </TableCell>
                     </TableRow>
