@@ -12,7 +12,7 @@ import type { Product, Review, Banner, ProductTag } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Bolt, Search, ChevronRight, ChevronLeft, Tag, Clock, TrendingUp, Sparkles, Star, Zap, ThumbsUp } from "lucide-react";
+import { ShoppingCart, Bolt, Search, ChevronRight, ChevronLeft, Tag, Clock, TrendingUp, Sparkles, Star, Zap, ThumbsUp, PackageOpen } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useCart } from "@/hooks/use-cart";
 import useEmblaCarousel from 'embla-carousel-react';
@@ -175,7 +175,7 @@ export function HomePageContent() {
           getReviews(),
           getBanners()
         ]);
-        setProducts(allProducts.filter(p => p.quantity > 0 && !p.isRejected));
+        setProducts(allProducts.filter(p => !p.isRejected));
         setReviews(allReviews);
         setBanners(allBanners);
       } catch (error) {
@@ -404,6 +404,7 @@ const ProductCard = ({ product }: { product: Product }) => {
     }
     
     const hasDiscount = product.discountedPrice && product.discountedPrice > 0;
+    const isUpcoming = product.sellPrice === 0;
     const displayPrice = hasDiscount ? product.discountedPrice : product.sellPrice;
     const originalPrice = product.sellPrice;
     const TagIcon = product.tag ? tagIconMap[product.tag] : null;
@@ -411,15 +412,26 @@ const ProductCard = ({ product }: { product: Product }) => {
     const BLUR_DATA_URL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
     const isOutOfStock = product.quantity <= 0;
+    const isActionDisabled = isOutOfStock || isUpcoming;
 
     return (
         <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)] h-full relative">
-            {product.tag && TagIcon && (
-              <div className="absolute top-2 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full z-10 flex items-center gap-1">
-                <TagIcon className="h-3 w-3" />
-                <span>{product.tag}</span>
-              </div>
-            )}
+            
+            <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
+                {product.tag && TagIcon && (
+                <div className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                    <TagIcon className="h-3 w-3" />
+                    <span>{product.tag}</span>
+                </div>
+                )}
+                {isUpcoming && (
+                    <div className="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                        <Clock className="h-3 w-3" />
+                        <span>Upcoming</span>
+                    </div>
+                )}
+            </div>
+
             <Link href={`/product/${product.id}`} className="flex flex-col h-full">
                 <CardContent className="p-0">
                      <div className="relative aspect-square w-full overflow-hidden">
@@ -432,28 +444,33 @@ const ProductCard = ({ product }: { product: Product }) => {
                             placeholder="blur"
                             blurDataURL={BLUR_DATA_URL}
                         />
-                         {isOutOfStock && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                <span className="text-white font-bold text-lg">Out of Stock</span>
+                         {isOutOfStock && !isUpcoming && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                <div className="flex flex-col items-center gap-1 text-white">
+                                    <PackageOpen className="h-8 w-8"/>
+                                    <span className="font-bold text-lg">Out of Stock</span>
+                                </div>
                             </div>
                         )}
                     </div>
                     <div className="p-2 md:p-3 border-t border-border">
                         <h3 className="text-xs md:text-sm font-headline font-semibold text-card-foreground truncate">{product.name}</h3>
-                        <div className="flex items-baseline gap-1.5 mt-1">
-                             <p className="font-semibold text-foreground text-sm md:text-base">{formatCurrency(displayPrice as number)}</p>
-                            {hasDiscount && (
-                                <p className="text-xs text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
-                            )}
-                        </div>
+                        {!isUpcoming && (
+                            <div className="flex items-baseline gap-1.5 mt-1">
+                                <p className="font-semibold text-foreground text-sm md:text-base">{formatCurrency(displayPrice as number)}</p>
+                                {hasDiscount && (
+                                    <p className="text-xs text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </CardContent>
                 <CardFooter className="p-2 md:p-3 pt-0 mt-auto flex-col gap-1.5 md:gap-2">
-                     <Button className="w-full h-8 md:h-9 text-xs md:text-sm" variant="secondary" onClick={(e) => { e.preventDefault(); handleAddToCart(); }} disabled={isOutOfStock}>
+                     <Button className="w-full h-8 md:h-9 text-xs md:text-sm" variant="secondary" onClick={(e) => { e.preventDefault(); handleAddToCart(); }} disabled={isActionDisabled}>
                         <ShoppingCart className="mr-2 h-4 w-4" />
                         Add to Cart
                     </Button>
-                    <Button className="w-full h-8 md:h-9 text-xs md:text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={(e) => { e.preventDefault(); handleOrderNow(); }} disabled={isOutOfStock}>
+                    <Button className="w-full h-8 md:h-9 text-xs md:text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold" onClick={(e) => { e.preventDefault(); handleOrderNow(); }} disabled={isActionDisabled}>
                         <Bolt className="mr-2 h-4 w-4" />
                         Order Now
                     </Button>
@@ -476,8 +493,3 @@ const ProductCardSkeleton = () => (
         </div>
     </div>
 );
-
-    
-
-    
-

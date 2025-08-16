@@ -242,7 +242,11 @@ export default function SalesPage() {
                   return (
                     <TableRow 
                       key={sale.id} 
-                      className={cn("cursor-pointer", status === 'pending' ? 'bg-muted/50' : '')} 
+                      className={cn("cursor-pointer", {
+                          'bg-green-500/10 hover:bg-green-500/20 data-[state=selected]:bg-green-500/20': status === 'accepted',
+                          'bg-red-500/10 hover:bg-red-500/20 data-[state=selected]:bg-red-500/20': status === 'cancelled',
+                          'bg-yellow-500/10 hover:bg-yellow-500/20 data-[state=selected]:bg-yellow-500/20': status === 'pending',
+                      })}
                       data-state={isSelected ? "selected" : ""}
                       onClick={() => handleRowClick(sale.id)}
                     >
@@ -257,7 +261,14 @@ export default function SalesPage() {
                       <TableCell>{sale.customerName}</TableCell>
                       <TableCell>{sale.customerPhone}</TableCell>
                       <TableCell>
-                          <Badge variant={status === 'accepted' ? 'secondary' : status === 'cancelled' ? 'destructive' : 'outline'}>
+                          <Badge 
+                            variant={status === 'accepted' ? 'secondary' : status === 'cancelled' ? 'destructive' : 'outline'}
+                            className={cn({
+                                'bg-green-600 text-white hover:bg-green-700': status === 'accepted',
+                                'bg-red-600 text-white hover:bg-red-700': status === 'cancelled',
+                                'bg-yellow-500 text-white hover:bg-yellow-600': status === 'pending',
+                            })}
+                          >
                               {status.charAt(0).toUpperCase() + status.slice(1)}
                           </Badge>
                       </TableCell>

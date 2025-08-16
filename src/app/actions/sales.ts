@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -59,42 +58,12 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
             }
 
 
-            // 2. Check stock and prepare product updates
+            // 2. Check product existence (stock check is deferred)
             for (const item of data.items) {
                 const productRef = doc(db, 'products', item.productId);
                 const productSnap = await transaction.get(productRef);
                 if (!productSnap.exists()) {
                     throw new Error(`Product with ID ${item.productId} not found.`);
-                }
-                const productData = productSnap.data() as Product;
-                
-                if (item.variantColor && productData.variants) {
-                    // Variant-based stock check
-                    const variantIndex = productData.variants.findIndex(v => v.color === item.variantColor);
-                    if (variantIndex === -1) {
-                         throw new Error(`Variant "${item.variantColor}" for product "${productData.name}" not found.`);
-                    }
-                    const variant = productData.variants[variantIndex];
-                    if (variant.quantity < item.quantity) {
-                         throw new Error(`Not enough stock for ${productData.name} (${item.variantColor}). Only ${variant.quantity} left.`);
-                    }
-                    
-                    const newVariantQuantity = variant.quantity - item.quantity;
-                    const newTotalQuantity = productData.quantity - item.quantity;
-                    
-                    const newVariants = [...productData.variants];
-                    newVariants[variantIndex] = { ...variant, quantity: newVariantQuantity };
-                    
-                    transaction.update(productRef, { variants: newVariants, quantity: newTotalQuantity });
-
-                } else {
-                    // Non-variant stock check
-                    const currentQuantity = productData.quantity;
-                    if (currentQuantity < item.quantity) {
-                        throw new Error(`Not enough stock for ${productData.name}. Only ${currentQuantity} left.`);
-                    }
-                    const newQuantity = currentQuantity - item.quantity;
-                    transaction.update(productRef, { quantity: newQuantity });
                 }
             }
 

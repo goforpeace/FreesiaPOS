@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await getProducts();
 
   const productEntries: MetadataRoute.Sitemap = products
-    .filter(product => !product.isRejected && product.quantity > 0)
+    .filter(product => !product.isRejected)
     .map(({ id, createdAt }) => ({
       url: `${URL}/product/${id}`,
       lastModified: createdAt ? new Date(createdAt) : new Date(),

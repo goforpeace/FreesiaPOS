@@ -1,4 +1,5 @@
 
+
 import { db } from './firebase';
 import {
   collection,
@@ -105,72 +106,61 @@ export const getSale = async (id: string): Promise<Sale | undefined> => {
 
 export const updateSale = async (id: string, data: SaleFormData) => {
     const { originalItems = [], ...saleData } = data;
-    
-    await runTransaction(db, async (transaction) => {
-        const saleRef = doc(db, "sales", id);
+    const saleRef = doc(db, "sales", id);
+    const saleSnap = await getDoc(saleRef);
+    if (!saleSnap.exists()) throw new Error("Sale not found");
+    const existingSaleData = saleSnap.data() as Sale;
 
-        // --- PHASE 1: READ ALL DATA FIRST ---
-        
-        // Create a map to hold all product references and documents to avoid duplicate reads
+    // Only accepted sales affect stock, so if it's not accepted, just update the data.
+    if (existingSaleData.status !== 'accepted') {
+        await updateDoc(saleRef, saleData as any);
+        return;
+    }
+
+    // If the sale is 'accepted', we need to run a transaction to adjust stock.
+    await runTransaction(db, async (transaction) => {
         const productRefs = new Map<string, ReturnType<typeof doc>>();
         const productDocs = new Map<string, any>();
         
-        // Combine original and new items to get all relevant product IDs
         const allItemProductIds = new Set([
             ...originalItems.map(item => item.productId),
             ...saleData.items.map(item => item.productId)
         ]);
 
-        // Read all product documents involved in the transaction
         for (const productId of allItemProductIds) {
             const productRef = doc(db, "products", productId);
             productRefs.set(productId, productRef);
             const productDoc = await transaction.get(productRef);
             if (!productDoc.exists()) {
-                // Find the product name for a better error message
                 const productName = saleData.items.find(i => i.productId === productId)?.productName || originalItems.find(i => i.productId === productId)?.productName || 'Unknown Product';
                 throw new Error(`Product '${productName}' (ID: ${productId}) not found.`);
             }
             productDocs.set(productId, productDoc.data());
         }
 
-        // --- PHASE 2: CALCULATE AND VALIDATE IN MEMORY ---
-
-        // Calculate stock changes
-        const stockChanges = new Map<string, number>();
-
-        // Initialize with current quantities
-        for (const [productId, productData] of productDocs.entries()) {
-            stockChanges.set(productId, productData.quantity);
-        }
-
-        // Add back stock from original items
+        // Restore stock from original items
         for (const item of originalItems) {
-            const currentStock = stockChanges.get(item.productId) ?? 0;
-            stockChanges.set(item.productId, currentStock + item.quantity);
-        }
-
-        // Deduct stock for new items and validate availability
-        for (const item of saleData.items) {
-            const availableStock = stockChanges.get(item.productId);
-            if (availableStock === undefined || availableStock < item.quantity) {
-                const productName = productDocs.get(item.productId)?.name || 'Unknown Product';
-                throw new Error(`Not enough stock for ${productName}. Only ${availableStock ?? 0} available.`);
-            }
-            stockChanges.set(item.productId, availableStock - item.quantity);
-        }
-
-        // --- PHASE 3: WRITE ALL CHANGES ---
-
-        // Update all product quantities
-        for (const [productId, newQuantity] of stockChanges.entries()) {
-            const productRef = productRefs.get(productId);
+            const productRef = productRefs.get(item.productId);
             if (productRef) {
-                transaction.update(productRef, { quantity: newQuantity });
+                const productData = productDocs.get(item.productId);
+                const currentQuantity = productData.quantity;
+                transaction.update(productRef, { quantity: currentQuantity + item.quantity });
             }
+        }
+
+        // Deduct stock for new items
+        for (const item of saleData.items) {
+             const productRef = productRefs.get(item.productId);
+             if (productRef) {
+                const productDoc = await transaction.get(productRef); // re-get to ensure we have the restored value
+                const currentQuantity = productDoc.data()?.quantity ?? 0;
+                 if (currentQuantity < item.quantity) {
+                    throw new Error(`Not enough stock for ${productDoc.data()?.name}. Only ${currentQuantity} available.`);
+                }
+                transaction.update(productRef, { quantity: currentQuantity - item.quantity });
+             }
         }
         
-        // Finally, update the sale document itself
         transaction.update(saleRef, saleData as any);
     });
 };
@@ -187,34 +177,34 @@ export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted
         const sale = saleSnap.data() as Sale;
         const oldStatus = sale.status || 'pending';
 
-        // No change if status is the same
-        if (oldStatus === status) return;
+        if (oldStatus === status) return; // No change
 
-        // Logic for restoring or deducting stock based on status change
-        if (status === 'cancelled' && oldStatus !== 'cancelled') {
-            // Restore stock if moving to cancelled
+        // If moving TO accepted FROM pending/cancelled
+        if (status === 'accepted' && oldStatus !== 'accepted') {
             for (const item of sale.items) {
                 const productRef = doc(db, 'products', item.productId);
                 const productDoc = await transaction.get(productRef);
-                if(productDoc.exists()){
-                    transaction.update(productRef, { quantity: productDoc.data().quantity + item.quantity });
+                if (productDoc.exists()) {
+                    const newQuantity = productDoc.data().quantity - item.quantity;
+                    if (newQuantity < 0) {
+                        throw new Error(`Not enough stock for ${productDoc.data().name}. Cannot accept sale.`);
+                    }
+                    transaction.update(productRef, { quantity: newQuantity });
                 }
             }
-        } else if (oldStatus === 'cancelled' && status !== 'cancelled') {
-            // Deduct stock if moving away from cancelled
-             for (const item of sale.items) {
+        } 
+        // If moving FROM accepted TO pending/cancelled
+        else if (oldStatus === 'accepted' && status !== 'accepted') {
+            for (const item of sale.items) {
                 const productRef = doc(db, 'products', item.productId);
                 const productDoc = await transaction.get(productRef);
-                if(productDoc.exists()) {
-                     const newQuantity = productDoc.data().quantity - item.quantity;
-                     if (newQuantity < 0) {
-                         throw new Error(`Not enough stock for ${productDoc.data().name} to un-cancel this sale.`);
-                     }
-                    transaction.update(productRef, { quantity: newQuantity });
+                if (productDoc.exists()) {
+                    transaction.update(productRef, { quantity: productDoc.data().quantity + item.quantity });
                 }
             }
         }
         
+        // Finally, update the status
         transaction.update(saleRef, { status });
     });
 };
@@ -230,8 +220,8 @@ export const deleteSale = async (id: string) => {
         }
         const sale = saleSnap.data() as Sale;
 
-        // Restore stock only if the sale wasn't cancelled (as cancelling would have already restored it)
-        if (sale.status !== 'cancelled') {
+        // Restore stock only if the sale was 'accepted'
+        if (sale.status === 'accepted') {
             for (const item of sale.items) {
                 const productRef = doc(db, 'products', item.productId);
                 const productSnap = await transaction.get(productRef);
