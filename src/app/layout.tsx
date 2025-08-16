@@ -4,7 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/hooks/use-auth";
 import { FacebookPixel } from '@/components/analytics/FacebookPixel';
-import { CartDrawer } from '@/components/web/CartDrawer';
+import { CartDialog } from '@/components/web/CartDrawer';
 import { ClientOnly } from '@/components/ui/client-only';
 
 const title = "Freesia Finds - Shop Now";
@@ -55,7 +55,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <AuthProvider>
           <ClientOnly>
-            <CartDrawer />
+            <CartDialog />
           </ClientOnly>
           {children}
           <Toaster />
