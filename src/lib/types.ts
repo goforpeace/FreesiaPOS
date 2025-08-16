@@ -68,13 +68,16 @@ export interface Sale {
   customerName: string;
   customerPhone?: string | null;
   customerAddress?: string | null;
+  customerEmail?: string | null;
   items: SaleItem[];
   shippingCost: number;
   discount: number;
   subtotal: number;
   total: number;
+  advancePayment?: number;
+  balanceDue?: number;
   date: string; // ISO 8601 format
-  status: 'pending' | 'accepted' | 'cancelled';
+  status: 'pending' | 'accepted' | 'cancelled' | 'pre-order';
   couponCode?: string | null;
 }
 

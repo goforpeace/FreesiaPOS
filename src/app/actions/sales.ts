@@ -27,7 +27,10 @@ interface SaleData {
     discount: number;
     subtotal: number;
     total: number;
+    advancePayment: number;
+    balanceDue: number;
     couponCode?: string;
+    customerEmail?: string;
 }
 
 
@@ -107,6 +110,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
                 customerName: data.customerName,
                 customerPhone: data.customerPhone || null,
                 customerAddress: data.customerAddress || null,
+                customerEmail: data.customerEmail || null,
                 items: data.items.map(item => ({
                     productId: item.productId,
                     productName: item.productName,
@@ -120,6 +124,8 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
                 discount: data.discount || 0,
                 subtotal: data.subtotal,
                 total: data.total,
+                advancePayment: data.advancePayment || 0,
+                balanceDue: data.balanceDue,
                 date: now,
                 status: 'pending',
                 couponCode: data.couponCode || null,
@@ -141,6 +147,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
         revalidatePath('/products');
         revalidatePath('/customers');
         revalidatePath('/coupons');
+        revalidatePath('/sales');
 
         return { saleId };
 

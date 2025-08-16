@@ -86,6 +86,7 @@ type SaleFormData = InvoiceFormValues & {
     items: SaleItem[];
     subtotal: number;
     total: number;
+    balanceDue: number;
     originalItems?: SaleItem[];
 }
 
@@ -165,7 +166,7 @@ export const updateSale = async (id: string, data: SaleFormData) => {
     });
 };
 
-export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted' | 'cancelled') => {
+export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted' | 'cancelled' | 'pre-order') => {
     const saleRef = doc(db, 'sales', id);
     
     await runTransaction(db, async (transaction) => {
@@ -179,7 +180,7 @@ export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted
 
         if (oldStatus === status) return; // No change
 
-        // If moving TO accepted FROM pending/cancelled
+        // If moving TO accepted FROM a non-accepted state
         if (status === 'accepted' && oldStatus !== 'accepted') {
             for (const item of sale.items) {
                 const productRef = doc(db, 'products', item.productId);
@@ -193,7 +194,7 @@ export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted
                 }
             }
         } 
-        // If moving FROM accepted TO pending/cancelled
+        // If moving FROM accepted TO a non-accepted state
         else if (oldStatus === 'accepted' && status !== 'accepted') {
             for (const item of sale.items) {
                 const productRef = doc(db, 'products', item.productId);

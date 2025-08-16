@@ -104,6 +104,8 @@ export default function SalesPage() {
     { label: "Shipping", key: "shippingCost" },
     { label: "Discount", key: "discount" },
     { label: "Total", key: "total" },
+    { label: "Advance", key: "advancePayment" },
+    { label: "Balance Due", key: "balanceDue" },
   ];
 
   const allSalesCsvData = filteredSales.map(sale => ({
@@ -246,6 +248,7 @@ export default function SalesPage() {
                           'bg-green-500/10 hover:bg-green-500/20 data-[state=selected]:bg-green-500/20': status === 'accepted',
                           'bg-red-500/10 hover:bg-red-500/20 data-[state=selected]:bg-red-500/20': status === 'cancelled',
                           'bg-yellow-500/10 hover:bg-yellow-500/20 data-[state=selected]:bg-yellow-500/20': status === 'pending',
+                          'bg-blue-500/10 hover:bg-blue-500/20 data-[state=selected]:bg-blue-500/20': status === 'pre-order',
                       })}
                       data-state={isSelected ? "selected" : ""}
                       onClick={() => handleRowClick(sale.id)}
@@ -267,9 +270,10 @@ export default function SalesPage() {
                                 'bg-green-600 text-white hover:bg-green-700': status === 'accepted',
                                 'bg-red-600 text-white hover:bg-red-700': status === 'cancelled',
                                 'bg-yellow-500 text-white hover:bg-yellow-600': status === 'pending',
+                                'bg-blue-600 text-white hover:bg-blue-700': status === 'pre-order',
                             })}
                           >
-                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                              {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
                           </Badge>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">{format(new Date(sale.date), "dd MMM, yyyy")}</TableCell>

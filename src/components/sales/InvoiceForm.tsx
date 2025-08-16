@@ -51,6 +51,7 @@ const invoiceFormSchema = z.object({
   customerAddress: z.string().optional(),
   shippingCost: z.coerce.number().min(0).default(0),
   discount: z.coerce.number().min(0).default(0),
+  advancePayment: z.coerce.number().min(0).default(0),
 })
 
 export type InvoiceFormValues = z.infer<typeof invoiceFormSchema>
@@ -84,6 +85,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
       customerAddress: "",
       shippingCost: 0,
       discount: 0,
+      advancePayment: 0,
     },
   })
   
@@ -95,7 +97,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
     }
   }, [initialData, form]);
 
-  const { shippingCost, discount } = form.watch()
+  const { shippingCost, discount, advancePayment } = form.watch()
   
   const handleSelectProduct = (productId: string) => {
     if (!productId) return;
@@ -188,6 +190,8 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
 
   const subtotal = items.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0)
   const total = subtotal + Number(shippingCost || 0) - Number(discount || 0);
+  const balanceDue = total - Number(advancePayment || 0);
+
 
   const filteredProducts = useMemo(() => {
     return availableProducts.filter(p => 
@@ -206,7 +210,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
     }
 
     setIsSubmitting(true);
-    const payload = { ...data, items, total, subtotal, originalItems };
+    const payload = { ...data, items, total, subtotal, balanceDue, originalItems };
     await onSubmit(payload);
     setIsSubmitting(false);
   }
@@ -274,6 +278,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
                               width={40}
                               height={40}
                               className="rounded-md object-cover"
+                              data-ai-hint="product image"
                             />
                             <span>{p.name}</span>
                           </div>
@@ -361,7 +366,12 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
                   <FormItem className="flex items-center justify-between"><FormLabel>Discount</FormLabel><FormControl><Input type="number" className="w-24 h-8" {...field} /></FormControl></FormItem>
                 )} />
                 <Separator/>
-                <div className="flex justify-between font-bold text-lg"><span>Total</span><span>{formatCurrency(total)}</span></div>
+                <div className="flex justify-between font-bold"><span>Total</span><span>{formatCurrency(total)}</span></div>
+                <FormField control={form.control} name="advancePayment" render={({ field }) => (
+                    <FormItem className="flex items-center justify-between"><FormLabel>Advance Paid</FormLabel><FormControl><Input type="number" className="w-24 h-8" {...field} /></FormControl></FormItem>
+                )} />
+                <Separator/>
+                <div className="flex justify-between font-bold text-lg text-primary"><span>Balance Due</span><span>{formatCurrency(balanceDue)}</span></div>
               </CardContent>
             </Card>
           </div>
@@ -391,6 +401,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
                   width={100}
                   height={100}
                   className="rounded-md object-cover mx-auto"
+                  data-ai-hint="product image"
                 />
                 <p className="font-medium mt-2">{variant.color}</p>
                 <p className="text-sm text-muted-foreground">{variant.quantity} in stock</p>

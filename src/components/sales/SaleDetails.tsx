@@ -147,6 +147,15 @@ export function SaleDetails({ initialSale }: { initialSale: Sale }) {
                                     <span>Total</span>
                                     <span>{formatCurrency(sale.total)}</span>
                                 </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Advance Paid</span>
+                                    <span>- {formatCurrency(sale.advancePayment || 0)}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between font-bold text-primary">
+                                    <span>Balance Due</span>
+                                    <span>{formatCurrency(sale.balanceDue || sale.total)}</span>
+                                </div>
                             </div>
                         </div>
                     </CardContent>

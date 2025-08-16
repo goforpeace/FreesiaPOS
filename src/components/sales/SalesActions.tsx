@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MoreHorizontal, Eye, Trash2, Pencil, CheckCircle, XCircle, RotateCcw } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, Pencil, CheckCircle, XCircle, RotateCcw, PackageCheck } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -29,7 +29,7 @@ import type { Sale } from "@/lib/types";
 export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate: () => void }) {
   const { toast } = useToast();
 
-  const handleStatusChange = async (status: 'pending' | 'accepted' | 'cancelled') => {
+  const handleStatusChange = async (status: 'pending' | 'accepted' | 'cancelled' | 'pre-order') => {
     try {
       await updateSaleStatus(sale.id, status);
        toast({
@@ -75,16 +75,22 @@ export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate:
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-           {status === 'pending' && (
+           {status !== 'accepted' && (
              <DropdownMenuItem onSelect={() => handleStatusChange('accepted')}>
               <CheckCircle className="mr-2 h-4 w-4" />
               <span>Mark as Accepted</span>
             </DropdownMenuItem>
           )}
-           {status === 'accepted' && (
+           {status !== 'pending' && (
              <DropdownMenuItem onSelect={() => handleStatusChange('pending')}>
               <RotateCcw className="mr-2 h-4 w-4" />
               <span>Mark as Pending</span>
+            </DropdownMenuItem>
+          )}
+          {status !== 'pre-order' && (
+             <DropdownMenuItem onSelect={() => handleStatusChange('pre-order')}>
+              <PackageCheck className="mr-2 h-4 w-4" />
+              <span>Mark as Pre-order</span>
             </DropdownMenuItem>
           )}
           {status !== 'cancelled' && (
@@ -120,7 +126,7 @@ export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate:
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete the sale
-            and restore the stock for the products sold.
+            and restore the stock for the products sold if the order was accepted.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
