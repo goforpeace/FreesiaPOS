@@ -100,7 +100,7 @@ export default function ProductsPage() {
   }
 
   const handleRowClick = (productId: string) => {
-    router.push(`/products/${productId}/edit`);
+    router.push(`/products/${productId}`);
   };
 
   return (
