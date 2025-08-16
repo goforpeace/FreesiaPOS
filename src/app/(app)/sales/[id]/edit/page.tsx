@@ -4,9 +4,9 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { InvoiceForm } from "@/components/sales/InvoiceForm";
-import { getProducts, getSale, updateSale } from "@/lib/api";
+import { getProducts, getSale, updateSale, getCustomers } from "@/lib/api";
 import { notFound, useRouter, useParams } from "next/navigation";
-import type { Product, Sale } from "@/lib/types";
+import type { Product, Sale, Customer } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +15,7 @@ export default function EditSalePage() {
   const id = params.id as string;
   const [sale, setSale] = useState<Sale | null | undefined>(undefined);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allCustomers, setAllCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
@@ -24,12 +25,14 @@ export default function EditSalePage() {
       if (!id) return;
       try {
         setLoading(true);
-        const [saleData, productsData] = await Promise.all([
+        const [saleData, productsData, customersData] = await Promise.all([
           getSale(id),
           getProducts(),
+          getCustomers(),
         ]);
         setSale(saleData);
         setAllProducts(productsData);
+        setAllCustomers(customersData);
       } catch (error) {
         console.error("Failed to load sale and product data:", error);
         setSale(null); // Set sale to null on error to trigger notFound
@@ -87,6 +90,7 @@ export default function EditSalePage() {
         initialData={sale}
         availableProducts={availableProducts}
         allProducts={allProducts}
+        allCustomers={allCustomers}
         onSubmit={handleSubmit}
         isLoading={loading}
       />

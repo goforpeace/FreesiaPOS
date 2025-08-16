@@ -284,7 +284,7 @@ export const deleteBanner = async (id: string) => {
 const customersCollection = collection(db, 'customers');
 
 export const getCustomers = async (): Promise<Customer[]> => {
-    const q = query(customersCollection, orderBy("createdAt", "desc"));
+    const q = query(customersCollection, orderBy("updatedAt", "desc"));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer));
 };

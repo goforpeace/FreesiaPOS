@@ -4,31 +4,36 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { InvoiceForm } from "@/components/sales/InvoiceForm";
-import { getProducts } from "@/lib/api";
+import { getProducts, getCustomers } from "@/lib/api";
 import { createSaleAction } from "@/app/actions/sales";
-import type { Product } from "@/lib/types";
+import type { Product, Customer } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
 export default function NewSalePage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const productsData = await getProducts();
+        const [productsData, customersData] = await Promise.all([
+          getProducts(),
+          getCustomers(),
+        ]);
         setProducts(productsData);
+        setCustomers(customersData);
       } catch (error) {
-        console.error("Failed to fetch products:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchData();
   }, []);
 
   const handleSubmit = async (data: any) => {
@@ -64,6 +69,7 @@ export default function NewSalePage() {
       <InvoiceForm 
         availableProducts={availableProducts} 
         allProducts={products}
+        allCustomers={customers}
         onSubmit={handleSubmit}
         isLoading={loading}
       />

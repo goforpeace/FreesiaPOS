@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -9,7 +9,7 @@ import { z } from "zod"
 import { PlusCircle, X, Search } from "lucide-react"
 import Image from "next/image"
 
-import type { Product, Sale, SaleItem, ProductVariant, SelectedVariant } from "@/lib/types"
+import type { Product, Sale, SaleItem, ProductVariant, SelectedVariant, Customer } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
 import { cn } from "@/lib/utils"
@@ -60,12 +60,13 @@ export type InvoiceFormValues = z.infer<typeof invoiceFormSchema>
 interface InvoiceFormProps {
   availableProducts: Product[];
   allProducts: Product[];
+  allCustomers: Customer[];
   initialData?: Sale;
   onSubmit: (data: any) => void;
   isLoading: boolean;
 }
 
-export function InvoiceForm({ availableProducts, allProducts, initialData, onSubmit, isLoading }: InvoiceFormProps) {
+export function InvoiceForm({ availableProducts, allProducts, allCustomers, initialData, onSubmit, isLoading }: InvoiceFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,8 +100,19 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
     }
   }, [initialData, form]);
 
-  const { shippingCost, discount, advancePayment } = form.watch()
+  const { shippingCost, discount, advancePayment, customerPhone } = form.watch()
   
+  useEffect(() => {
+    if(customerPhone && allCustomers.length > 0) {
+      const foundCustomer = allCustomers.find(c => c.phone === customerPhone);
+      if(foundCustomer) {
+        form.setValue("customerName", foundCustomer.name);
+        form.setValue("customerAddress", foundCustomer.address);
+      }
+    }
+  }, [customerPhone, allCustomers, form]);
+
+
   const handleSelectProduct = (productId: string) => {
     if (!productId) return;
     const product = allProducts.find(p => p.id === productId);
@@ -345,11 +357,11 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
             <Card>
               <CardHeader><CardTitle>Customer Details</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <FormField control={form.control} name="customerName" render={({ field }) => (
-                  <FormItem><FormLabel>Name</FormLabel><FormControl><Input placeholder="Customer Name" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
                 <FormField control={form.control} name="customerPhone" render={({ field }) => (
                   <FormItem><FormLabel>Phone</FormLabel><FormControl><Input placeholder="Customer Phone" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="customerName" render={({ field }) => (
+                  <FormItem><FormLabel>Name</FormLabel><FormControl><Input placeholder="Customer Name" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="customerAddress" render={({ field }) => (
                   <FormItem><FormLabel>Address</FormLabel><FormControl><Textarea placeholder="Customer Address" {...field} /></FormControl><FormMessage /></FormItem>
