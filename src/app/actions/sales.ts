@@ -22,6 +22,7 @@ interface SaleData {
     customerName: string;
     customerPhone: string;
     customerAddress: string;
+    notes?: string;
     items: SaleItemData[];
     shippingCost: number;
     discount: number;
@@ -111,6 +112,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
                 customerPhone: data.customerPhone || null,
                 customerAddress: data.customerAddress || null,
                 customerEmail: data.customerEmail || null,
+                notes: data.notes || null,
                 items: data.items.map(item => ({
                     productId: item.productId,
                     productName: item.productName,

@@ -79,6 +79,7 @@ export interface Sale {
   date: string; // ISO 8601 format
   status: 'pending' | 'accepted' | 'cancelled' | 'pre-order';
   couponCode?: string | null;
+  notes?: string | null;
 }
 
 export interface CartItem extends Product {

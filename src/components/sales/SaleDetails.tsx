@@ -88,6 +88,12 @@ export function SaleDetails({ initialSale }: { initialSale: Sale }) {
                                     {sale.customerPhone || 'No phone provided'}
                                 </address>
                             </div>
+                             {sale.notes && (
+                                <div className="space-y-1">
+                                    <h3 className="font-semibold">Special Notes</h3>
+                                    <p className="text-muted-foreground text-sm whitespace-pre-wrap">{sale.notes}</p>
+                                </div>
+                            )}
                         </div>
                         
                         <Table>

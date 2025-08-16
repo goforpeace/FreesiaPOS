@@ -49,6 +49,7 @@ const invoiceFormSchema = z.object({
   customerName: z.string().min(2, "Name is required."),
   customerPhone: z.string().optional(),
   customerAddress: z.string().optional(),
+  notes: z.string().optional(),
   shippingCost: z.coerce.number().min(0).default(0),
   discount: z.coerce.number().min(0).default(0),
   advancePayment: z.coerce.number().min(0).default(0),
@@ -83,6 +84,7 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
       customerName: "",
       customerPhone: "",
       customerAddress: "",
+      notes: "",
       shippingCost: 0,
       discount: 0,
       advancePayment: 0,
@@ -351,6 +353,9 @@ export function InvoiceForm({ availableProducts, allProducts, initialData, onSub
                 )} />
                 <FormField control={form.control} name="customerAddress" render={({ field }) => (
                   <FormItem><FormLabel>Address</FormLabel><FormControl><Textarea placeholder="Customer Address" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="notes" render={({ field }) => (
+                  <FormItem><FormLabel>Special Notes</FormLabel><FormControl><Textarea placeholder="Any special notes for this order?" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
               </CardContent>
             </Card>
