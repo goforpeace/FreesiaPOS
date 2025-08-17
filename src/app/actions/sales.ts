@@ -5,6 +5,9 @@ import { db } from '@/lib/firebase';
 import { doc, runTransaction, collection, getDoc, query, where, getDocs, limit, setDoc, updateDoc } from 'firebase/firestore';
 import type { Sale, Product, Customer, Coupon, ProductVariant } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
+import { sendPurchaseEvent } from '@/lib/facebook-capi';
+
 
 // Define the shape of the data expected from the form
 interface SaleItemData {
@@ -37,6 +40,7 @@ interface SaleData {
 
 export async function createSaleAction(data: SaleData): Promise<{ saleId?: string; error?: string }> {
     try {
+        let createdSaleData: Sale | null = null;
         const saleId = await runTransaction(db, async (transaction) => {
             // 1. Validate coupon if provided
             let couponData: Coupon | null = null;
@@ -120,7 +124,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     imageUrl: item.imageUrl || null,
-                    variant: item.variantColor ? { color: item.variantColor, imageUrl: item.variantImageUrl || '' } : null,
+                    variant: item.variantColor ? { color: item.variantColor, imageUrl: item.variantImageUrl || '' } : undefined,
                 })),
                 shippingCost: data.shippingCost || 0,
                 discount: data.discount || 0,
@@ -134,6 +138,8 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
             };
 
             transaction.set(saleRef, newSale);
+            createdSaleData = { id: newId, ...newSale };
+
 
             // 5. Update coupon usage
             if (couponData && couponRef) {
@@ -142,6 +148,14 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
 
             return newId;
         });
+
+        if (createdSaleData) {
+            // After the transaction is successful, send the CAPI event
+            const headerList = headers();
+            const userAgent = headerList.get('user-agent');
+            const clientIp = headerList.get('x-forwarded-for');
+            await sendPurchaseEvent(createdSaleData, userAgent, clientIp);
+        }
         
         // Revalidate paths to show updated data
         revalidatePath('/');
