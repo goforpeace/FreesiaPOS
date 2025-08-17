@@ -2,10 +2,10 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import Link from "next/link";
 import { getSale } from "@/lib/api";
-import { notFound, useParams } from "next/navigation";
+import { notFound, useParams, useSearchParams } from "next/navigation";
 import { Header } from "@/components/web/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,9 +18,11 @@ import Image from "next/image";
 import * as fbp from '@/lib/fpixel';
 import html2canvas from "html2canvas";
 
-export default function OrderConfirmationPage() {
+function OrderConfirmationContent() {
     const params = useParams();
+    const searchParams = useSearchParams();
     const id = params.id as string;
+    const eventId = searchParams.get('eventId');
     const [sale, setSale] = useState<Sale | null | undefined>(undefined);
     const confirmationRef = useRef<HTMLDivElement>(null);
 
@@ -30,7 +32,7 @@ export default function OrderConfirmationPage() {
                 const fetchedSale = await getSale(id);
                 setSale(fetchedSale);
 
-                if (fetchedSale) {
+                if (fetchedSale && eventId) {
                     // Facebook Pixel: Purchase event
                     fbp.event('Purchase', {
                         value: fetchedSale.total,
@@ -38,13 +40,12 @@ export default function OrderConfirmationPage() {
                         content_ids: fetchedSale.items.map(item => item.productId),
                         content_type: 'product',
                         num_items: fetchedSale.items.reduce((acc, item) => acc + item.quantity, 0),
-                        order_id: fetchedSale.id,
-                    });
+                    }, { eventID: eventId });
                 }
             }
             fetchSale();
         }
-    }, [id]);
+    }, [id, eventId]);
 
     const handleSaveAsImage = async () => {
         const element = confirmationRef.current;
@@ -115,7 +116,7 @@ export default function OrderConfirmationPage() {
                                         <Image src={item.imageUrl || 'https://placehold.co/64x64.png'} alt={item.productName} width={48} height={48} className="rounded-md" />
                                         <div className="flex-grow">
                                             <p className="font-medium">{item.productName}</p>
-                                            {item.variant && <p className="text-xs text-muted-foreground">Color: {item.variant.color}</p>}
+                                            {item.variant?.color && <p className="text-xs text-muted-foreground">Color: {item.variant.color}</p>}
                                             {item.productDescription && <p className="text-xs text-muted-foreground whitespace-pre-line truncate w-64">{item.productDescription}</p>}
                                             <p className="text-muted-foreground">Qty: {item.quantity}</p>
                                         </div>
@@ -174,4 +175,12 @@ export default function OrderConfirmationPage() {
             </main>
         </div>
     );
+}
+
+export default function OrderConfirmationPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <OrderConfirmationContent />
+        </Suspense>
+    )
 }

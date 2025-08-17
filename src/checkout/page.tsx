@@ -162,7 +162,7 @@ export default function CheckoutPage() {
         
         form.reset();
         clearCart();
-        router.push(`/order-confirmation/${result.saleId}`);
+        router.push(`/order-confirmation/${result.saleId}?eventId=${result.eventId}`);
     }
   };
   

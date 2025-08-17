@@ -7,6 +7,7 @@ import type { Sale, Product, Customer, Coupon, ProductVariant } from '@/lib/type
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { sendPurchaseEvent } from '@/lib/facebook-capi';
+import { randomUUID } from 'crypto';
 
 
 // Define the shape of the data expected from the form
@@ -38,9 +39,11 @@ interface SaleData {
 }
 
 
-export async function createSaleAction(data: SaleData): Promise<{ saleId?: string; error?: string }> {
+export async function createSaleAction(data: SaleData): Promise<{ saleId?: string; eventId?: string; error?: string }> {
     try {
         let createdSaleData: Sale | null = null;
+        const eventId = `event-${Date.now()}-${randomUUID()}`;
+
         const saleId = await runTransaction(db, async (transaction) => {
             // 1. Validate coupon if provided
             let couponData: Coupon | null = null;
@@ -154,7 +157,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
             const headerList = headers();
             const userAgent = headerList.get('user-agent');
             const clientIp = headerList.get('x-forwarded-for');
-            await sendPurchaseEvent(createdSaleData, userAgent, clientIp);
+            await sendPurchaseEvent(createdSaleData, eventId, userAgent, clientIp);
         }
         
         // Revalidate paths to show updated data
@@ -165,7 +168,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
         revalidatePath('/coupons');
         revalidatePath('/sales');
 
-        return { saleId };
+        return { saleId, eventId };
 
     } catch (error: any) {
         console.error("Error in createSaleAction:", error);

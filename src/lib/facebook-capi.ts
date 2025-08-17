@@ -30,6 +30,7 @@ interface EventData {
         content_type: 'product';
         num_items: number;
     };
+    action_source: 'website';
 }
 
 // Hashes data using SHA256, as required by Facebook
@@ -37,7 +38,7 @@ const hash = (data: string) => {
     return crypto.createHash('sha256').update(data).digest('hex');
 };
 
-export async function sendPurchaseEvent(sale: Sale, userAgent: string | null, clientIp: string | null) {
+export async function sendPurchaseEvent(sale: Sale, eventId: string, userAgent: string | null, clientIp: string | null) {
     if (!ACCESS_TOKEN || !FB_PIXEL_ID) {
         console.warn('Facebook CAPI credentials are not set. Skipping server event.');
         return;
@@ -64,7 +65,8 @@ export async function sendPurchaseEvent(sale: Sale, userAgent: string | null, cl
         event_name: 'Purchase',
         event_time: Math.floor(new Date(sale.date).getTime() / 1000),
         event_source_url: 'https://freesia-finds-pos-82fbs.web.app/checkout', // Your checkout page URL
-        event_id: sale.id, // Use the unique sale ID as the event ID
+        event_id: eventId, // Use the unique event ID for deduplication
+        action_source: 'website',
         user_data: userData,
         custom_data: {
             currency: 'BDT',
@@ -89,7 +91,7 @@ export async function sendPurchaseEvent(sale: Sale, userAgent: string | null, cl
         if (!response.ok) {
             console.error('Error sending CAPI event to Facebook:', responseBody);
         } else {
-            console.log('Successfully sent CAPI Purchase event for sale:', sale.id);
+            console.log('Successfully sent CAPI Purchase event for sale:', sale.id, 'with event_id:', eventId);
         }
     } catch (error) {
         console.error('Failed to send Facebook CAPI event:', error);
