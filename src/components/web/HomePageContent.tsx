@@ -397,7 +397,7 @@ const tagIconMap: Record<ProductTag, React.ElementType> = {
   "Latest": Sparkles,
 };
 
-const ProductCard = ({ product }: { product: Product }) => {
+export const ProductCard = ({ product }: { product: Product }) => {
     const { addItem, openCart } = useCart();
     const router = useRouter();
 
@@ -495,7 +495,7 @@ const ProductCard = ({ product }: { product: Product }) => {
     );
 }
 
-const ProductCardSkeleton = () => (
+export const ProductCardSkeleton = () => (
     <div className="bg-card rounded-lg overflow-hidden border border-border">
         <Skeleton className="w-full aspect-square bg-muted" />
         <div className="p-4">
