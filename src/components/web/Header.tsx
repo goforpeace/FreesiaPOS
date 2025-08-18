@@ -32,7 +32,7 @@ export function Header() {
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
             <div className="bg-secondary text-secondary-foreground">
-                <div className="container flex h-10 max-w-screen-2xl items-center justify-between text-xs sm:text-sm">
+                <div className="container flex h-10 max-w-screen-2xl items-center justify-between text-xs sm:text-sm px-4">
                     <div className="flex items-center gap-2 font-medium">
                         <Phone className="h-4 w-4"/>
                         <span>Hotline: +8809649174632</span>
