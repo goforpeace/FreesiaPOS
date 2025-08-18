@@ -53,6 +53,8 @@ const productFormSchema = z.object({
   isJewelry: z.boolean().default(false),
   tag: z.enum(productTags).optional().nullable(),
   createdAt: z.date().optional(),
+  // A virtual field for the form, not part of the product schema
+  mainCategory: z.enum(["none", "bags", "jewelry"]).default("none"),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema> & {
@@ -86,6 +88,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         isJewelry: initialData?.isJewelry || false,
         tag: initialData?.tag || undefined,
         createdAt: initialData?.createdAt ? new Date(initialData.createdAt) : undefined,
+        mainCategory: initialData?.isBags ? "bags" : initialData?.isJewelry ? "jewelry" : "none",
     },
   });
 
@@ -98,6 +101,16 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
     control: form.control,
     name: 'variants',
   });
+  
+  const mainCategory = useWatch({
+    control: form.control,
+    name: 'mainCategory'
+  });
+
+  useEffect(() => {
+    form.setValue('isBags', mainCategory === 'bags');
+    form.setValue('isJewelry', mainCategory === 'jewelry');
+  }, [mainCategory, form]);
 
   useEffect(() => {
     const totalQuantity = watchedVariants.reduce((sum, variant) => sum + (Number(variant.quantity) || 0), 0);
@@ -106,15 +119,16 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
 
 
   const onSubmit = (values: z.infer<typeof productFormSchema>) => {
+    const { mainCategory, ...productData } = values; // Exclude mainCategory from final data
     const transformedValues = {
-        ...values,
-        variants: values.variants.map(variant => ({
+        ...productData,
+        variants: productData.variants.map(variant => ({
             ...variant,
             imageUrls: variant.imageUrls.map(urlObj => urlObj.value),
         })),
-        imageUrls: values.variants.flatMap(v => v.imageUrls.map(url => url.value)),
-        discountedPrice: values.discountedPrice || 0,
-        createdAt: values.createdAt ? values.createdAt.toISOString() : new Date().toISOString(),
+        imageUrls: productData.variants.flatMap(v => v.imageUrls.map(url => url.value)),
+        discountedPrice: productData.discountedPrice || 0,
+        createdAt: productData.createdAt ? productData.createdAt.toISOString() : new Date().toISOString(),
     };
     onSubmitProp(transformedValues);
   }
@@ -232,94 +246,73 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                 <CardDescription>Select categories and a tag to display this product in specific sections of the website.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                 <FormField
-                  control={form.control}
-                  name="isNewArrival"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                 <div className="space-y-2">
+                     <FormLabel>Promotional Categories</FormLabel>
+                     <FormDescription>Display this product in special sections on the homepage.</FormDescription>
+                     <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="isNewArrival"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>New Arrivals</FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
                         />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          New Arrivals
-                        </FormLabel>
-                        <FormDescription>
-                          Display this product in the "New Arrivals" section on the homepage.
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="isFlashSale"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                        <FormField
+                          control={form.control}
+                          name="isFlashSale"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Flash Sale</FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
                         />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Flash Sale
-                        </FormLabel>
-                        <FormDescription>
-                           Display this product in a special "Flash Sale" section on the homepage.
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="isBags"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Bags
-                        </FormLabel>
-                        <FormDescription>
-                           This product will appear on the "Bags" category page.
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="isJewelry"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Jewelry
-                        </FormLabel>
-                        <FormDescription>
-                          This product will appear on the "Jewelry" category page.
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                    </div>
+                 </div>
+                 <Separator />
+                  <div className="space-y-2">
+                    <FormLabel>Main Category</FormLabel>
+                    <FormDescription>Choose the primary category for this product. This will affect its dedicated page.</FormDescription>
+                     <FormField
+                      control={form.control}
+                      name="mainCategory"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a main category" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">None</SelectItem>
+                              <SelectItem value="bags">Bags</SelectItem>
+                              <SelectItem value="jewelry">Jewelry</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                 </div>
+                 <Separator />
                  <FormField
                   control={form.control}
                   name="tag"
