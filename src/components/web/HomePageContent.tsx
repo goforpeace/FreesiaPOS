@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 
 const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
@@ -305,6 +306,20 @@ export function HomePageContent() {
             </div>
           </div>
         </section>
+
+        {/* Category Buttons */}
+        <section className="py-12 px-4 md:px-8">
+            <div className="max-w-md mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button variant="outline" size="lg" className="h-16 text-lg font-semibold" asChild>
+                    <Link href="/bags">Shop Bags</Link>
+                </Button>
+                <Button variant="outline" size="lg" className="h-16 text-lg font-semibold" asChild>
+                    <Link href="/jewelry">Shop Jewelry</Link>
+                </Button>
+            </div>
+        </section>
+        
+        <Separator className="max-w-3xl mx-auto"/>
 
         {/* Flash Sale Section */}
         {flashSaleProducts.length > 0 && (

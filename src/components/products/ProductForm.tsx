@@ -50,6 +50,8 @@ const productFormSchema = z.object({
   discountedPrice: z.coerce.number().min(0).optional().nullable(),
   isNewArrival: z.boolean().default(false),
   isFlashSale: z.boolean().default(false),
+  isBags: z.boolean().default(false),
+  isJewelry: z.boolean().default(false),
   tag: z.enum(productTags).optional().nullable(),
   createdAt: z.date().optional(),
 });
@@ -81,6 +83,8 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         discountedPrice: initialData?.discountedPrice || undefined,
         isNewArrival: initialData?.isNewArrival || false,
         isFlashSale: initialData?.isFlashSale || false,
+        isBags: initialData?.isBags || false,
+        isJewelry: initialData?.isJewelry || false,
         tag: initialData?.tag || undefined,
         createdAt: initialData?.createdAt ? new Date(initialData.createdAt) : undefined,
     },
@@ -268,6 +272,50 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                         </FormLabel>
                         <FormDescription>
                            Display this product in a special "Flash Sale" section on the homepage.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="isBags"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Bags
+                        </FormLabel>
+                        <FormDescription>
+                           This product will appear on the "Bags" category page.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="isJewelry"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Jewelry
+                        </FormLabel>
+                        <FormDescription>
+                          This product will appear on the "Jewelry" category page.
                         </FormDescription>
                       </div>
                     </FormItem>

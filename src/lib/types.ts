@@ -33,6 +33,8 @@ export interface Product {
   createdAt?: string;
   isNewArrival?: boolean;
   isFlashSale?: boolean;
+  isBags?: boolean;
+  isJewelry?: boolean;
   tag?: ProductTag;
 }
 
