@@ -470,11 +470,6 @@ export const ProductCard = ({ product }: { product: Product }) => {
                                 </div>
                             </div>
                         )}
-                        {showTimer && (
-                            <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-black/60 backdrop-blur-sm text-white">
-                                <CountdownTimer expiryDate={product.discountEndDate!} />
-                            </div>
-                        )}
                     </div>
                     <div className="p-2 md:p-3 border-t border-border">
                         <h3 className="text-xs md:text-sm font-headline font-semibold text-card-foreground truncate">{product.name}</h3>
@@ -484,6 +479,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
                                 {hasDiscount && (
                                     <p className="text-xs text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
                                 )}
+                            </div>
+                        )}
+                        {showTimer && (
+                             <div className="mt-2 p-1 rounded-md bg-destructive text-destructive-foreground">
+                                <div className="flex items-center justify-center text-center text-[10px] font-medium gap-1">
+                                    <span>Offer Ends:</span>
+                                    <CountdownTimer expiryDate={product.discountEndDate!} />
+                                </div>
                             </div>
                         )}
                     </div>

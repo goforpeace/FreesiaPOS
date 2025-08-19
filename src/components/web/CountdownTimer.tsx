@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from "class-variance-authority"
 
 const countdownVariants = cva(
-  "flex items-center justify-center gap-1.5 text-center font-mono",
+  "flex items-center justify-center gap-1 text-center font-mono",
   {
     variants: {
       variant: {
@@ -25,7 +25,7 @@ const timeSegmentVariants = cva(
    {
     variants: {
       variant: {
-        default: "w-9",
+        default: "w-8",
         lg: "w-14",
       },
     },
@@ -40,7 +40,7 @@ const timeUnitVariants = cva(
    {
     variants: {
       variant: {
-        default: "text-[8px] tracking-widest",
+        default: "text-[7px] tracking-wider",
         lg: "text-xs tracking-widest",
       },
     },
@@ -50,10 +50,33 @@ const timeUnitVariants = cva(
   }
 )
 
+const timeValueVariants = cva(
+    "font-bold",
+    {
+      variants: {
+        variant: {
+          default: "text-sm",
+          lg: "text-base",
+        }
+      },
+      defaultVariants: {
+        variant: "default",
+      }
+    }
+)
+
 
 interface CountdownTimerProps extends VariantProps<typeof countdownVariants> {
   expiryDate: string;
 }
+
+const intervalMap: { [key: string]: string } = {
+    days: 'Days',
+    hours: 'Hrs',
+    minutes: 'Mins',
+    seconds: 'Secs'
+};
+
 
 export const CountdownTimer = ({ expiryDate, variant }: CountdownTimerProps) => {
   const calculateTimeLeft = () => {
@@ -86,8 +109,8 @@ export const CountdownTimer = ({ expiryDate, variant }: CountdownTimerProps) => 
 
     return (
       <div key={interval} className={cn(timeSegmentVariants({variant}))}>
-        <span className="font-bold">{String(value).padStart(2, '0')}</span>
-        <span className={cn(timeUnitVariants({variant}))}>{interval.toUpperCase()}</span>
+        <span className={cn(timeValueVariants({variant}))}>{String(value).padStart(2, '0')}</span>
+        <span className={cn(timeUnitVariants({variant}))}>{intervalMap[interval]}</span>
       </div>
     );
   });
@@ -95,7 +118,7 @@ export const CountdownTimer = ({ expiryDate, variant }: CountdownTimerProps) => 
   const separator = <span className={cn("font-bold -mt-3", variant === 'lg' ? 'text-lg' : 'text-sm')}>:</span>
 
   return (
-    <div className={cn(countdownVariants({variant}), "text-white")}>
+    <div className={cn(countdownVariants({variant}))}>
       {timerComponents.length ? (
         <>
             {timerComponents[0]}
