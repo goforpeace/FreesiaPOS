@@ -471,7 +471,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
                             </div>
                         )}
                         {showTimer && (
-                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                            <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-black/60 backdrop-blur-sm text-white">
                                 <CountdownTimer expiryDate={product.discountEndDate!} />
                             </div>
                         )}

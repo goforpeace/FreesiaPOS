@@ -95,7 +95,7 @@ export const CountdownTimer = ({ expiryDate, variant }: CountdownTimerProps) => 
   const separator = <span className={cn("font-bold -mt-3", variant === 'lg' ? 'text-lg' : 'text-sm')}>:</span>
 
   return (
-    <div className={cn(countdownVariants({variant}))}>
+    <div className={cn(countdownVariants({variant}), "text-white")}>
       {timerComponents.length ? (
         <>
             {timerComponents[0]}
