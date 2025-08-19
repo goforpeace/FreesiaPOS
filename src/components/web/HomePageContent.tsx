@@ -481,8 +481,8 @@ export const ProductCard = ({ product }: { product: Product }) => {
                                 )}
                             </div>
                         )}
-                        {showTimer && (
-                             <div className="mt-2 p-1 rounded-md bg-destructive text-destructive-foreground">
+                         {showTimer && (
+                            <div className="mt-2 p-1 rounded-md bg-destructive/10 text-destructive">
                                 <div className="flex items-center justify-center text-center text-[10px] font-medium gap-1">
                                     <span>Offer Ends:</span>
                                     <CountdownTimer expiryDate={product.discountEndDate!} />
