@@ -33,7 +33,6 @@ interface SaleData {
     subtotal: number;
     total: number;
     advancePayment: number;
-    balanceDue: number;
     couponCode?: string;
     customerEmail?: string;
 }
@@ -113,6 +112,8 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
             const newId = `inv-${Date.now().toString().slice(-5)}${Math.floor(Math.random() * 100)}`;
             const saleRef = doc(db, 'sales', newId);
             
+            const balanceDue = data.total - (data.advancePayment || 0);
+
             const newSale: Omit<Sale, 'id'> = {
                 customerId,
                 customerName: data.customerName,
@@ -134,7 +135,7 @@ export async function createSaleAction(data: SaleData): Promise<{ saleId?: strin
                 subtotal: data.subtotal,
                 total: data.total,
                 advancePayment: data.advancePayment || 0,
-                balanceDue: data.balanceDue,
+                balanceDue: balanceDue,
                 date: now,
                 status: 'pending',
                 couponCode: data.couponCode || null,
