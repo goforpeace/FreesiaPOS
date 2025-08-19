@@ -29,6 +29,7 @@ export interface Product {
   costPrice: number;
   sellPrice: number;
   discountedPrice?: number;
+  discountEndDate?: string;
   isRejected: boolean;
   createdAt?: string;
   isNewArrival?: boolean;

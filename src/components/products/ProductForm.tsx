@@ -47,6 +47,7 @@ const productFormSchema = z.object({
   costPrice: z.coerce.number().min(0, "Cost price cannot be negative."),
   sellPrice: z.coerce.number().min(0, "Sell price cannot be negative."),
   discountedPrice: z.coerce.number().min(0).optional().nullable(),
+  discountDurationHours: z.coerce.number().int().min(0).optional(),
   isNewArrival: z.boolean().default(false),
   isFlashSale: z.boolean().default(false),
   isBags: z.boolean().default(false),
@@ -82,6 +83,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         costPrice: initialData?.costPrice || 0,
         sellPrice: initialData?.sellPrice || 0,
         discountedPrice: initialData?.discountedPrice || undefined,
+        discountDurationHours: undefined,
         isNewArrival: initialData?.isNewArrival || false,
         isFlashSale: initialData?.isFlashSale || false,
         isBags: initialData?.isBags || false,
@@ -119,7 +121,14 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
 
 
   const onSubmit = (values: z.infer<typeof productFormSchema>) => {
-    const { mainCategory, ...productData } = values; // Exclude mainCategory from final data
+    const { mainCategory, discountDurationHours, ...productData } = values;
+
+    let discountEndDate = null;
+    if (productData.discountedPrice && productData.discountedPrice > 0 && discountDurationHours && discountDurationHours > 0) {
+        const now = new Date();
+        discountEndDate = new Date(now.getTime() + discountDurationHours * 60 * 60 * 1000).toISOString();
+    }
+    
     const transformedValues = {
         ...productData,
         variants: productData.variants.map(variant => ({
@@ -129,6 +138,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
         imageUrls: productData.variants.flatMap(v => v.imageUrls.map(url => url.value)),
         discountedPrice: productData.discountedPrice || 0,
         createdAt: productData.createdAt ? productData.createdAt.toISOString() : new Date().toISOString(),
+        discountEndDate: initialData?.discountEndDate && !discountDurationHours ? initialData.discountEndDate : discountEndDate,
     };
     onSubmitProp(transformedValues);
   }
@@ -183,7 +193,7 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
               <CardHeader>
                 <CardTitle>Pricing & Stock</CardTitle>
               </CardHeader>
-              <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="costPrice"
@@ -212,6 +222,20 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                 />
                  <FormField
                   control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total Quantity</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="25" {...field} readOnly className="bg-muted"/>
+                      </FormControl>
+                       <FormDescription>Calculated from variants.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
                   name="discountedPrice"
                   render={({ field }) => (
                     <FormItem>
@@ -226,14 +250,14 @@ export function ProductForm({ initialData, isSubmitting, onSubmit: onSubmitProp 
                 />
                  <FormField
                   control={form.control}
-                  name="quantity"
+                  name="discountDurationHours"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Total Quantity</FormLabel>
+                      <FormLabel>Discount Duration (Hours)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="25" {...field} readOnly className="bg-muted"/>
+                        <Input type="number" placeholder="24" {...field} />
                       </FormControl>
-                       <FormDescription>Calculated from variants.</FormDescription>
+                      <FormDescription>Set offer countdown. Re-submit to reset.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

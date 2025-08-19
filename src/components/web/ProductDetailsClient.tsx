@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { CountdownTimer } from "@/components/web/CountdownTimer";
 
 export function ProductDetailsClient({ product }: { product: Product }) {
     const router = useRouter();
@@ -98,6 +99,7 @@ export function ProductDetailsClient({ product }: { product: Product }) {
     const hasDiscount = product.discountedPrice && product.discountedPrice > 0;
     const displayPrice = hasDiscount ? product.discountedPrice : product.sellPrice;
     const originalPrice = product.sellPrice;
+    const showTimer = hasDiscount && product.discountEndDate && new Date(product.discountEndDate) > new Date();
 
     const isOutOfStock = selectedVariant ? selectedVariant.quantity <= 0 : product.quantity <= 0;
     const hasVariants = product.variants && product.variants.length > 0;
@@ -150,6 +152,13 @@ export function ProductDetailsClient({ product }: { product: Product }) {
                                 <p className="text-xl font-body text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
                             )}
                         </div>
+                        
+                        {showTimer && (
+                            <div className="mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+                                <p className="text-center text-sm font-medium text-destructive mb-2">Offer Ends In</p>
+                                <CountdownTimer expiryDate={product.discountEndDate!} variant="lg" />
+                            </div>
+                        )}
 
                         {product.variants && product.variants.length > 0 && (
                             <div className="mb-8">

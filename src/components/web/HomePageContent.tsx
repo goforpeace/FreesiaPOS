@@ -28,6 +28,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { CountdownTimer } from "@/components/web/CountdownTimer";
 
 const BannerSlider = ({ banners }: { banners: Banner[] }) => {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay()]);
@@ -429,6 +430,8 @@ export const ProductCard = ({ product }: { product: Product }) => {
     const isOutOfStock = product.quantity <= 0;
     const isActionDisabled = isOutOfStock || isUpcoming;
 
+    const showTimer = hasDiscount && product.discountEndDate && new Date(product.discountEndDate) > new Date();
+
     return (
         <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)] h-full relative">
             
@@ -465,6 +468,11 @@ export const ProductCard = ({ product }: { product: Product }) => {
                                     <PackageOpen className="h-8 w-8"/>
                                     <span className="font-bold text-lg">Out of Stock</span>
                                 </div>
+                            </div>
+                        )}
+                        {showTimer && (
+                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                                <CountdownTimer expiryDate={product.discountEndDate!} />
                             </div>
                         )}
                     </div>
