@@ -1,5 +1,4 @@
 
-
 import { db } from './firebase';
 import {
   collection,
@@ -17,7 +16,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 
-import type { Product, Sale, SaleItem, Review, Banner, Customer, Coupon } from './types';
+import type { Product, Sale, SaleItem, Review, Banner, Customer, Coupon, SaleStatus } from './types';
 import { ProductFormValues } from '@/components/products/ProductForm';
 import { InvoiceFormValues } from '@/components/sales/InvoiceForm';
 import { CustomerFormValues } from '@/components/customers/CustomerForm';
@@ -178,13 +177,15 @@ export const updateSale = async (id: string, data: SaleFormData) => {
     if (!saleSnap.exists()) throw new Error("Sale not found");
     const existingSaleData = saleSnap.data() as Sale;
 
-    // Only accepted sales affect stock, so if it's not accepted, just update the data.
-    if (existingSaleData.status !== 'accepted') {
+    const affectsStock = existingSaleData.status === 'accepted' || existingSaleData.status === 'delivered';
+
+    // If it doesn't affect stock, just update the data.
+    if (!affectsStock) {
         await updateDoc(saleRef, saleData as any);
         return;
     }
 
-    // If the sale is 'accepted', we need to run a transaction to adjust stock.
+    // If the sale affects stock, we need to run a transaction to adjust stock.
     await runTransaction(db, async (transaction) => {
         const productRefs = new Map<string, ReturnType<typeof doc>>();
         const productDocs = new Map<string, any>();
@@ -232,7 +233,7 @@ export const updateSale = async (id: string, data: SaleFormData) => {
     });
 };
 
-export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted' | 'cancelled' | 'pre-order') => {
+export const updateSaleStatus = async (id: string, status: SaleStatus) => {
     const saleRef = doc(db, 'sales', id);
     
     await runTransaction(db, async (transaction) => {
@@ -243,11 +244,13 @@ export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted
 
         const sale = saleSnap.data() as Sale;
         const oldStatus = sale.status || 'pending';
+        const oldStatusAffectsStock = oldStatus === 'accepted' || oldStatus === 'delivered';
+        const newStatusAffectsStock = status === 'accepted' || status === 'delivered';
 
         if (oldStatus === status) return; // No change
 
-        // If moving TO accepted FROM a non-accepted state
-        if (status === 'accepted' && oldStatus !== 'accepted') {
+        // If moving TO a stock-affecting state FROM a non-stock-affecting one
+        if (newStatusAffectsStock && !oldStatusAffectsStock) {
             for (const item of sale.items) {
                 const productRef = doc(db, 'products', item.productId);
                 const productDoc = await transaction.get(productRef);
@@ -260,8 +263,8 @@ export const updateSaleStatus = async (id: string, status: 'pending' | 'accepted
                 }
             }
         } 
-        // If moving FROM accepted TO a non-accepted state
-        else if (oldStatus === 'accepted' && status !== 'accepted') {
+        // If moving FROM a stock-affecting state TO a non-stock-affecting one
+        else if (oldStatusAffectsStock && !newStatusAffectsStock) {
             for (const item of sale.items) {
                 const productRef = doc(db, 'products', item.productId);
                 const productDoc = await transaction.get(productRef);
@@ -287,8 +290,9 @@ export const deleteSale = async (id: string) => {
         }
         const sale = saleSnap.data() as Sale;
 
-        // Restore stock only if the sale was 'accepted'
-        if (sale.status === 'accepted') {
+        // Restore stock only if the sale affected stock
+        const affectsStock = sale.status === 'accepted' || sale.status === 'delivered';
+        if (affectsStock) {
             for (const item of sale.items) {
                 const productRef = doc(db, 'products', item.productId);
                 const productSnap = await transaction.get(productRef);

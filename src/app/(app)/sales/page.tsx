@@ -24,11 +24,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { getSales } from "@/lib/api";
 import { SalesActions } from "@/components/sales/SalesActions";
 import { formatCurrency, cn } from "@/lib/utils";
-import type { Sale } from "@/lib/types";
+import type { Sale, SaleStatus } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SalesPage() {
@@ -36,6 +43,7 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [statusFilter, setStatusFilter] = useState<SaleStatus | "all">("all");
   const [selectedSaleIds, setSelectedSaleIds] = useState<string[]>([]);
   const router = useRouter();
 
@@ -68,9 +76,11 @@ export default function SalesPage() {
       sale.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       sale.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (sale.customerPhone && sale.customerPhone.includes(searchTerm));
+      
+    const matchesStatus = statusFilter === 'all' || sale.status === statusFilter;
 
-    return inDateRange && matchesSearch;
-  }), [sales, searchTerm, dateRange]);
+    return inDateRange && matchesSearch && matchesStatus;
+  }), [sales, searchTerm, dateRange, statusFilter]);
   
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -170,6 +180,19 @@ export default function SalesPage() {
                 />
                 </PopoverContent>
             </Popover>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="accepted">Accepted</SelectItem>
+                <SelectItem value="pre-order">Pre-order</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
              <Button variant="outline" asChild>
                 <CSVLink
                     data={allSalesCsvData}
@@ -246,6 +269,7 @@ export default function SalesPage() {
                       key={sale.id} 
                       className={cn("cursor-pointer", {
                           'bg-green-500/10 hover:bg-green-500/20 data-[state=selected]:bg-green-500/20': status === 'accepted',
+                          'bg-sky-500/10 hover:bg-sky-500/20 data-[state=selected]:bg-sky-500/20': status === 'delivered',
                           'bg-red-500/10 hover:bg-red-500/20 data-[state=selected]:bg-red-500/20': status === 'cancelled',
                           'bg-yellow-500/10 hover:bg-yellow-500/20 data-[state=selected]:bg-yellow-500/20': status === 'pending',
                           'bg-blue-500/10 hover:bg-blue-500/20 data-[state=selected]:bg-blue-500/20': status === 'pre-order',
@@ -268,6 +292,7 @@ export default function SalesPage() {
                             variant={status === 'accepted' ? 'secondary' : status === 'cancelled' ? 'destructive' : 'outline'}
                             className={cn({
                                 'bg-green-600 text-white hover:bg-green-700': status === 'accepted',
+                                'bg-sky-600 text-white hover:bg-sky-700': status === 'delivered',
                                 'bg-red-600 text-white hover:bg-red-700': status === 'cancelled',
                                 'bg-yellow-500 text-white hover:bg-yellow-600': status === 'pending',
                                 'bg-blue-600 text-white hover:bg-blue-700': status === 'pre-order',

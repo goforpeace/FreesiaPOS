@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MoreHorizontal, Eye, Trash2, Pencil, CheckCircle, XCircle, RotateCcw, PackageCheck } from "lucide-react";
+import { MoreHorizontal, Eye, Trash2, Pencil, CheckCircle, XCircle, RotateCcw, PackageCheck, Truck } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -24,12 +24,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { deleteSale, updateSaleStatus } from "@/lib/api";
-import type { Sale } from "@/lib/types";
+import type { Sale, SaleStatus } from "@/lib/types";
 
 export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate: () => void }) {
   const { toast } = useToast();
 
-  const handleStatusChange = async (status: 'pending' | 'accepted' | 'cancelled' | 'pre-order') => {
+  const handleStatusChange = async (status: SaleStatus) => {
     try {
       await updateSaleStatus(sale.id, status);
        toast({
@@ -93,6 +93,12 @@ export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate:
               <span>Mark as Pre-order</span>
             </DropdownMenuItem>
           )}
+           {status !== 'delivered' && (
+             <DropdownMenuItem onSelect={() => handleStatusChange('delivered')}>
+              <Truck className="mr-2 h-4 w-4" />
+              <span>Mark as Delivered</span>
+            </DropdownMenuItem>
+          )}
           {status !== 'cancelled' && (
              <DropdownMenuItem onSelect={() => handleStatusChange('cancelled')}>
               <XCircle className="mr-2 h-4 w-4" />
@@ -126,7 +132,7 @@ export function SalesActions({ sale, onSaleUpdate }: { sale: Sale, onSaleUpdate:
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete the sale
-            and restore the stock for the products sold if the order was accepted.
+            and restore the stock for the products sold if the order was accepted or delivered.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

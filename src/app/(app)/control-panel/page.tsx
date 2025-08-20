@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Sun,
   Hourglass,
+  XCircle,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -44,12 +45,14 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
-  const acceptedSales = sales.filter(s => s.status === 'accepted');
+  const acceptedSales = sales.filter(s => s.status === 'accepted' || s.status === 'delivered');
   const pendingSales = sales.filter(s => s.status === 'pending');
+  const cancelledSales = sales.filter(s => s.status === 'cancelled');
 
   const totalSalesValue = acceptedSales.reduce((acc, sale) => acc + sale.total, 0);
   const totalOrders = acceptedSales.length;
   const totalPendingOrders = pendingSales.length;
+  const totalCancelledOrders = cancelledSales.length;
 
   // Correct Profit Calculation: (Total Revenue from items) - (Total Cost of items sold)
   const totalProfit = acceptedSales.reduce((acc, sale) => {
@@ -100,11 +103,12 @@ export default function DashboardPage() {
     <>
       <Header title="Dashboard" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Sales" value={formatCurrency(totalSalesValue)} icon={CircleDollarSign} description="From accepted sales" />
+        <StatCard title="Total Sales" value={formatCurrency(totalSalesValue)} icon={CircleDollarSign} description="From accepted/delivered sales" />
         <StatCard title="Daily Sales" value={formatCurrency(dailySales)} icon={Sun} description="From accepted sales today" />
-        <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} description="From accepted sales" />
+        <StatCard title="Total Profit" value={formatCurrency(totalProfit)} icon={PiggyBank} description="From accepted/delivered sales" />
         <StatCard title="Accepted Orders" value={totalOrders.toString()} icon={ClipboardList} />
         <StatCard title="Pending Orders" value={totalPendingOrders.toString()} icon={Hourglass} />
+        <StatCard title="Cancelled Orders" value={totalCancelledOrders.toString()} icon={XCircle} />
         <StatCard title="Total Stock" value={totalStock.toString()} icon={Package} />
         <StatCard title="Stock Value (Cost)" value={formatCurrency(totalProductValue)} icon={ReceiptText} />
         <StatCard title="Rejected Products" value={rejectedProductsCount.toString()} icon={PackageX} />

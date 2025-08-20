@@ -65,6 +65,8 @@ export interface SaleItem {
   variant?: { color: string; imageUrl: string | null };
 }
 
+export type SaleStatus = 'pending' | 'accepted' | 'cancelled' | 'pre-order' | 'delivered';
+
 export interface Sale {
   id: string; // Invoice Number
   customerId?: string;
@@ -80,7 +82,7 @@ export interface Sale {
   advancePayment?: number;
   balanceDue?: number;
   date: string; // ISO 8601 format
-  status: 'pending' | 'accepted' | 'cancelled' | 'pre-order';
+  status: SaleStatus;
   couponCode?: string | null;
   notes?: string | null;
 }
