@@ -438,19 +438,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
                 <CardContent className="p-0">
                      <div className="relative aspect-square w-full overflow-hidden">
                         {showTimer && (
-                            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 w-[90%] bg-black/60 text-white p-1.5 rounded-lg backdrop-blur-sm">
+                            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 w-fit max-w-[95%] bg-black/60 text-white p-1.5 rounded-lg backdrop-blur-sm">
                                 <div className="flex items-center justify-center text-center text-[10px] font-medium gap-1">
                                     <span className="font-bold uppercase tracking-wide">Offer Ends:</span>
                                     <CountdownTimer expiryDate={product.discountEndDate!} />
                                 </div>
                             </div>
                         )}
-                         {product.tag && TagIcon && (
-                            <div className="absolute top-2 left-2 z-10 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                                <TagIcon className="h-3 w-3" />
-                                <span>{product.tag}</span>
-                            </div>
-                         )}
+                         
                         <Image
                             src={product.imageUrls?.[0] || 'https://placehold.co/400x400.png'}
                             alt={product.name}
@@ -460,6 +455,12 @@ export const ProductCard = ({ product }: { product: Product }) => {
                             placeholder="blur"
                             blurDataURL={BLUR_DATA_URL}
                         />
+                        {product.tag && TagIcon && (
+                            <div className="absolute bottom-2 left-2 z-10 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                                <TagIcon className="h-3 w-3" />
+                                <span>{product.tag}</span>
+                            </div>
+                         )}
                          {isOutOfStock && !isUpcoming && (
                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                                 <div className="flex flex-col items-center gap-1 text-white">
@@ -509,3 +510,4 @@ export const ProductCardSkeleton = () => (
         </div>
     </div>
 );
+
