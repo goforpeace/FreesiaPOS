@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from "class-variance-authority"
 
 const countdownVariants = cva(
-  "flex items-center justify-center gap-0.5 text-center font-mono",
+  "flex items-center justify-center gap-0 text-center font-mono",
   {
     variants: {
       variant: {
