@@ -434,25 +434,23 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
     return (
         <Card className="group overflow-hidden flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card border-border shadow-[0_2px_8px_rgba(0,0,0,0.05)] h-full relative">
-            
-            <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
-                {product.tag && TagIcon && (
-                <div className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                    <TagIcon className="h-3 w-3" />
-                    <span>{product.tag}</span>
-                </div>
-                )}
-                {isUpcoming && (
-                    <div className="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                        <Clock className="h-3 w-3" />
-                        <span>Upcoming</span>
-                    </div>
-                )}
-            </div>
-
             <Link href={`/product/${product.id}`} className="flex flex-col h-full">
                 <CardContent className="p-0">
                      <div className="relative aspect-square w-full overflow-hidden">
+                        {showTimer && (
+                            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 w-[90%] bg-black/60 text-white p-1.5 rounded-lg backdrop-blur-sm">
+                                <div className="flex items-center justify-center text-center text-[10px] font-medium gap-1">
+                                    <span className="font-bold uppercase tracking-wide">Offer Ends:</span>
+                                    <CountdownTimer expiryDate={product.discountEndDate!} />
+                                </div>
+                            </div>
+                        )}
+                         {product.tag && TagIcon && (
+                            <div className="absolute top-2 left-2 z-10 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                                <TagIcon className="h-3 w-3" />
+                                <span>{product.tag}</span>
+                            </div>
+                         )}
                         <Image
                             src={product.imageUrls?.[0] || 'https://placehold.co/400x400.png'}
                             alt={product.name}
@@ -479,14 +477,6 @@ export const ProductCard = ({ product }: { product: Product }) => {
                                 {hasDiscount && (
                                     <p className="text-xs text-muted-foreground line-through">{formatCurrency(originalPrice)}</p>
                                 )}
-                            </div>
-                        )}
-                         {showTimer && (
-                            <div className="mt-2 p-1 rounded-md bg-destructive/10 text-destructive">
-                                <div className="flex items-center justify-center text-center text-[10px] font-medium gap-1">
-                                    <span>Offer Ends:</span>
-                                    <CountdownTimer expiryDate={product.discountEndDate!} />
-                                </div>
                             </div>
                         )}
                     </div>

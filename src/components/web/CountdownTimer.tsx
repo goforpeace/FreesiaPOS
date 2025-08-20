@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from "class-variance-authority"
 
 const countdownVariants = cva(
-  "flex items-center justify-center gap-1 text-center font-mono",
+  "flex items-center justify-center gap-0.5 text-center font-mono",
   {
     variants: {
       variant: {
@@ -21,11 +21,11 @@ const countdownVariants = cva(
 )
 
 const timeSegmentVariants = cva(
-  "flex flex-col items-center p-1 rounded-md",
+  "flex flex-col items-center rounded-md",
    {
     variants: {
       variant: {
-        default: "w-8",
+        default: "w-7",
         lg: "w-14",
       },
     },
@@ -40,7 +40,7 @@ const timeUnitVariants = cva(
    {
     variants: {
       variant: {
-        default: "text-[7px] tracking-wider",
+        default: "text-[8px] tracking-tighter font-bold",
         lg: "text-xs tracking-widest",
       },
     },
@@ -55,8 +55,8 @@ const timeValueVariants = cva(
     {
       variants: {
         variant: {
-          default: "text-sm",
-          lg: "text-base",
+          default: "text-base",
+          lg: "text-2xl",
         }
       },
       defaultVariants: {
@@ -115,7 +115,7 @@ export const CountdownTimer = ({ expiryDate, variant }: CountdownTimerProps) => 
     );
   });
   
-  const separator = <span className={cn("font-bold -mt-3", variant === 'lg' ? 'text-lg' : 'text-sm')}>:</span>
+  const separator = <span className={cn("font-bold -mt-2", variant === 'lg' ? 'text-xl' : 'text-base')}>:</span>
 
   return (
     <div className={cn(countdownVariants({variant}))}>
@@ -130,7 +130,7 @@ export const CountdownTimer = ({ expiryDate, variant }: CountdownTimerProps) => 
             {timerComponents[3]}
         </>
       ) : (
-        <span>Offer has expired!</span>
+        <span className="font-bold uppercase tracking-wider">Offer Expired!</span>
       )}
     </div>
   );

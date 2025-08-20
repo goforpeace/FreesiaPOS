@@ -58,6 +58,26 @@ export const updateProduct = async (id: string, data: ProductFormValues & { crea
   await updateDoc(docRef, data as any);
 };
 
+export const setGlobalDiscountDuration = async (hours: number): Promise<number> => {
+    const productsSnapshot = await getDocs(query(productsCollection, where("discountedPrice", ">", 0)));
+    
+    if (productsSnapshot.empty) {
+        return 0;
+    }
+
+    const batch = writeBatch(db);
+    const now = new Date();
+    const discountEndDate = new Date(now.getTime() + hours * 60 * 60 * 1000).toISOString();
+
+    productsSnapshot.docs.forEach(productDoc => {
+        const productRef = doc(db, 'products', productDoc.id);
+        batch.update(productRef, { discountEndDate });
+    });
+
+    await batch.commit();
+    return productsSnapshot.docs.length;
+}
+
 
 export const deleteProduct = async (id: string) => {
   const salesCollection = collection(db, 'sales');

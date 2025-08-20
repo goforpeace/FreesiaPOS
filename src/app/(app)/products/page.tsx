@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { PlusCircle, Search, ClipboardCopy } from "lucide-react";
+import { PlusCircle, Search, ClipboardCopy, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import {
@@ -25,12 +25,22 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getProducts } from "@/lib/api";
+import { getProducts, setGlobalDiscountDuration } from "@/lib/api";
 import { ProductActions } from "@/components/products/ProductActions";
 import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -39,6 +49,11 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
+
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [offerDuration, setOfferDuration] = useState(24);
+  const [isSettingOffer, setIsSettingOffer] = useState(false);
+
 
   const refreshProducts = useCallback(async () => {
     try {
@@ -103,6 +118,25 @@ export default function ProductsPage() {
     router.push(`/products/${productId}`);
   };
 
+  const handleSetGlobalOffer = async () => {
+    if (!offerDuration || offerDuration <= 0) {
+        toast({ title: "Invalid Duration", description: "Please enter a positive number of hours.", variant: "destructive" });
+        return;
+    }
+    setIsSettingOffer(true);
+    try {
+        const count = await setGlobalDiscountDuration(offerDuration);
+        toast({ title: "Offers Updated", description: `Set a ${offerDuration}-hour offer for ${count} discounted products.` });
+        await refreshProducts();
+        setIsOfferModalOpen(false);
+    } catch (error: any) {
+        toast({ title: "Error Setting Offers", description: error.message, variant: "destructive" });
+    } finally {
+        setIsSettingOffer(false);
+    }
+  }
+
+
   return (
     <>
       <Header title="All Products">
@@ -132,6 +166,40 @@ export default function ProductsPage() {
                 <SelectItem value="sellPrice-asc">Price (Low-High)</SelectItem>
               </SelectContent>
             </Select>
+            <Dialog open={isOfferModalOpen} onOpenChange={setIsOfferModalOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline">
+                        <Sparkles className="mr-2 h-4 w-4"/>
+                        Set Global Offer
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Set Global Offer Duration</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4 space-y-2">
+                        <Label htmlFor="offer-duration">Offer Duration (in hours)</Label>
+                        <Input
+                            id="offer-duration"
+                            type="number"
+                            value={offerDuration}
+                            onChange={(e) => setOfferDuration(parseInt(e.target.value))}
+                            placeholder="e.g., 24"
+                        />
+                        <p className="text-sm text-muted-foreground">
+                            This will apply the same countdown timer to ALL products that currently have a discounted price.
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button onClick={handleSetGlobalOffer} disabled={isSettingOffer}>
+                            {isSettingOffer ? "Applying..." : "Apply to All"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
             <Button onClick={() => router.push('/products/new')}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Product
