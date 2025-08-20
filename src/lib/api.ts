@@ -78,6 +78,52 @@ export const setGlobalDiscountDuration = async (hours: number): Promise<number> 
     return productsSnapshot.docs.length;
 }
 
+export const applyBulkDiscount = async (productIds: string[], discountPercentage: number): Promise<number> => {
+    if (productIds.length === 0 || discountPercentage <= 0 || discountPercentage > 100) {
+        throw new Error("Invalid input for bulk discount.");
+    }
+    const batch = writeBatch(db);
+    let updatedCount = 0;
+
+    for (const id of productIds) {
+        const productRef = doc(db, 'products', id);
+        const productSnap = await getDoc(productRef);
+        if (productSnap.exists()) {
+            const product = productSnap.data() as Product;
+            const discountedPrice = product.sellPrice * (1 - discountPercentage / 100);
+            batch.update(productRef, { discountedPrice: Math.round(discountedPrice) });
+            updatedCount++;
+        }
+    }
+    await batch.commit();
+    return updatedCount;
+}
+
+export const applyBulkOfferDuration = async (productIds: string[], durationHours: number): Promise<number> => {
+     if (productIds.length === 0 || durationHours <= 0) {
+        throw new Error("Invalid input for bulk offer duration.");
+    }
+    const batch = writeBatch(db);
+    let updatedCount = 0;
+    const now = new Date();
+    const discountEndDate = new Date(now.getTime() + durationHours * 60 * 60 * 1000).toISOString();
+
+    for (const id of productIds) {
+        const productRef = doc(db, 'products', id);
+        const productSnap = await getDoc(productRef);
+         if (productSnap.exists()) {
+            const product = productSnap.data() as Product;
+            // Only apply timer to products that have a discount
+            if (product.discountedPrice && product.discountedPrice > 0) {
+                 batch.update(productRef, { discountEndDate });
+                 updatedCount++;
+            }
+        }
+    }
+    await batch.commit();
+    return updatedCount;
+}
+
 
 export const deleteProduct = async (id: string) => {
   const salesCollection = collection(db, 'sales');

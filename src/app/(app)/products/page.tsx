@@ -1,10 +1,11 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { PlusCircle, Search, ClipboardCopy, Sparkles } from "lucide-react";
+import { PlusCircle, Search, ClipboardCopy, Sparkles, Percent, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import {
@@ -25,7 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getProducts, setGlobalDiscountDuration } from "@/lib/api";
+import { getProducts, applyBulkDiscount, applyBulkOfferDuration } from "@/lib/api";
 import { ProductActions } from "@/components/products/ProductActions";
 import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/types";
@@ -41,6 +42,7 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,9 +52,14 @@ export default function ProductsPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
+  // State for bulk action modals
+  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [discountPercent, setDiscountPercent] = useState(10);
   const [offerDuration, setOfferDuration] = useState(24);
-  const [isSettingOffer, setIsSettingOffer] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   const refreshProducts = useCallback(async () => {
@@ -70,7 +77,7 @@ export default function ProductsPage() {
   useEffect(() => {
     refreshProducts();
   }, [refreshProducts]);
-
+  
   const sortedProducts = useMemo(() => {
     let sorted = [...products];
     if (sortOption) {
@@ -118,21 +125,55 @@ export default function ProductsPage() {
     router.push(`/products/${productId}`);
   };
 
-  const handleSetGlobalOffer = async () => {
-    if (!offerDuration || offerDuration <= 0) {
-        toast({ title: "Invalid Duration", description: "Please enter a positive number of hours.", variant: "destructive" });
+  const handleSelectAll = (checked: boolean) => {
+      setSelectedProductIds(checked ? filteredProducts.map(p => p.id) : []);
+  }
+
+  const handleSelectRow = (id: string, checked: boolean) => {
+      setSelectedProductIds(prev => 
+        checked ? [...prev, id] : prev.filter(pId => pId !== id)
+      );
+  }
+
+  const isAllSelected = filteredProducts.length > 0 && selectedProductIds.length === filteredProducts.length;
+
+  const handleApplyDiscount = async () => {
+    if (selectedProductIds.length === 0) return;
+    if (discountPercent <= 0 || discountPercent > 100) {
+        toast({ title: "Invalid Percentage", description: "Please enter a value between 1 and 100.", variant: "destructive"});
         return;
     }
-    setIsSettingOffer(true);
+    setIsSubmitting(true);
     try {
-        const count = await setGlobalDiscountDuration(offerDuration);
-        toast({ title: "Offers Updated", description: `Set a ${offerDuration}-hour offer for ${count} discounted products.` });
+        const count = await applyBulkDiscount(selectedProductIds, discountPercent);
+        toast({ title: "Discount Applied", description: `Applied a ${discountPercent}% discount to ${count} products.` });
         await refreshProducts();
+        setSelectedProductIds([]);
+        setIsDiscountModalOpen(false);
+    } catch (error: any) {
+        toast({ title: "Error Applying Discount", description: error.message, variant: "destructive"});
+    } finally {
+        setIsSubmitting(false);
+    }
+  }
+  
+  const handleApplyOfferDuration = async () => {
+    if (selectedProductIds.length === 0) return;
+    if (offerDuration <= 0) {
+        toast({ title: "Invalid Duration", description: "Please enter a positive number of hours.", variant: "destructive"});
+        return;
+    }
+    setIsSubmitting(true);
+    try {
+        const count = await applyBulkOfferDuration(selectedProductIds, offerDuration);
+        toast({ title: "Offer Timer Set", description: `Set a ${offerDuration}-hour offer for ${count} discounted products.`});
+        await refreshProducts();
+        setSelectedProductIds([]);
         setIsOfferModalOpen(false);
     } catch (error: any) {
-        toast({ title: "Error Setting Offers", description: error.message, variant: "destructive" });
+        toast({ title: "Error Setting Offer", description: error.message, variant: "destructive"});
     } finally {
-        setIsSettingOffer(false);
+        setIsSubmitting(false);
     }
   }
 
@@ -166,40 +207,45 @@ export default function ProductsPage() {
                 <SelectItem value="sellPrice-asc">Price (Low-High)</SelectItem>
               </SelectContent>
             </Select>
-            <Dialog open={isOfferModalOpen} onOpenChange={setIsOfferModalOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="outline">
-                        <Sparkles className="mr-2 h-4 w-4"/>
-                        Set Global Offer
-                    </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Set Global Offer Duration</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4 space-y-2">
-                        <Label htmlFor="offer-duration">Offer Duration (in hours)</Label>
-                        <Input
-                            id="offer-duration"
-                            type="number"
-                            value={offerDuration}
-                            onChange={(e) => setOfferDuration(parseInt(e.target.value))}
-                            placeholder="e.g., 24"
-                        />
-                        <p className="text-sm text-muted-foreground">
-                            This will apply the same countdown timer to ALL products that currently have a discounted price.
-                        </p>
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button type="button" variant="outline">Cancel</Button>
-                        </DialogClose>
-                        <Button onClick={handleSetGlobalOffer} disabled={isSettingOffer}>
-                            {isSettingOffer ? "Applying..." : "Apply to All"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {selectedProductIds.length > 0 && (
+                <div className="flex items-center gap-2">
+                    <Dialog open={isDiscountModalOpen} onOpenChange={setIsDiscountModalOpen}>
+                        <DialogTrigger asChild>
+                           <Button variant="outline"><Percent className="mr-2 h-4 w-4"/>Set Bulk Discount</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader><DialogTitle>Set Bulk Discount</DialogTitle></DialogHeader>
+                            <div className="py-4 space-y-2">
+                                <Label htmlFor="discount-percent">Discount Percentage (%)</Label>
+                                <Input id="discount-percent" type="number" value={discountPercent} onChange={(e) => setDiscountPercent(parseInt(e.target.value))} placeholder="e.g., 15"/>
+                                <p className="text-sm text-muted-foreground">This will apply the discount to the selling price of the {selectedProductIds.length} selected products.</p>
+                            </div>
+                            <DialogFooter>
+                                <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
+                                <Button onClick={handleApplyDiscount} disabled={isSubmitting}>{isSubmitting ? "Applying..." : "Apply Discount"}</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={isOfferModalOpen} onOpenChange={setIsOfferModalOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline"><Clock className="mr-2 h-4 w-4"/>Set Bulk Offer</Button>
+                        </DialogTrigger>
+                         <DialogContent>
+                            <DialogHeader><DialogTitle>Set Bulk Offer Duration</DialogTitle></DialogHeader>
+                            <div className="py-4 space-y-2">
+                                <Label htmlFor="offer-duration">Offer Duration (in hours)</Label>
+                                <Input id="offer-duration" type="number" value={offerDuration} onChange={(e) => setOfferDuration(parseInt(e.target.value))} placeholder="e.g., 24"/>
+                                <p className="text-sm text-muted-foreground">This will apply the timer to the {selectedProductIds.length} selected products that have a discount price.</p>
+                            </div>
+                            <DialogFooter>
+                                <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
+                                <Button onClick={handleApplyOfferDuration} disabled={isSubmitting}>{isSubmitting ? "Applying..." : "Apply Offer"}</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            )}
             <Button onClick={() => router.push('/products/new')}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Product
@@ -211,6 +257,13 @@ export default function ProductsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                 <TableHead className="w-[50px]">
+                    <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                        aria-label="Select all rows"
+                    />
+                 </TableHead>
                 <TableHead className="hidden w-[100px] sm:table-cell">
                   <span className="sr-only">Image</span>
                 </TableHead>
@@ -230,6 +283,7 @@ export default function ProductsPage() {
               {loading ? (
                 [...Array(5)].map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-5"/></TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <Skeleton className="aspect-square rounded-md h-16 w-16" />
                     </TableCell>
@@ -245,8 +299,18 @@ export default function ProductsPage() {
                 ))
               ) : (
                 filteredProducts.map((product) => (
-                  <TableRow key={product.id} onClick={() => handleRowClick(product.id)} className="cursor-pointer">
-                    <TableCell className="hidden sm:table-cell">
+                  <TableRow 
+                    key={product.id} 
+                    data-state={selectedProductIds.includes(product.id) ? "selected" : ""}
+                  >
+                    <TableCell>
+                        <Checkbox 
+                            checked={selectedProductIds.includes(product.id)}
+                            onCheckedChange={(checked) => handleSelectRow(product.id, Boolean(checked))}
+                            aria-label={`Select product ${product.name}`}
+                        />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell" onClick={() => handleRowClick(product.id)}>
                       <Image
                         alt={product.name}
                         className="aspect-square rounded-md object-cover"
@@ -256,12 +320,12 @@ export default function ProductsPage() {
                         data-ai-hint="product image"
                       />
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium" onClick={() => handleRowClick(product.id)}>
                       <div className="truncate w-48" title={product.name}>
                         {product.name}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={() => handleRowClick(product.id)}>
                       {product.quantity > 0 ? (
                         <Badge variant="secondary">In Stock</Badge>
                       ) : (
@@ -274,10 +338,10 @@ export default function ProductsPage() {
                           Copy Link
                       </Button>
                     </TableCell>
-                    <TableCell className="text-right">{product.quantity}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(product.costPrice)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(product.sellPrice)}</TableCell>
-                     <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={() => handleRowClick(product.id)}>{product.quantity}</TableCell>
+                    <TableCell className="text-right" onClick={() => handleRowClick(product.id)}>{formatCurrency(product.costPrice)}</TableCell>
+                    <TableCell className="text-right" onClick={() => handleRowClick(product.id)}>{formatCurrency(product.sellPrice)}</TableCell>
+                     <TableCell className="text-right" onClick={() => handleRowClick(product.id)}>
                         {product.discountedPrice && product.discountedPrice > 0 ? formatCurrency(product.discountedPrice) : '-'}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
