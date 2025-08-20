@@ -21,12 +21,12 @@ const countdownVariants = cva(
 )
 
 const timeSegmentVariants = cva(
-  "flex flex-col items-center rounded-md",
+  "flex flex-col items-center",
    {
     variants: {
       variant: {
-        default: "w-7",
-        lg: "w-14",
+        default: "",
+        lg: "px-1",
       },
     },
     defaultVariants: {
@@ -115,7 +115,7 @@ export const CountdownTimer = ({ expiryDate, variant }: CountdownTimerProps) => 
     );
   });
   
-  const separator = <span className={cn("font-bold -mt-2", variant === 'lg' ? 'text-xl' : 'text-base', variant === 'default' && '-mx-0.5')}>:</span>
+  const separator = <span className={cn("font-bold -mt-2", variant === 'lg' ? 'text-xl' : 'text-base')}>:</span>
 
   return (
     <div className={cn(countdownVariants({variant}))}>
